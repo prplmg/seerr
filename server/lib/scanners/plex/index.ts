@@ -435,6 +435,16 @@ class PlexScanner
         mediaIds.tmdbId = show.id;
       }
 
+      // Local identity override: Plex merges the 2007 series and 2023 revival.
+      // Scope to the known TVDB identity and the exact ambiguous TMDB pair.
+      if (
+        mediaIds.tvdbId === 80552 &&
+        metadata.Guid.some((ref) => ref.id === 'tmdb://11294') &&
+        metadata.Guid.some((ref) => ref.id === 'tmdb://235884')
+      ) {
+        mediaIds.tmdbId = 11294;
+      }
+
       // Cache GUIDs
       guidCache.data.set(plexitem.ratingKey, mediaIds);
 

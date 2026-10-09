@@ -1,3 +1,4 @@
+import catalogueMessages from '@app/components/Discover/catalogueMessages';
 import Button from '@app/components/Common/Button';
 import MultiRangeSlider from '@app/components/Common/MultiRangeSlider';
 import SlideOver from '@app/components/Common/SlideOver';
@@ -80,6 +81,12 @@ const FilterSlideover = ({
       onClose={() => onClose()}
     >
       <div className="flex flex-col space-y-4">
+        <label className="flex cursor-pointer items-center gap-3" htmlFor="alreadyOnPlex">
+          <input id="alreadyOnPlex" type="checkbox" checked={currentFilters.alreadyOnPlex === 'true'} onChange={(event) => updateQueryParams('alreadyOnPlex', event.target.checked ? 'true' : undefined)} />
+          <span>{intl.formatMessage(catalogueMessages.alreadyOnPlex)}</span>
+        </label>
+        <p className="text-sm text-gray-400">{intl.formatMessage(catalogueMessages.filterHelp)}</p>
+        <fieldset disabled={currentFilters.alreadyOnPlex === 'true'} inert={currentFilters.alreadyOnPlex === 'true'} className={currentFilters.alreadyOnPlex === 'true' ? 'flex flex-col space-y-4 opacity-40' : 'flex flex-col space-y-4'}>
         <div>
           <div className="mb-2 text-lg font-semibold">
             {intl.formatMessage(
@@ -357,6 +364,7 @@ const FilterSlideover = ({
             }
           }}
         />
+        </fieldset>
         <div className="pt-4">
           <Button
             className="w-full"

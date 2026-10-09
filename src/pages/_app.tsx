@@ -1,4 +1,4 @@
-import Layout from '@app/components/Layout';
+﻿import Layout from '@app/components/Layout';
 import LoadingBar from '@app/components/LoadingBar';
 import PWAHeader from '@app/components/PWAHeader';
 import ServiceWorkerSetup from '@app/components/ServiceWorkerSetup';
@@ -276,7 +276,7 @@ CoreApp.getInitialProps = async (initialProps) => {
     const initialized = response.data.initialized;
 
     if (!initialized) {
-      if (!router.pathname.match(/(setup|login\/plex)/)) {
+      if (!router.pathname.match(/(setup|login\/plex)/) && !ctx.req?.url?.match(/^\/(setup|login\/plex)(?:[/?]|$)/)) {
         ctx.res.writeHead(307, {
           Location: '/setup',
         });

@@ -1,3 +1,4 @@
+import RecentlyWatchedSlider from '@app/components/Discover/RecentlyWatchedSlider';
 import Button from '@app/components/Common/Button';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
@@ -214,7 +215,7 @@ const Discover = () => {
             sliderComponent = <RecentlyAddedSlider />;
             break;
           case DiscoverSliderType.RECENT_REQUESTS:
-            sliderComponent = <RecentRequestsSlider />;
+            sliderComponent = <><RecentRequestsSlider /><RecentlyWatchedSlider /></>;
             break;
           case DiscoverSliderType.PLEX_WATCHLIST:
             sliderComponent = <PlexWatchlistSlider />;

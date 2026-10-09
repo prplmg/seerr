@@ -1,3 +1,4 @@
+import socialRoutes from './social';
 import GithubAPI from '@server/api/github';
 import PushoverAPI from '@server/api/pushover';
 import TheMovieDb from '@server/api/themoviedb';
@@ -46,6 +47,7 @@ import user from './user';
 const router = Router();
 
 router.use(checkUser);
+router.use('/social', isAuthenticated(), socialRoutes);
 
 router.get<unknown, StatusResponse>('/status', async (req, res) => {
   const settings = getSettings();

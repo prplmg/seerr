@@ -1,3 +1,5 @@
+import catalogueMessages from '@app/components/Discover/catalogueMessages';
+import PlexLibraryList from '@app/components/Discover/PlexLibraryList';
 import Button from '@app/components/Common/Button';
 import Header from '@app/components/Common/Header';
 import ListView from '@app/components/Common/ListView';
@@ -49,6 +51,7 @@ const DiscoverTv = () => {
   const router = useRouter();
   const [showFilters, setShowFilters] = useState(false);
   const preparedFilters = prepareFilterValues(router.query);
+  const libraryMode = preparedFilters.alreadyOnPlex === 'true';
   const updateQueryParams = useUpdateQueryParams({});
 
   const {
@@ -59,11 +62,11 @@ const DiscoverTv = () => {
     titles,
     fetchMore,
     error,
-  } = useDiscover<TvResult, never, FilterOptions>('/api/v1/discover/tv', {
+  } = useDiscover<TvResult, never, FilterOptions>(libraryMode ? null : '/api/v1/discover/tv', {
     ...preparedFilters,
   });
 
-  if (error) {
+  if (!libraryMode && error) {
     return <ErrorPage statusCode={500} />;
   }
 
@@ -81,11 +84,13 @@ const DiscoverTv = () => {
             </span>
             <select
               id="sortBy"
+              disabled={libraryMode}
               name="sortBy"
               className="rounded-r-only"
-              value={preparedFilters.sortBy || SortOptions.PopularityDesc}
+              value={libraryMode ? 'plex-recent' : preparedFilters.sortBy || SortOptions.PopularityDesc}
               onChange={(e) => updateQueryParams('sortBy', e.target.value)}
             >
+              {libraryMode && <option value="plex-recent">{intl.formatMessage(catalogueMessages.recentlyAdded)}</option>}
               <option value={SortOptions.PopularityDesc}>
                 {intl.formatMessage(messages.sortPopularityDesc)}
               </option>
@@ -130,7 +135,7 @@ const DiscoverTv = () => {
           </div>
         </div>
       </div>
-      <ListView
+      {libraryMode ? <PlexLibraryList key="tv" type="tv" /> : <ListView
         items={titles}
         isEmpty={isEmpty}
         isReachingEnd={isReachingEnd}
@@ -138,7 +143,7 @@ const DiscoverTv = () => {
           isLoadingInitialData || (isLoadingMore && (titles?.length ?? 0) > 0)
         }
         onScrollBottom={fetchMore}
-      />
+      />}
     </>
   );
 };

@@ -1,3 +1,4 @@
+import SocialPeople from '@app/components/SocialPeople';
 import RTAudFresh from '@app/assets/rt_aud_fresh.svg';
 import RTAudRotten from '@app/assets/rt_aud_rotten.svg';
 import RTFresh from '@app/assets/rt_fresh.svg';
@@ -588,7 +589,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 />
               )}
           </div>
-          <h1 data-testid="media-title">
+          <div className="flex flex-col">
+          <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
+            <SocialPeople id={data.id} type="tv" />
+            <SocialPeople id={data.id} type="tv" kind="requesters" />
+          </div>
+          <h1 data-testid="media-title" className="text-2xl font-bold xl:text-4xl">
             {data.name}{' '}
             {data.firstAirDate && (
               <span className="media-year">
@@ -596,6 +602,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
               </span>
             )}
           </h1>
+          </div>
           <span className="media-attributes">
             {seriesAttributes.length > 0 &&
               seriesAttributes

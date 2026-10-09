@@ -1,3 +1,5 @@
+import catalogueMessages from '@app/components/Discover/catalogueMessages';
+import PlexLibraryList from '@app/components/Discover/PlexLibraryList';
 import Button from '@app/components/Common/Button';
 import Header from '@app/components/Common/Header';
 import ListView from '@app/components/Common/ListView';
@@ -50,6 +52,7 @@ const DiscoverMovies = () => {
   const updateQueryParams = useUpdateQueryParams({});
 
   const preparedFilters = prepareFilterValues(router.query);
+  const libraryMode = preparedFilters.alreadyOnPlex === 'true';
 
   const {
     isLoadingInitialData,
@@ -60,12 +63,12 @@ const DiscoverMovies = () => {
     fetchMore,
     error,
   } = useDiscover<MovieResult, unknown, FilterOptions>(
-    '/api/v1/discover/movies',
+    libraryMode ? null : '/api/v1/discover/movies',
     preparedFilters
   );
   const [showFilters, setShowFilters] = useState(false);
 
-  if (error) {
+  if (!libraryMode && error) {
     return <ErrorPage statusCode={500} />;
   }
 
@@ -83,11 +86,13 @@ const DiscoverMovies = () => {
             </span>
             <select
               id="sortBy"
+              disabled={libraryMode}
               name="sortBy"
               className="rounded-r-only"
-              value={preparedFilters.sortBy || SortOptions.PopularityDesc}
+              value={libraryMode ? 'plex-recent' : preparedFilters.sortBy || SortOptions.PopularityDesc}
               onChange={(e) => updateQueryParams('sortBy', e.target.value)}
             >
+              {libraryMode && <option value="plex-recent">{intl.formatMessage(catalogueMessages.recentlyAdded)}</option>}
               <option value={SortOptions.PopularityDesc}>
                 {intl.formatMessage(messages.sortPopularityDesc)}
               </option>
@@ -132,7 +137,7 @@ const DiscoverMovies = () => {
           </div>
         </div>
       </div>
-      <ListView
+      {libraryMode ? <PlexLibraryList key="movie" type="movie" /> : <ListView
         items={titles}
         isEmpty={isEmpty}
         isLoading={
@@ -140,7 +145,7 @@ const DiscoverMovies = () => {
         }
         isReachingEnd={isReachingEnd}
         onScrollBottom={fetchMore}
-      />
+      />}
     </>
   );
 };

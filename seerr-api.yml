@@ -2151,6 +2151,29 @@ components:
       name: X-Api-Key
 
 paths:
+  /social/{type}/{id}:
+    get:
+      summary: Local social attribution (filtered server-side)
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Filtered watchers and requesters
+        '401':
+          description: Authentication required
+        '503':
+          description: Social information unavailable
   /status:
     get:
       summary: Get Seerr status
@@ -7179,6 +7202,60 @@ paths:
                       $ref: '#/components/schemas/CreditCrew'
                   id:
                     type: number
+  /media/plex-library:
+    get:
+      summary: Locally known Plex library
+      tags: [media]
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [all, movie, tv]
+            default: all
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 1
+      responses:
+        '200':
+          description: Available local media IDs in stable recently-added order, 20 per page
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: Authentication required
+  /social/recently-watched:
+    get:
+      summary: Recent completed watches across mapped non-hidden users
+      tags: [media]
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [all, movie, tv]
+            default: all
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 1
+      responses:
+        '200':
+          description: Paginated unique media entries ordered by last qualifying watch, with totalResults and totalPages; no history timestamps
+          content:
+            application/json:
+              schema:
+                type: object
+        '503':
+          description: History temporarily unavailable
   /media:
     get:
       summary: Get media

@@ -1,3 +1,4 @@
+import SocialPeople from '@app/components/SocialPeople';
 import Spinner from '@app/assets/spinner.svg';
 import BlocklistModal from '@app/components/BlocklistModal';
 import Button from '@app/components/Common/Button';
@@ -401,6 +402,7 @@ const TitleCard = ({
                     : intl.formatMessage(globalMessages.tvshow)}
               </div>
             </div>
+            <div className="mr-auto ml-1 mt-px self-start"><SocialPeople id={id} type={mediaType} card /></div>
             {showDetail && currentStatus !== MediaStatus.BLOCKLISTED && (
               <div className="flex flex-col gap-1">
                 {user?.userType !== UserType.PLEX &&
@@ -465,6 +467,7 @@ const TitleCard = ({
                     shrink
                   />
                 </div>
+                <SocialPeople id={id} type={mediaType} kind="requesters" card vertical />
               </div>
             )}
           </div>

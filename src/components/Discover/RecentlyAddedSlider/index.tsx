@@ -1,8 +1,10 @@
+import Link from 'next/link';
+import { ArrowRightCircleIcon } from '@heroicons/react/24/outline';
 import Slider from '@app/components/Slider';
 import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
 import { Permission, useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
-import type { MediaResultsResponse } from '@server/interfaces/api/mediaInterfaces';
+import type Media from '@server/entity/Media';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
 
@@ -13,8 +15,8 @@ const messages = defineMessages('components.Discover.RecentlyAddedSlider', {
 const RecentlyAddedSlider = () => {
   const intl = useIntl();
   const { hasPermission } = useUser();
-  const { data: media, error: mediaError } = useSWR<MediaResultsResponse>(
-    '/api/v1/media?filter=allavailable&take=20&sort=mediaAdded',
+  const { data: media, error: mediaError } = useSWR<{ results: Media[] }>(
+    '/api/v1/media/plex-library?type=all&page=1',
     { revalidateOnMount: true }
   );
 
@@ -30,9 +32,10 @@ const RecentlyAddedSlider = () => {
   return (
     <>
       <div className="slider-header">
-        <div className="slider-title">
+        <Link href="/discover/recently-added" className="slider-title">
           <span>{intl.formatMessage(messages.recentlyAdded)}</span>
-        </div>
+          <ArrowRightCircleIcon />
+        </Link>
       </div>
       <Slider
         sliderKey="media"

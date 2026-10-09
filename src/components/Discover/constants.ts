@@ -91,6 +91,7 @@ export const sliderTitles = defineMessages('components.Discover', {
 });
 
 export const QueryFilterOptions = z.object({
+  alreadyOnPlex: z.enum(['true']).optional(),
   sortBy: z.string().optional(),
   primaryReleaseDateGte: z.string().optional(),
   primaryReleaseDateLte: z.string().optional(),
@@ -125,6 +126,7 @@ export const prepareFilterValues = (
   const filterValues: FilterOptions = {};
 
   const values = QueryFilterOptions.parse(inputValues);
+  if (values.alreadyOnPlex) filterValues.alreadyOnPlex = values.alreadyOnPlex;
 
   if (values.sortBy) {
     filterValues.sortBy = values.sortBy;
@@ -230,6 +232,7 @@ export const prepareFilterValues = (
 };
 
 export const countActiveFilters = (filterValues: FilterOptions): number => {
+  if (filterValues.alreadyOnPlex === 'true') return 1;
   let totalCount = 0;
   const clonedFilters = Object.assign({}, filterValues);
 

@@ -56,7 +56,7 @@ const useDiscover = <
   S = Record<string, never>,
   O = Record<string, unknown>,
 >(
-  endpoint: string,
+  endpoint: string | null,
   options?: O,
   { hideAvailable = true, hideBlocklisted = true } = {}
 ): DiscoverResult<T, S> => {
@@ -68,6 +68,7 @@ const useDiscover = <
     BaseSearchResult<T> & S
   >(
     (pageIndex: number, previousPageData) => {
+      if (!endpoint) return null;
       if (previousPageData && pageIndex + 1 > previousPageData.totalPages) {
         return null;
       }

@@ -21,6 +21,31 @@ import { EntityNotFoundError, In, IsNull, Not } from 'typeorm';
 
 const mediaRoutes = Router();
 
+// Local catalogue mode: select availability BEFORE pagination, never scan TMDB.
+mediaRoutes.get('/plex-library', isAuthenticated(), async (req, res, next) => {
+  const type = req.query.type ?? 'all';
+  const page = Number(req.query.page ?? 1);
+  if ((type !== 'all' && type !== 'movie' && type !== 'tv') || !Number.isSafeInteger(page) || page < 1 || page > 100000) {
+    return res.status(400).json({ message: 'Invalid library type or page' });
+  }
+  try {
+    const available = [MediaStatus.AVAILABLE, MediaStatus.PARTIALLY_AVAILABLE];
+    const query = getRepository(Media).createQueryBuilder('media')
+      .where(type === 'all' ? 'media.mediaType IN (:...types)' : 'media.mediaType = :type', type === 'all' ? { types: ['movie', 'tv'] } : { type })
+      .andWhere('(media.status IN (:...available) OR media.status4k IN (:...available))', { available })
+      .andWhere('media.status != :blocked AND media.status4k != :blocked', { blocked: MediaStatus.BLOCKLISTED });
+    const totalResults = await query.getCount();
+    const results = await query
+      .select(['media.id', 'media.tmdbId', 'media.tvdbId', 'media.mediaType'])
+      .orderBy('media.mediaAddedAt', 'DESC')
+      .addOrderBy('media.id', 'DESC')
+      .skip((page - 1) * 20).take(20).getMany();
+    return res.json({ page, totalPages: Math.ceil(totalResults / 20), totalResults, results });
+  } catch (error) { next(error); }
+});
+
+
+
 mediaRoutes.get('/', async (req, res, next) => {
   const mediaRepository = getRepository(Media);
 
