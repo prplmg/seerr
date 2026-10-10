@@ -1,4 +1,5 @@
 import Tooltip from '@app/components/Common/Tooltip';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
@@ -10,6 +11,7 @@ function DetailTooltip({ card, content, children }: { card: boolean; content: Re
   return <Tooltip tooltipConfig={{ followCursor: false, placement: 'bottom', trigger: ['hover', 'focus'] }} content={content}>{children}</Tooltip>;
 }
 export default function SocialPeople({ id, type, kind = 'watchers', card = false, vertical = false }: Props) {
+  const t = usePartyText();
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(!card);
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function SocialPeople({ id, type, kind = 'watchers', card = false
     { refreshInterval: 120000, dedupingInterval: 30000, errorRetryCount: 2 });
   // Server retains stale raw history and reapplies privacy. HTTP/policy failures fail closed.
   const people: Person[] = !error && data?.enabled ? data[kind] || [] : [];
-  const label = kind === 'watchers' ? 'Watched by' : 'Requested by';
+  const label = kind === 'watchers' ? t('Watched by', 'Visto por') : t('Requested by', 'Solicitado por');
   const [diameter, setDiameter] = useState(card ? 20 : 26);
   useEffect(() => {
     const status = ref.current?.closest('.media-title')?.querySelector('.media-status');
@@ -36,8 +38,8 @@ export default function SocialPeople({ id, type, kind = 'watchers', card = false
     {!card && <span style={{ fontSize: 12, color: '#d1d5db', whiteSpace: 'nowrap' }}>{label}</span>}
     {!!people.length && <DetailTooltip card={card} content={<div style={{ maxWidth: 280, maxHeight: 300, overflowY: 'auto' }}>
       <strong>{label}</strong>
-      {kind === 'watchers' && type === 'tv' && <div className="text-xs text-gray-400">At least one episode watched; not necessarily the whole series</div>}
-      {people.map(p => <div key={p.id} className="py-1"><span>{p.name}</span>{!!p.seasons?.length && <div className="text-xs text-gray-400">Seasons {p.seasons.join(', ')}</div>}</div>)}
+      {kind === 'watchers' && type === 'tv' && <div className="text-xs text-gray-400">{t('At least one episode watched; not necessarily the whole series', 'Se ha visto al menos un episodio; no necesariamente toda la serie')}</div>}
+      {people.map(p => <div key={p.id} className="py-1"><span>{p.name}</span>{!!p.seasons?.length && <div className="text-xs text-gray-400">{t('Seasons', 'Temporadas')} {p.seasons.join(', ')}</div>}</div>)}
     </div>}><span tabIndex={card ? undefined : 0} aria-label={`${label}: ${people.map(p => p.name).join(', ')}`} style={{ display: 'flex', flexDirection: vertical ? 'column' : 'row', pointerEvents: card ? 'none' : undefined }}>
       {people.map((p, i) => <img key={p.id} src={p.avatar} alt={p.name} className={card ? 'h-4 w-4 sm:h-5 sm:w-5' : ''} style={{ ...(card ? {} : { width: diameter, height: diameter }), boxSizing: 'border-box', borderRadius: '50%', border: '1px solid #cbd5e1', objectFit: 'cover', background: '#334155', flexShrink: 0, position: 'relative', zIndex: people.length - i, opacity: kind === 'watchers' && i > 0 ? 0.65 : 1, ...(i ? vertical ? { marginTop: `calc(-1 * var(--social-size, 20px) * ${1-step})` } : { marginLeft: card ? `calc(-1 * var(--social-size, 20px) * ${1-step})` : -diameter*(1-step) } : {}) }} />)}
     </span></DetailTooltip>}

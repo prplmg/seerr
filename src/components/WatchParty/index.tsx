@@ -559,6 +559,9 @@ export default function WatchTogether({
   const item = data?.results.find(
     (r) => r.tmdbId === id && r.mediaType === type
   );
+  const playingHere =
+    type === 'movie' && ownParties.length === 1 &&
+    !!item?.parties.some((p) => p.mine && p.switchStatus !== 'failed' && p.switchStatus !== 'loading');
   const switchMedia = async () => {
     setBusy(true);
     setError('');
@@ -646,6 +649,7 @@ export default function WatchTogether({
       <span className="relative ml-2 inline-flex">
         <Button
           buttonType="primary"
+          disabled={playingHere}
           aria-disabled={mobile && !switching}
           className={mobile && !switching ? 'opacity-50' : ''}
           onClick={() =>
@@ -654,7 +658,9 @@ export default function WatchTogether({
         >
           <UsersIcon />
           <span>
-            {switching
+            {playingHere
+              ? t('Playing in party', 'Reproduciendo en el grupo')
+              : switching
               ? t('Play in party', 'Reproducir en el grupo')
               : t('Watch Together', 'Ver Juntos')}
           </span>
