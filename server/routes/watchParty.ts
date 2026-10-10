@@ -23,6 +23,7 @@ type Social = {
 };
 type Config = {
   enabled: boolean;
+  extensionVersion?: string;
   relayUrl: string;
   browserRelayUrl: string;
   secret: string;
@@ -45,6 +46,11 @@ function config(): Config | undefined {
     if (!p.enabled) return undefined;
     if (typeof p.secret !== 'string' || p.secret.length < 32)
       throw Error('Invalid party configuration');
+    if (
+      p.extensionVersion !== undefined &&
+      !/^\d+\.\d+\.\d+$/.test(p.extensionVersion)
+    )
+      throw Error('Invalid extension version');
     return p;
   } catch (error) {
     if (error.code === 'ENOENT') return undefined;
@@ -176,7 +182,7 @@ router.get('/', async (req, res) => {
     return res.json({
       enabled: true,
       partiesEnabled: !!cfg,
-      extensionVersion: '0.0.4',
+      extensionVersion: cfg?.extensionVersion || '0.0.4',
       activityAvailable: activity.available,
       relayAvailable: partyData.available,
       results: mergeWatchingNow(
@@ -362,7 +368,7 @@ router.post(
       return res.json({
         roomId: id,
         ticket,
-        extensionVersion: '0.0.4',
+        extensionVersion: p.extensionVersion || '0.0.4',
         catalogueUrl: `https://catalogue.prpl.com.mx/${mediaType}/${tmdbId}`,
         username: req.user!.displayName,
         plexUrl,
