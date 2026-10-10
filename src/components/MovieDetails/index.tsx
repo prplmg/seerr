@@ -25,6 +25,7 @@ import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
 import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
 import useDeepLinks from '@app/hooks/useDeepLinks';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
@@ -172,6 +173,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
   );
 
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
+    mediaId: data?.mediaInfo?.id,
     mediaUrl: data?.mediaInfo?.mediaUrl,
     mediaUrl4k: data?.mediaInfo?.mediaUrl4k,
     iOSPlexUrl: data?.mediaInfo?.iOSPlexUrl,
@@ -190,10 +192,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
   const mediaLinks: PlayButtonLink[] = [];
 
   if (
-    plexUrl &&
-    hasPermission([Permission.REQUEST, Permission.REQUEST_MOVIE], {
-      type: 'or',
-    })
+    plexUrl
   ) {
     mediaLinks.push({
       text: getAvailableMediaServerName(),
@@ -204,10 +203,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
 
   if (
     settings.currentSettings.movie4kEnabled &&
-    plexUrl4k &&
-    hasPermission([Permission.REQUEST_4K, Permission.REQUEST_4K_MOVIE], {
-      type: 'or',
-    })
+    plexUrl4k
   ) {
     mediaLinks.push({
       text: getAvailable4kMediaServerName(),
@@ -589,7 +585,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
-          {data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
+          {SHOW_WATCHLIST && data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
             user?.userType !== UserType.PLEX && (
               <>
                 {toggleWatchlist ? (

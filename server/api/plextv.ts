@@ -155,6 +155,20 @@ class PlexTvAPI extends ExternalAPI {
     this.authToken = authToken;
   }
 
+  public async getPublicWatchUrl(tmdbId: number, type: 'movie' | 'tv'): Promise<string | null> {
+    const data = await this.get<{ MediaContainer: { Metadata?: { slug?: string; type?: string }[] } }>(
+      'https://metadata.provider.plex.tv/library/metadata/matches',
+      { params: { guid: `tmdb://${tmdbId}`, type: type === 'movie' ? 1 : 2 }, timeout: 5000 },
+      86400
+    );
+    const matches = data.MediaContainer.Metadata ?? [];
+    // Never guess a title slug or choose between ambiguous matches.
+    if (matches.length !== 1) return null;
+    const match = matches[0];
+    if (match.type !== (type === 'movie' ? 'movie' : 'show') || !match.slug || !/^[a-z0-9-]+$/i.test(match.slug)) return null;
+    return `https://watch.plex.tv/${type === 'movie' ? 'movie' : 'show'}/${match.slug}?autoPlay=1`;
+  }
+
   public async getDevices(): Promise<PlexDevice[]> {
     try {
       const devicesResp = await this.axios.get(

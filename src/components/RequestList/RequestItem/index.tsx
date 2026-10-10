@@ -74,6 +74,7 @@ const RequestItemError = ({
   };
 
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
+    mediaId: requestData?.media?.id,
     mediaUrl: requestData?.media?.mediaUrl,
     mediaUrl4k: requestData?.media?.mediaUrl4k,
     iOSPlexUrl: requestData?.media?.iOSPlexUrl,
@@ -390,6 +391,7 @@ const RequestItem = ({ request, revalidateList }: RequestItemProps) => {
   };
 
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
+    mediaId: requestData?.media?.id,
     mediaUrl: requestData?.media?.mediaUrl,
     mediaUrl4k: requestData?.media?.mediaUrl4k,
     iOSPlexUrl: requestData?.media?.iOSPlexUrl,

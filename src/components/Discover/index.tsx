@@ -10,6 +10,7 @@ import DiscoverSliderEdit from '@app/components/Discover/DiscoverSliderEdit';
 import MovieGenreSlider from '@app/components/Discover/MovieGenreSlider';
 import NetworkSlider from '@app/components/Discover/NetworkSlider';
 import PlexWatchlistSlider from '@app/components/Discover/PlexWatchlistSlider';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import RecentRequestsSlider from '@app/components/Discover/RecentRequestsSlider';
 import RecentlyAddedSlider from '@app/components/Discover/RecentlyAddedSlider';
 import StudioSlider from '@app/components/Discover/StudioSlider';
@@ -209,6 +210,7 @@ const Discover = () => {
         </>
       )}
       {(isEditing ? sliders : discoverData)?.map((slider, index) => {
+        if (!SHOW_WATCHLIST && slider.type === DiscoverSliderType.PLEX_WATCHLIST) return null;
         let sliderComponent: React.ReactNode;
 
         switch (slider.type) {
@@ -219,7 +221,7 @@ const Discover = () => {
             sliderComponent = <><RecentRequestsSlider /><WatchingNowSlider /><RecentlyWatchedSlider /></>;
             break;
           case DiscoverSliderType.PLEX_WATCHLIST:
-            sliderComponent = <PlexWatchlistSlider />;
+            sliderComponent = SHOW_WATCHLIST ? <PlexWatchlistSlider /> : null;
             break;
           case DiscoverSliderType.TRENDING:
             sliderComponent = (

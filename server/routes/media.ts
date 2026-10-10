@@ -1,4 +1,5 @@
 import RadarrAPI from '@server/api/servarr/radarr';
+import PlexTvAPI from '@server/api/plextv';
 import SonarrAPI from '@server/api/servarr/sonarr';
 import TautulliAPI from '@server/api/tautulli';
 import TheMovieDb from '@server/api/themoviedb';
@@ -20,6 +21,25 @@ import type { FindOneOptions } from 'typeorm';
 import { EntityNotFoundError, In, IsNull, Not } from 'typeorm';
 
 const mediaRoutes = Router();
+
+// Mobile-only, lazy lookup: never blocks movie/series details or exposes a token.
+mediaRoutes.get('/:mediaId/plex-watch-url', isAuthenticated(), async (req, res, next) => {
+  try {
+    const id = Number(req.params.mediaId);
+    if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ message: 'Invalid media ID' });
+    const media = await getRepository(Media).findOne({ where: { id } });
+    if (!media || (!media.ratingKey && !media.ratingKey4k) || media.status === MediaStatus.BLOCKLISTED || media.status4k === MediaStatus.BLOCKLISTED) return res.status(404).json({ message: 'Media unavailable' });
+    const owner = await getRepository(User).findOne({ where: { id: 1 }, select: { id: true, plexToken: true } });
+    if (!owner?.plexToken) return res.json({ url: null });
+    try {
+      const url = await new PlexTvAPI(owner.plexToken).getPublicWatchUrl(media.tmdbId, media.mediaType);
+      return res.json({ url });
+    } catch {
+      // Keep desktop links usable if Plex metadata is temporarily unavailable.
+      return res.json({ url: null });
+    }
+  } catch (error) { next(error); }
+});
 
 // Local catalogue mode: select availability BEFORE pagination, never scan TMDB.
 mediaRoutes.get('/plex-library', isAuthenticated(), async (req, res, next) => {

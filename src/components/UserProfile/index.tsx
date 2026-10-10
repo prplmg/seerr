@@ -9,6 +9,7 @@ import ProfileHeader from '@app/components/UserProfile/ProfileHeader';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
 import ErrorPage from '@app/pages/_error';
 import defineMessages from '@app/utils/defineMessages';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import { ArrowRightCircleIcon } from '@heroicons/react/24/outline';
 import type { WatchlistResponse } from '@server/interfaces/api/discoverInterfaces';
 import type {
@@ -83,14 +84,14 @@ const UserProfile = () => {
 
   const { data: watchlistItems, error: watchlistError } =
     useSWR<WatchlistResponse>(
-      user?.id === currentUser?.id ||
+      SHOW_WATCHLIST && (user?.id === currentUser?.id ||
         currentHasPermission(
           [Permission.MANAGE_REQUESTS, Permission.WATCHLIST_VIEW],
           {
             type: 'or',
           }
         )
-        ? `/api/v1/user/${user?.id}/watchlist`
+        ) ? `/api/v1/user/${user?.id}/watchlist`
         : null,
       {
         revalidateOnMount: true,
@@ -285,7 +286,7 @@ const UserProfile = () => {
             </dl>
           </div>
         )}
-      {(user.id === currentUser?.id ||
+      {SHOW_WATCHLIST && (user.id === currentUser?.id ||
         currentHasPermission(
           [Permission.MANAGE_REQUESTS, Permission.REQUEST_VIEW],
           { type: 'or' }

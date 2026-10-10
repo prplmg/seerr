@@ -28,6 +28,7 @@ import SocialPeople from '@app/components/SocialPeople';
 import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
 import Season from '@app/components/TvDetails/Season';
 import useDeepLinks from '@app/hooks/useDeepLinks';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
@@ -170,6 +171,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
   );
 
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
+    mediaId: data?.mediaInfo?.id,
     mediaUrl: data?.mediaInfo?.mediaUrl,
     mediaUrl4k: data?.mediaInfo?.mediaUrl4k,
     iOSPlexUrl: data?.mediaInfo?.iOSPlexUrl,
@@ -187,10 +189,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
   const mediaLinks: PlayButtonLink[] = [];
 
   if (
-    plexUrl &&
-    hasPermission([Permission.REQUEST, Permission.REQUEST_TV], {
-      type: 'or',
-    })
+    plexUrl
   ) {
     mediaLinks.push({
       text: getAvailableMediaServerName(),
@@ -201,10 +200,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
 
   if (
     settings.currentSettings.series4kEnabled &&
-    plexUrl4k &&
-    hasPermission([Permission.REQUEST_4K, Permission.REQUEST_4K_TV], {
-      type: 'or',
-    })
+    plexUrl4k
   ) {
     mediaLinks.push({
       text: getAvailable4kMediaServerName(),
@@ -633,7 +629,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
-          {data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
+          {SHOW_WATCHLIST && data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
             user?.userType !== UserType.PLEX && (
               <>
                 {toggleWatchlist ? (

@@ -7468,6 +7468,34 @@ paths:
       responses:
         '204':
           description: Succesfully removed media item
+  /media/{mediaId}/plex-watch-url:
+    get:
+      summary: Resolve the public Plex link for a library title
+      tags: [media]
+      parameters:
+        - in: path
+          name: mediaId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Canonical Plex URL, or null when no unique match exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    nullable: true
+        '400':
+          description: Invalid media ID
+        '401':
+          description: Authentication required
+        '404':
+          description: Media unavailable
   /media/{mediaId}/file:
     delete:
       summary: Delete media file

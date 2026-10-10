@@ -26,6 +26,7 @@ import { MediaStatus } from '@server/constants/media';
 import type { Watchlist } from '@server/entity/Watchlist';
 import type { MediaType } from '@server/models/Search';
 import axios from 'axios';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import Link from 'next/link';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -405,7 +406,7 @@ const TitleCard = ({
             <div className="mr-auto ml-1 mt-px self-start"><SocialPeople id={id} type={mediaType} card /></div>
             {showDetail && currentStatus !== MediaStatus.BLOCKLISTED && (
               <div className="flex flex-col gap-1">
-                {user?.userType !== UserType.PLEX &&
+                {SHOW_WATCHLIST && user?.userType !== UserType.PLEX &&
                   (toggleWatchlist ? (
                     <Button
                       buttonType={'ghost'}

@@ -8,6 +8,7 @@ import RegionSelector from '@app/components/RegionSelector';
 import { availableLanguages } from '@app/context/LanguageContext';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
@@ -503,7 +504,7 @@ const UserGeneralSettings = () => {
                     </div>
                   </>
                 )}
-              {hasPermission(
+              {SHOW_WATCHLIST && hasPermission(
                 [Permission.AUTO_REQUEST, Permission.AUTO_REQUEST_MOVIE],
                 { type: 'or' }
               ) &&
@@ -551,7 +552,7 @@ const UserGeneralSettings = () => {
                     </div>
                   </div>
                 )}
-              {hasPermission(
+              {SHOW_WATCHLIST && hasPermission(
                 [Permission.AUTO_REQUEST, Permission.AUTO_REQUEST_TV],
                 { type: 'or' }
               ) &&

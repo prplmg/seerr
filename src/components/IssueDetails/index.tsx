@@ -93,6 +93,7 @@ const IssueDetails = () => {
   );
 
   const { mediaUrl, mediaUrl4k } = useDeepLinks({
+    mediaId: data?.mediaInfo?.id,
     mediaUrl: data?.mediaInfo?.mediaUrl,
     mediaUrl4k: data?.mediaInfo?.mediaUrl4k,
     iOSPlexUrl: data?.mediaInfo?.iOSPlexUrl,
