@@ -662,7 +662,10 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
-          <WatchTogether id={data.id} type="movie" title={data.title} poster={data.posterPath} />
+          {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
+            data.mediaInfo?.status4k === MediaStatus.AVAILABLE) && (
+            <WatchTogether id={data.id} type="movie" title={data.title} poster={data.posterPath} />
+          )}
           {hasPermission(Permission.MANAGE_REQUESTS) &&
             data.mediaInfo &&
             (data.mediaInfo.jellyfinMediaId ||

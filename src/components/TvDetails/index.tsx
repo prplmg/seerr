@@ -704,7 +704,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
-          <WatchTogether id={data.id} type="tv" title={data.name} poster={data.posterPath} />
+          {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
+            data.mediaInfo?.status === MediaStatus.PARTIALLY_AVAILABLE ||
+            data.mediaInfo?.status4k === MediaStatus.AVAILABLE ||
+            data.mediaInfo?.status4k === MediaStatus.PARTIALLY_AVAILABLE) && (
+            <WatchTogether id={data.id} type="tv" title={data.name} poster={data.posterPath} />
+          )}
           {hasPermission(Permission.MANAGE_REQUESTS) && data.mediaInfo && (
             <Tooltip content={intl.formatMessage(messages.manageseries)}>
               <Button
