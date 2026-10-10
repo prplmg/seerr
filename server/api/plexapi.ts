@@ -49,9 +49,11 @@ interface PlexLibrariesResponse {
 
 export interface PlexMetadata {
   ratingKey: string;
+  grandparentRatingKey?: string;
+  duration?: number;
   parentRatingKey?: string;
   guid: string;
-  type: 'movie' | 'show' | 'season';
+  type: 'movie' | 'show' | 'season' | 'episode';
   title: string;
   Guid: {
     id: string;

@@ -2151,6 +2151,63 @@ components:
       name: X-Api-Key
 
 paths:
+  /watch-party:
+    get:
+      summary: Current mapped viewers and authenticated party members
+      responses:
+        '200':
+          description: Filtered live activity
+  /watch-party/launch:
+    post:
+      summary: Prepare an authenticated catalogue party launch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [tmdbId, mediaType]
+              properties:
+                tmdbId:
+                  type: integer
+                  minimum: 1
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                partyId:
+                  type: string
+                episodeKey:
+                  type: string
+      responses:
+        '200':
+          description: Short-lived signed launch ticket
+  /watch-party/episodes/{tmdbId}:
+    get:
+      summary: Available Plex episodes for party creation
+      parameters:
+        - in: path
+          name: tmdbId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Episode choices
+  /watch-party/extension/{browser}:
+    get:
+      summary: Download the self-hosted extension build
+      parameters:
+        - in: path
+          name: browser
+          required: true
+          schema:
+            type: string
+            enum: [chrome, firefox]
+      responses:
+        '200':
+          description: Extension ZIP
   /social/{type}/{id}:
     get:
       summary: Local social attribution (filtered server-side)

@@ -25,6 +25,7 @@ import RequestButton from '@app/components/RequestButton';
 import RequestModal from '@app/components/RequestModal';
 import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
+import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
 import Season from '@app/components/TvDetails/Season';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import useLocale from '@app/hooks/useLocale';
@@ -581,7 +582,8 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
               )}
           </div>
           <div className="flex flex-col">
-            <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
+            <div className="order-2 mb-2 flex flex-col items-center gap-2 xl:items-start">
+              <WatchingDetail id={data.id} type="tv" />
               <SocialPeople id={data.id} type="tv" />
               <SocialPeople id={data.id} type="tv" kind="requesters" />
             </div>
@@ -596,6 +598,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 </span>
               )}
             </h1>
+            <DetailPartyControls id={data.id} type="tv" />
           </div>
           <span className="media-attributes">
             {seriesAttributes.length > 0 &&
@@ -701,6 +704,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
+          <WatchTogether id={data.id} type="tv" title={data.name} poster={data.posterPath} />
           {hasPermission(Permission.MANAGE_REQUESTS) && data.mediaInfo && (
             <Tooltip content={intl.formatMessage(messages.manageseries)}>
               <Button

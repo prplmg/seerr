@@ -23,6 +23,7 @@ import PersonCard from '@app/components/PersonCard';
 import RequestButton from '@app/components/RequestButton';
 import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
+import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
@@ -537,7 +538,8 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               )}
           </div>
           <div className="flex flex-col">
-            <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
+            <div className="order-2 mb-2 flex flex-col items-center gap-2 xl:items-start">
+              <WatchingDetail id={data.id} type="movie" />
               <SocialPeople id={data.id} type="movie" />
               <SocialPeople id={data.id} type="movie" kind="requesters" />
             </div>
@@ -552,6 +554,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 </span>
               )}
             </h1>
+            <DetailPartyControls id={data.id} type="movie" />
           </div>
           <span className="media-attributes">
             {movieAttributes.length > 0 &&
@@ -659,6 +662,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
+          <WatchTogether id={data.id} type="movie" title={data.title} poster={data.posterPath} />
           {hasPermission(Permission.MANAGE_REQUESTS) &&
             data.mediaInfo &&
             (data.mediaInfo.jellyfinMediaId ||

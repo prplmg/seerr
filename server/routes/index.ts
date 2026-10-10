@@ -1,4 +1,5 @@
 import socialRoutes from './social';
+import watchPartyRoutes from './watchParty';
 import GithubAPI from '@server/api/github';
 import PushoverAPI from '@server/api/pushover';
 import TheMovieDb from '@server/api/themoviedb';
@@ -48,6 +49,7 @@ const router = Router();
 
 router.use(checkUser);
 router.use('/social', isAuthenticated(), socialRoutes);
+router.use('/watch-party', isAuthenticated(), watchPartyRoutes);
 
 router.get<unknown, StatusResponse>('/status', async (req, res) => {
   const settings = getSettings();
