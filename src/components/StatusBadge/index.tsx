@@ -22,6 +22,7 @@ const messages = defineMessages('components.StatusBadge', {
 });
 
 interface StatusBadgeProps {
+  readOnly?: boolean;
   status?: MediaStatus;
   downloadItem?: DownloadingItem[];
   is4k?: boolean;
@@ -35,6 +36,7 @@ interface StatusBadgeProps {
 }
 
 const StatusBadge = ({
+  readOnly = false,
   status,
   downloadItem = [],
   is4k = false,
@@ -58,6 +60,7 @@ const StatusBadge = ({
   };
 
   if (
+    !readOnly &&
     mediaType &&
     plexUrl &&
     hasPermission(
@@ -92,7 +95,7 @@ const StatusBadge = ({
             ? 'Plex'
             : 'Jellyfin',
     });
-  } else if (hasPermission(Permission.MANAGE_REQUESTS)) {
+  } else if (!readOnly && hasPermission(Permission.MANAGE_REQUESTS)) {
     if (mediaType && tmdbId) {
       mediaLink = `/${mediaType}/${tmdbId}?manage=1`;
       mediaLinkDescription = intl.formatMessage(messages.managemedia, {
@@ -139,7 +142,7 @@ const StatusBadge = ({
 
   const badgeDownloadProgress = (
     <div
-      className={`absolute left-0 top-0 z-10 flex h-full ${
+      className={`absolute top-0 left-0 z-10 flex h-full ${
         status === MediaStatus.DELETED
           ? 'bg-red-600/80'
           : status === MediaStatus.PROCESSING
@@ -158,7 +161,13 @@ const StatusBadge = ({
     case MediaStatus.AVAILABLE:
       return (
         <Tooltip
-          content={inProgress ? tooltipContent : mediaLinkDescription}
+          content={
+            readOnly
+              ? undefined
+              : inProgress
+                ? tooltipContent
+                : mediaLinkDescription
+          }
           className={`${
             inProgress && 'hidden max-h-96 w-96 overflow-y-auto sm:block'
           }`}
@@ -223,7 +232,13 @@ const StatusBadge = ({
     case MediaStatus.PARTIALLY_AVAILABLE:
       return (
         <Tooltip
-          content={inProgress ? tooltipContent : mediaLinkDescription}
+          content={
+            readOnly
+              ? undefined
+              : inProgress
+                ? tooltipContent
+                : mediaLinkDescription
+          }
           className={`${
             inProgress && 'hidden max-h-96 w-96 overflow-y-auto sm:block'
           }`}
@@ -288,7 +303,13 @@ const StatusBadge = ({
     case MediaStatus.PROCESSING:
       return (
         <Tooltip
-          content={inProgress ? tooltipContent : mediaLinkDescription}
+          content={
+            readOnly
+              ? undefined
+              : inProgress
+                ? tooltipContent
+                : mediaLinkDescription
+          }
           className={`${
             inProgress && 'hidden max-h-96 w-96 overflow-y-auto sm:block'
           }`}
@@ -377,7 +398,13 @@ const StatusBadge = ({
     case MediaStatus.DELETED:
       return (
         <Tooltip
-          content={inProgress ? tooltipContent : mediaLinkDescription}
+          content={
+            readOnly
+              ? undefined
+              : inProgress
+                ? tooltipContent
+                : mediaLinkDescription
+          }
           className={`${
             inProgress && 'hidden max-h-96 w-96 overflow-y-auto sm:block'
           }`}

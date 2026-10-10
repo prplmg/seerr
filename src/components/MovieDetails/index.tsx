@@ -1,4 +1,3 @@
-import SocialPeople from '@app/components/SocialPeople';
 import RTAudFresh from '@app/assets/rt_aud_fresh.svg';
 import RTAudRotten from '@app/assets/rt_aud_rotten.svg';
 import RTFresh from '@app/assets/rt_fresh.svg';
@@ -12,17 +11,18 @@ import CachedImage from '@app/components/Common/CachedImage';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import type { PlayButtonLink } from '@app/components/Common/PlayButton';
-import PlayButton from '@app/components/Common/PlayButton';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
+import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
 import IssueModal from '@app/components/IssueModal';
 import ManageSlideOver from '@app/components/ManageSlideOver';
+import MediaActions from '@app/components/MediaActions';
 import MediaSlider from '@app/components/MediaSlider';
 import PersonCard from '@app/components/PersonCard';
 import RequestButton from '@app/components/RequestButton';
 import Slider from '@app/components/Slider';
-import StatusBadge from '@app/components/StatusBadge';
+import SocialPeople from '@app/components/SocialPeople';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
@@ -39,7 +39,6 @@ import {
   CogIcon,
   ExclamationTriangleIcon,
   EyeSlashIcon,
-  FilmIcon,
   MinusCircleIcon,
   PlayIcon,
   StarIcon,
@@ -225,14 +224,6 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
     settings.currentSettings.youtubeUrl != ''
       ? `${settings.currentSettings.youtubeUrl}${trailerVideo?.key}`
       : trailerVideo?.url;
-
-  if (trailerUrl) {
-    mediaLinks.push({
-      text: intl.formatMessage(messages.watchtrailer),
-      url: trailerUrl,
-      svg: <FilmIcon />,
-    });
-  }
 
   const discoverRegion = user?.settings?.discoverRegion
     ? user.settings.discoverRegion
@@ -546,18 +537,21 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               )}
           </div>
           <div className="flex flex-col">
-          <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
-            <SocialPeople id={data.id} type="movie" />
-            <SocialPeople id={data.id} type="movie" kind="requesters" />
-          </div>
-          <h1 data-testid="media-title" className="text-2xl font-bold xl:text-4xl">
-            {data.title}{' '}
-            {data.releaseDate && (
-              <span className="media-year">
-                ({data.releaseDate.slice(0, 4)})
-              </span>
-            )}
-          </h1>
+            <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
+              <SocialPeople id={data.id} type="movie" />
+              <SocialPeople id={data.id} type="movie" kind="requesters" />
+            </div>
+            <h1
+              data-testid="media-title"
+              className="text-2xl font-bold xl:text-4xl"
+            >
+              {data.title}{' '}
+              {data.releaseDate && (
+                <span className="media-year">
+                  ({data.releaseDate.slice(0, 4)})
+                </span>
+              )}
+            </h1>
           </div>
           <span className="media-attributes">
             {movieAttributes.length > 0 &&
@@ -628,7 +622,11 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               </>
             )}
           <div className="z-20">
-            <PlayButton links={mediaLinks} />
+            <MediaActions
+              links={mediaLinks}
+              trailerUrl={trailerUrl}
+              movieId={data.id}
+            />
           </div>
           <RequestButton
             mediaType="movie"
@@ -686,8 +684,8 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                       ) ?? []
                     ).length > 0 && (
                       <>
-                        <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
-                        <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
+                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-600" />
+                        <div className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
                       </>
                     )}
                 </Button>
@@ -733,7 +731,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 <Link
                   href={`/discover/movies?keywords=${keyword.id}`}
                   key={`keyword-id-${keyword.id}`}
-                  className="mb-2 mr-2 inline-flex last:mr-0"
+                  className="mr-2 mb-2 inline-flex last:mr-0"
                 >
                   <Tag>{keyword.name}</Tag>
                 </Link>

@@ -1,4 +1,3 @@
-import SocialPeople from '@app/components/SocialPeople';
 import RTAudFresh from '@app/assets/rt_aud_fresh.svg';
 import RTAudRotten from '@app/assets/rt_aud_rotten.svg';
 import RTFresh from '@app/assets/rt_fresh.svg';
@@ -12,19 +11,20 @@ import CachedImage from '@app/components/Common/CachedImage';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import type { PlayButtonLink } from '@app/components/Common/PlayButton';
-import PlayButton from '@app/components/Common/PlayButton';
 import StatusBadgeMini from '@app/components/Common/StatusBadgeMini';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
+import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
 import IssueModal from '@app/components/IssueModal';
 import ManageSlideOver from '@app/components/ManageSlideOver';
+import MediaActions from '@app/components/MediaActions';
 import MediaSlider from '@app/components/MediaSlider';
 import PersonCard from '@app/components/PersonCard';
 import RequestButton from '@app/components/RequestButton';
 import RequestModal from '@app/components/RequestModal';
 import Slider from '@app/components/Slider';
-import StatusBadge from '@app/components/StatusBadge';
+import SocialPeople from '@app/components/SocialPeople';
 import Season from '@app/components/TvDetails/Season';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import useLocale from '@app/hooks/useLocale';
@@ -43,7 +43,6 @@ import {
   CogIcon,
   ExclamationTriangleIcon,
   EyeSlashIcon,
-  FilmIcon,
   MinusCircleIcon,
   PlayIcon,
   StarIcon,
@@ -222,14 +221,6 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
     settings.currentSettings.youtubeUrl != ''
       ? `${settings.currentSettings.youtubeUrl}${trailerVideo?.key}`
       : trailerVideo?.url;
-
-  if (trailerUrl) {
-    mediaLinks.push({
-      text: intl.formatMessage(messages.watchtrailer),
-      url: trailerUrl,
-      svg: <FilmIcon />,
-    });
-  }
 
   const discoverRegion = user?.settings?.discoverRegion
     ? user.settings.discoverRegion
@@ -590,18 +581,21 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
               )}
           </div>
           <div className="flex flex-col">
-          <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
-            <SocialPeople id={data.id} type="tv" />
-            <SocialPeople id={data.id} type="tv" kind="requesters" />
-          </div>
-          <h1 data-testid="media-title" className="text-2xl font-bold xl:text-4xl">
-            {data.name}{' '}
-            {data.firstAirDate && (
-              <span className="media-year">
-                ({data.firstAirDate.slice(0, 4)})
-              </span>
-            )}
-          </h1>
+            <div className="order-1 mb-2 flex flex-col items-center gap-2 xl:order-none xl:items-start">
+              <SocialPeople id={data.id} type="tv" />
+              <SocialPeople id={data.id} type="tv" kind="requesters" />
+            </div>
+            <h1
+              data-testid="media-title"
+              className="text-2xl font-bold xl:text-4xl"
+            >
+              {data.name}{' '}
+              {data.firstAirDate && (
+                <span className="media-year">
+                  ({data.firstAirDate.slice(0, 4)})
+                </span>
+              )}
+            </h1>
           </div>
           <span className="media-attributes">
             {seriesAttributes.length > 0 &&
@@ -672,7 +666,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
               </>
             )}
           <div className="z-20">
-            <PlayButton links={mediaLinks} />
+            <MediaActions links={mediaLinks} trailerUrl={trailerUrl} />
           </div>
           <RequestButton
             mediaType="tv"
@@ -727,8 +721,8 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                     ) ?? []
                   ).length > 0 && (
                     <>
-                      <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
-                      <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
+                      <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-600" />
+                      <div className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
                     </>
                   )}
               </Button>
@@ -788,7 +782,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 <Link
                   href={`/discover/tv?keywords=${keyword.id}`}
                   key={`keyword-id-${keyword.id}`}
-                  className="mb-2 mr-2 inline-flex last:mr-0"
+                  className="mr-2 mb-2 inline-flex last:mr-0"
                 >
                   <Tag>{keyword.name}</Tag>
                 </Link>
@@ -864,7 +858,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                         <Disclosure.Button
                           className={`mt-2 flex w-full items-center justify-between space-x-2 border-gray-700 bg-gray-800 px-4 py-2 text-gray-200 ${
                             open
-                              ? 'rounded-t-md border-l border-r border-t'
+                              ? 'rounded-t-md border-t border-r border-l'
                               : 'rounded-md border'
                           }`}
                         >
@@ -1087,7 +1081,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                           // Not sure why this transition is adding a margin without this here
                           style={{ margin: '0px' }}
                         >
-                          <Disclosure.Panel className="w-full rounded-b-md border-b border-l border-r border-gray-700 px-4 pb-2">
+                          <Disclosure.Panel className="w-full rounded-b-md border-r border-b border-l border-gray-700 px-4 pb-2">
                             <Season
                               tvId={data.id}
                               seasonNumber={season.seasonNumber}
