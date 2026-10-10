@@ -2200,6 +2200,40 @@ paths:
       responses:
         '200':
           description: Short-lived signed launch ticket
+  /watch-party/switch:
+    post:
+      summary: Replace media in your existing party from any signed-in device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [roomId, requestId, tmdbId, mediaType]
+              properties:
+                roomId:
+                  type: string
+                  pattern: '^cat-[a-f0-9-]{36}$'
+                requestId:
+                  type: string
+                  format: uuid
+                tmdbId:
+                  type: integer
+                  minimum: 1
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                episodeKey:
+                  type: string
+                  pattern: '^\d+$'
+      responses:
+        '202':
+          description: Players are preparing the selected media
+        '403':
+          description: Not a current party member or controller
+        '409':
+          description: Update players or wait for the current transition
   /watch-party/control:
     post:
       summary: Control your existing party from any signed-in device
