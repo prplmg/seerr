@@ -29,7 +29,7 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
     <article
       ref={ref}
       data-testid="watching-card"
-      className="relative flex h-[152px] w-72 gap-3 overflow-hidden rounded-xl bg-gray-800 bg-cover bg-center p-4 text-gray-400 shadow ring-1 ring-gray-700 sm:h-[200px] sm:w-96"
+      className="relative flex min-h-[152px] w-72 gap-3 rounded-xl bg-gray-800 bg-cover bg-center p-4 text-gray-400 shadow ring-1 ring-gray-700 sm:min-h-[200px] sm:w-96"
       style={
         data?.backdropPath
           ? {
@@ -40,7 +40,7 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
     >
       <Link
         href={`/${item.mediaType}/${item.tmdbId}`}
-        className="w-20 flex-none overflow-hidden rounded-md sm:w-28"
+        className="h-[120px] w-20 flex-none overflow-hidden rounded-md sm:h-[168px] sm:w-28"
       >
         <CachedImage
           type="tmdb"
@@ -64,11 +64,11 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
           {title || '…'}
         </Link>
         {mine && (
-          <span className="text-[10px] text-purple-300">
+          <span className="hidden text-[10px] text-purple-300 sm:block">
             {t('Your party', 'Tu grupo')}
           </span>
         )}
-        <div className="my-1 min-h-0 flex-1 overflow-y-auto">
+        <div className="my-1 min-h-[28px] flex-1">
           <WatchingPeople item={item} list />
         </div>
         {mine && (

@@ -176,7 +176,7 @@ router.get('/', async (req, res) => {
     return res.json({
       enabled: true,
       partiesEnabled: !!cfg,
-      extensionVersion: '0.0.2',
+      extensionVersion: '0.0.3',
       activityAvailable: activity.available,
       relayAvailable: partyData.available,
       results: mergeWatchingNow(
@@ -321,7 +321,7 @@ router.post(
       return res.json({
         roomId: id,
         ticket,
-        extensionVersion: '0.0.2',
+        extensionVersion: '0.0.3',
         catalogueUrl: `https://catalogue.prpl.com.mx/${mediaType}/${tmdbId}`,
         username: req.user!.displayName,
         plexUrl,
@@ -333,6 +333,63 @@ router.post(
       return res.status(503).json({
         error: 'Unable to prepare this party. Check Plex access and the relay.',
       });
+    }
+  }
+);
+
+router.post(
+  '/control',
+  rateLimit({
+    windowMs: 60000,
+    limit: 90,
+    keyGenerator: (req) => String(req.user!.id),
+  }),
+  async (req, res) => {
+    try {
+      const p = config();
+      if (!p || !social().enabled) return res.sendStatus(503);
+      const origin = req.get('origin');
+      if (
+        origin &&
+        ![
+          'https://catalogue.prpl.com.mx',
+          'http://127.0.0.1:15056',
+          'http://localhost:15056',
+        ].includes(origin)
+      )
+        return res.sendStatus(403);
+      const { roomId, action, targetTime, requestId } = req.body;
+      if (
+        typeof roomId !== 'string' ||
+        !/^cat-[a-f0-9-]{36}$/.test(roomId) ||
+        !['play', 'pause', 'seek'].includes(action) ||
+        typeof requestId !== 'string' ||
+        !/^[a-f0-9-]{36}$/.test(requestId) ||
+        (action === 'seek' &&
+          (!Number.isFinite(targetTime) ||
+            targetTime < 0 ||
+            targetTime > 86400))
+      )
+        return res.sendStatus(400);
+      // Relay checks CURRENT membership/roles, not the cached public snapshot.
+      // Never accept a user/peer identity supplied by the caller.
+      const result = await relay(p, 'post', `rooms/${roomId}/control`, {
+        userId: req.user!.id,
+        action,
+        targetTime,
+        requestId,
+      });
+      cache.delete(`relay:${p.relayUrl}`);
+      return res.json(result);
+    } catch (error) {
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
+      return res
+        .status(
+          status && [400, 403, 404, 409, 429].includes(status) ? status : 503
+        )
+        .json({ error: 'Party control unavailable' });
     }
   }
 );

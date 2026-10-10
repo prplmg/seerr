@@ -194,11 +194,16 @@ export function PartyControls({ party }: { party: WatchingParty }) {
     queue.current = queue.current
       .then(async () => {
         if (!mounted.current) return;
-        const result = await partyBridge('control', {
-          roomId: party.id,
-          action,
-          targetTime,
-        });
+        const { data: result } = await axios.post(
+          '/api/v1/watch-party/control',
+          {
+            roomId: party.id,
+            action,
+            targetTime,
+            requestId: crypto.randomUUID(),
+          },
+          { timeout: 7000 }
+        );
         if (!['ok', 'ok_solo'].includes(result.status))
           throw Error('Control rejected');
       })
@@ -301,10 +306,13 @@ export function PartyControls({ party }: { party: WatchingParty }) {
         <span>{clock(party.duration)}</span>
       </div>
       {error && (
-        <p role="alert" className="text-xs text-amber-300">
+        <p
+          role="alert"
+          className="whitespace-normal break-words text-xs leading-tight text-amber-300"
+        >
           {t(
-            'Could not control playback. Check the extension and your party.',
-            'No se pudo controlar la reproducción. Revisa la extensión y tu grupo.'
+            'Control failed. Check your desktop connection and party permissions.',
+            'Falló el control. Revisa la conexión de tu computadora y los permisos del grupo.'
           )}
         </p>
       )}
@@ -601,7 +609,7 @@ export default function WatchTogether({
         {hint && (
           <span
             role="tooltip"
-            className="absolute right-0 top-full z-50 mt-2 w-56 rounded bg-gray-800 p-2 text-xs shadow-lg"
+            className="absolute right-0 top-full z-50 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded border border-gray-600 bg-gray-800 p-3 text-sm leading-relaxed text-gray-100 shadow-lg"
           >
             {t(
               'Only available on desktop web browsers',

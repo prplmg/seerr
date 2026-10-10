@@ -2182,6 +2182,38 @@ paths:
       responses:
         '200':
           description: Short-lived signed launch ticket
+  /watch-party/control:
+    post:
+      summary: Control your existing party from any signed-in device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [roomId, action, requestId]
+              properties:
+                roomId:
+                  type: string
+                  pattern: '^cat-[a-f0-9-]{36}$'
+                action:
+                  type: string
+                  enum: [play, pause, seek]
+                targetTime:
+                  type: number
+                  minimum: 0
+                  maximum: 86400
+                requestId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Authorized command dispatched to connected players
+        '403':
+          description: Not a current party member or controller
+        '409':
+          description: Party not ready for playback control
   /watch-party/episodes/{tmdbId}:
     get:
       summary: Available Plex episodes for party creation
