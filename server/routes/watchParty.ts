@@ -385,6 +385,83 @@ router.post(
 );
 
 router.post(
+  '/switch',
+  rateLimit({ windowMs: 60000, limit: 6 }),
+  async (req, res) => {
+    try {
+      const p = config();
+      if (!p || !social().enabled) return res.sendStatus(503);
+      const origin = req.get('origin');
+      if (
+        origin &&
+        ![
+          'https://catalogue.prpl.com.mx',
+          'http://127.0.0.1:15056',
+          'http://localhost:15056',
+        ].includes(origin)
+      )
+        return res.sendStatus(403);
+      const { roomId, requestId, tmdbId, mediaType, episodeKey } = req.body;
+      if (
+        !/^cat-[a-f0-9-]{36}$/.test(roomId || '') ||
+        !/^[a-f0-9-]{36}$/.test(requestId || '') ||
+        !Number.isSafeInteger(tmdbId) ||
+        tmdbId < 1 ||
+        !['movie', 'tv'].includes(mediaType)
+      )
+        return res.sendStatus(400);
+      // Check live identity before performing metadata work. Relay rechecks after I/O.
+      const party = ((await relay(p, 'get', 'rooms')) as PartySnapshot[]).find(
+        (r) => r.id === roomId
+      );
+      if (!party?.userIds.includes(req.user!.id)) return res.sendStatus(403);
+      const media = await getRepository(Media).findOne({
+        where: { tmdbId, mediaType: mediaType as MediaType },
+      });
+      if (
+        !media?.ratingKey ||
+        ![MediaStatus.AVAILABLE, MediaStatus.PARTIALLY_AVAILABLE].includes(
+          media.status
+        ) ||
+        media.status4k === MediaStatus.BLOCKLISTED
+      )
+        return res.sendStatus(404);
+      const ratingKey =
+        mediaType === 'tv' ? episodeKey : String(media.ratingKey);
+      if (typeof ratingKey !== 'string' || !/^\d+$/.test(ratingKey))
+        return res.sendStatus(400);
+      const metadata = await (await cataloguePlex()).getMetadata(ratingKey);
+      if (
+        metadata.type !== (mediaType === 'tv' ? 'episode' : 'movie') ||
+        (mediaType === 'tv' &&
+          String(metadata.grandparentRatingKey) !== String(media.ratingKey))
+      )
+        return res.sendStatus(400);
+      const result = await relay(p, 'post', `rooms/${roomId}/switch`, {
+        userId: req.user!.id,
+        requestId,
+        tmdbId,
+        mediaType,
+        ratingKey,
+        duration: Number(metadata.duration || 0) / 1000,
+        serverId: getSettings().plex.machineId,
+      });
+      cache.delete(`relay:${p.relayUrl}`);
+      return res.status(202).json(result);
+    } catch (error) {
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
+      return res
+        .status(
+          status && [400, 403, 404, 409, 429].includes(status) ? status : 503
+        )
+        .json({ error: 'Party media switch unavailable' });
+    }
+  }
+);
+
+router.post(
   '/control',
   rateLimit({
     windowMs: 60000,

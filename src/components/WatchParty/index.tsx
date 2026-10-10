@@ -230,6 +230,20 @@ export function PartyControls({ party }: { party: WatchingParty }) {
       (current.paused ? 0 : (Date.now() - current.at) / 1000);
     command('seek', Math.max(0, Math.min(party.duration, live + delta)));
   };
+  if (party.switchStatus === 'loading' || party.switchStatus === 'failed')
+    return (
+      <p role="status" className="text-sm text-amber-300">
+        {party.switchStatus === 'loading'
+          ? t(
+              'Loading the new title for everyone…',
+              'Cargando el nuevo título para todos…'
+            )
+          : t(
+              'A player could not load. Check each desktop, then use Play in party to retry.',
+              'Un reproductor no pudo cargar. Revisa cada computadora y vuelve a intentar con Reproducir en el grupo.'
+            )}
+      </p>
+    );
   return (
     <div className="w-full min-w-0" data-testid="party-controls">
       <div className="flex items-center justify-center gap-3">
@@ -527,6 +541,12 @@ export default function WatchTogether({
   const [error, setError] = useState('');
   const [pending, setPending] = useState<string | null | undefined>();
   const [episodeKey, setEpisodeKey] = useState('');
+  const [selectedParty, setSelectedParty] = useState('');
+  const ownParties =
+    data?.results.flatMap((r) => r.parties.filter((p) => p.mine)) || [];
+  const switching = ownParties.length > 0;
+  const switchPartyId =
+    selectedParty || (ownParties.length === 1 ? ownParties[0].id : '');
   const { data: episodes } = useSWR<{
     results: { key: string; title: string; season: number; episode: number }[];
   }>(open && type === 'tv' ? `/api/v1/watch-party/episodes/${id}` : null);
@@ -539,6 +559,33 @@ export default function WatchTogether({
   const item = data?.results.find(
     (r) => r.tmdbId === id && r.mediaType === type
   );
+  const switchMedia = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await axios.post(
+        '/api/v1/watch-party/switch',
+        {
+          roomId: switchPartyId,
+          requestId: crypto.randomUUID(),
+          tmdbId: id,
+          mediaType: type,
+          episodeKey: episodeKey || undefined,
+        },
+        { timeout: 30000 }
+      );
+      setOpen(false);
+    } catch {
+      setError(
+        t(
+          'Could not switch media. Every member must update the extension and rejoin. Check the selected episode, party permissions, and whether a switch is already in progress.',
+          'No se pudo cambiar el título. Todos deben actualizar la extensión y volver a unirse. Revisa el episodio, los permisos del grupo y si ya hay un cambio en curso.'
+        )
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
   const launch = async (partyId?: string) => {
     setBusy(true);
     setError('');
@@ -599,12 +646,18 @@ export default function WatchTogether({
       <span className="relative ml-2 inline-flex">
         <Button
           buttonType="primary"
-          aria-disabled={mobile}
-          className={mobile ? 'opacity-50' : ''}
-          onClick={() => (mobile ? setHint(!hint) : setOpen(true))}
+          aria-disabled={mobile && !switching}
+          className={mobile && !switching ? 'opacity-50' : ''}
+          onClick={() =>
+            mobile && !switching ? setHint(!hint) : setOpen(true)
+          }
         >
           <UsersIcon />
-          <span>{t('Watch Together', 'Ver Juntos')}</span>
+          <span>
+            {switching
+              ? t('Play in party', 'Reproducir en el grupo')
+              : t('Watch Together', 'Ver Juntos')}
+          </span>
         </Button>
         {hint && (
           <span
@@ -623,7 +676,9 @@ export default function WatchTogether({
           title={
             install
               ? t('Install the extension', 'Instala la extensión')
-              : t('Watch Together', 'Ver Juntos')
+              : switching
+                ? t('Play in party', 'Reproducir en el grupo')
+                : t('Watch Together', 'Ver Juntos')
           }
           subTitle={title}
           onCancel={() => {
@@ -647,42 +702,73 @@ export default function WatchTogether({
                   />
                 </div>
               )}
-              <h3 className="mb-3 font-semibold">
-                {t('Join a party', 'Únete a un grupo')}
-              </h3>
-              <div className="space-y-2">
-                {item?.parties.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 rounded-lg border border-gray-600 p-3"
-                  >
-                    <PartyPill
-                      party={p}
-                      hasOwnParty={!!item.parties.some((r) => r.mine)}
-                    />
-                    <span className="min-w-0 flex-1 text-xs">
-                      {p.members.map((m) => m.name).join(' · ')}
-                    </span>
-                    <Button
-                      buttonType="success"
-                      buttonSize="sm"
-                      disabled={busy || p.mine}
-                      onClick={() => launch(p.id)}
-                    >
-                      {p.mine ? t('Joined', 'Dentro') : t('Join', 'Unirme')}
-                    </Button>
+              {!switching && (
+                <>
+                  <h3 className="mb-3 font-semibold">
+                    {t('Join a party', 'Únete a un grupo')}
+                  </h3>
+                  <div className="space-y-2">
+                    {item?.parties.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-3 rounded-lg border border-gray-600 p-3"
+                      >
+                        <PartyPill
+                          party={p}
+                          hasOwnParty={!!item.parties.some((r) => r.mine)}
+                        />
+                        <span className="min-w-0 flex-1 text-xs">
+                          {p.members.map((m) => m.name).join(' · ')}
+                        </span>
+                        <Button
+                          buttonType="success"
+                          buttonSize="sm"
+                          disabled={busy || p.mine}
+                          onClick={() => launch(p.id)}
+                        >
+                          {p.mine ? t('Joined', 'Dentro') : t('Join', 'Unirme')}
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {!item?.parties.length && (
-                <p className="text-sm text-gray-400">
+                  {!item?.parties.length && (
+                    <p className="text-sm text-gray-400">
+                      {t(
+                        'No parties yet. Create the first one.',
+                        'Todavía no hay grupos. Crea el primero.'
+                      )}
+                    </p>
+                  )}
+                  <div className="my-4 border-t border-gray-600" />
+                </>
+              )}
+              {switching && (
+                <p className="mb-3 text-sm text-gray-300">
                   {t(
-                    'No parties yet. Create the first one.',
-                    'Todavía no hay grupos. Crea el primero.'
+                    'Replace the current title for everyone in your party and start from the beginning. Existing TV connections are kept.',
+                    'Cambia el título para todos en tu grupo y empieza desde el principio. Se conservan las conexiones a la TV.'
                   )}
                 </p>
               )}
-              <div className="my-4 border-t border-gray-600" />
+              {switching && ownParties.length > 1 && (
+                <label className="mb-3 block text-sm">
+                  {t('Choose your party', 'Elige tu grupo')}
+                  <select
+                    value={selectedParty}
+                    onChange={(e) => setSelectedParty(e.target.value)}
+                    className="mt-1 w-full rounded bg-gray-900"
+                  >
+                    <option value="">
+                      {t('Select a party', 'Selecciona un grupo')}
+                    </option>
+                    {ownParties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.members.map((m) => m.name).join(' · ')}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               {type === 'tv' && (
                 <label className="mb-3 block text-sm">
                   {t('Choose an episode', 'Elige un episodio')}
@@ -708,19 +794,28 @@ export default function WatchTogether({
                 className="w-full"
                 disabled={
                   busy ||
-                  !!item?.parties.some((p) => p.mine) ||
+                  (switching &&
+                    (!switchPartyId ||
+                      ownParties.some(
+                        (p) =>
+                          p.id === switchPartyId && p.switchStatus === 'loading'
+                      ))) ||
                   (type === 'tv' && !/^\d+$/.test(episodeKey))
                 }
-                onClick={() => launch()}
+                onClick={() => (switching ? switchMedia() : launch())}
               >
-                {t('Create a party', 'Crear un grupo')}
+                {switching
+                  ? t('Play in party', 'Reproducir en el grupo')
+                  : t('Create a party', 'Crear un grupo')}
               </Button>
-              <p className="mt-3 text-center text-xs text-gray-400">
-                {t(
-                  'Choose Resume or Restart in Plex.',
-                  'Elige Reanudar o Empezar de nuevo en Plex.'
-                )}
-              </p>
+              {!switching && (
+                <p className="mt-3 text-center text-xs text-gray-400">
+                  {t(
+                    'Choose Resume or Restart in Plex.',
+                    'Elige Reanudar o Empezar de nuevo en Plex.'
+                  )}
+                </p>
+              )}
             </>
           )}
           {install && (

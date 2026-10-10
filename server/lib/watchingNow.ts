@@ -19,6 +19,7 @@ export type PartySnapshot = {
   position: number;
   duration: number;
   paused: boolean;
+  switchStatus?: 'loading' | 'ready' | 'failed';
 };
 type MediaIdentity = {
   tmdbId: number;
@@ -81,6 +82,7 @@ export function mergeWatchingNow(
       duration: party.duration,
       paused: party.paused,
       ratingKey: party.ratingKey,
+      switchStatus: party.switchStatus,
     });
   }
   for (const title of titles.values()) {

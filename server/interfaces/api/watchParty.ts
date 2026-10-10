@@ -7,6 +7,7 @@ export type WatchingParty = {
   duration: number;
   paused: boolean;
   ratingKey: string;
+  switchStatus?: 'loading' | 'ready' | 'failed';
 };
 export type WatchingTitle = {
   tmdbId: number;
