@@ -176,7 +176,7 @@ router.get('/', async (req, res) => {
     return res.json({
       enabled: true,
       partiesEnabled: !!cfg,
-      extensionVersion: '0.0.3',
+      extensionVersion: '0.0.4',
       activityAvailable: activity.available,
       relayAvailable: partyData.available,
       results: mergeWatchingNow(
@@ -200,6 +200,47 @@ router.get('/', async (req, res) => {
     return res.status(503).json({ error: 'Watching information unavailable' });
   }
 });
+
+// Resolve only this configured Plex server, never an arbitrary remote URL.
+router.get(
+  '/resolve',
+  rateLimit({ windowMs: 60000, limit: 30 }),
+  async (req, res) => {
+    try {
+      if (!config() || !social().enabled) return res.sendStatus(503);
+      const { serverId, key } = req.query;
+      if (
+        serverId !== getSettings().plex.machineId ||
+        typeof key !== 'string' ||
+        !/^\d+$/.test(key)
+      )
+        return res.sendStatus(400);
+      const metadata = await (await cataloguePlex()).getMetadata(key);
+      if (!['movie', 'episode', 'show'].includes(metadata.type))
+        return res.sendStatus(400);
+      const media = await getRepository(Media).findOne({
+        where: {
+          ratingKey: String(
+            metadata.type === 'episode' ? metadata.grandparentRatingKey : key
+          ),
+        },
+      });
+      if (
+        !media ||
+        media.status === MediaStatus.BLOCKLISTED ||
+        media.status4k === MediaStatus.BLOCKLISTED
+      )
+        return res.sendStatus(404);
+      return res.json({
+        tmdbId: media.tmdbId,
+        mediaType: media.mediaType,
+        ...(metadata.type === 'episode' ? { episodeKey: key } : {}),
+      });
+    } catch {
+      return res.status(503).json({ error: 'Unable to resolve Plex media' });
+    }
+  }
+);
 
 router.get('/episodes/:tmdbId', async (req, res) => {
   try {
@@ -321,7 +362,7 @@ router.post(
       return res.json({
         roomId: id,
         ticket,
-        extensionVersion: '0.0.3',
+        extensionVersion: '0.0.4',
         catalogueUrl: `https://catalogue.prpl.com.mx/${mediaType}/${tmdbId}`,
         username: req.user!.displayName,
         plexUrl,

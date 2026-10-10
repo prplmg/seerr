@@ -2151,6 +2151,24 @@ components:
       name: X-Api-Key
 
 paths:
+  /watch-party/resolve:
+    get:
+      summary: Resolve a title from the configured Plex server
+      parameters:
+        - in: query
+          name: serverId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: key
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+$'
+      responses:
+        '200':
+          description: Catalogue identity and optional episode key
   /watch-party:
     get:
       summary: Current mapped viewers and authenticated party members
