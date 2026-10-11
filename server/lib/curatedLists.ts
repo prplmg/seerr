@@ -37,7 +37,11 @@ export function validateLists(data: unknown): CuratedList[] {
   return input.lists;
 }
 export const curatedLists = validateLists(source);
-export function dailyCategories(lists = curatedLists, now = new Date()) {
+export function dailyCategories(
+  lists = curatedLists,
+  now = new Date(),
+  limit: 15 | 25 = 15
+) {
   const day = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Merida',
     year: 'numeric',
@@ -56,7 +60,7 @@ export function dailyCategories(lists = curatedLists, now = new Date()) {
       (a, b) =>
         a.rank.localeCompare(b.rank) || a.list.id.localeCompare(b.list.id)
     )
-    .slice(0, 15)
+    .slice(0, limit)
     .map(({ list }) => ({
       id: list.id,
       title: list.title,

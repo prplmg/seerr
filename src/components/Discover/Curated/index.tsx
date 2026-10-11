@@ -3,6 +3,7 @@ import PageTitle from '@app/components/Common/PageTitle';
 import Slider from '@app/components/Slider';
 import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
 import { usePartyText } from '@app/components/WatchParty/messages';
+import { ArrowRightCircleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -25,7 +26,13 @@ function useText() {
   return (value: Text) =>
     /^es(?:-|$)/i.test(locale) ? value.es || value.en : value.en;
 }
-function CategoryCard({ category }: { category: Category }) {
+function CategoryCard({
+  category,
+  fullWidth = false,
+}: {
+  category: Category;
+  fullWidth?: boolean;
+}) {
   const text = useText();
   const { ref, inView } = useInView({ triggerOnce: true });
   const { data } = useSWR<{ backdropPath?: string }>(
@@ -36,7 +43,7 @@ function CategoryCard({ category }: { category: Category }) {
     <Link
       ref={ref}
       href={`/discover/curated/${category.id}`}
-      className="relative flex h-48 w-72 flex-col justify-end overflow-hidden rounded-xl bg-gray-800 p-5 ring-1 ring-gray-700 hover:ring-purple-400 focus-visible:ring-purple-400 sm:w-80"
+      className={`relative flex h-48 ${fullWidth ? 'w-full' : 'w-72 sm:w-80'} flex-col justify-end overflow-hidden rounded-xl bg-gray-800 p-5 ring-1 ring-gray-700 hover:ring-purple-400 focus-visible:ring-purple-400`}
     >
       {data?.backdropPath && (
         <CachedImage
@@ -71,8 +78,11 @@ export default function CuratedSlider() {
       aria-label={t('Recommendations', 'Recomendaciones')}
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-white sm:text-2xl">
-          {t('Recommendations', 'Recomendaciones')}
+        <h2>
+          <Link href="/discover/curated" className="slider-title">
+            <span>{t('Recommendations', 'Recomendaciones')}</span>
+            <ArrowRightCircleIcon />
+          </Link>
         </h2>
         <RandomPickButton />
       </div>
@@ -96,6 +106,49 @@ export default function CuratedSlider() {
         />
       )}
     </section>
+  );
+}
+export function CuratedCategoriesPage() {
+  const t = usePartyText();
+  const { data, error } = useSWR<{ day: string; results: Category[] }>(
+    '/api/v1/curated?limit=25',
+    { refreshInterval: 60000, revalidateOnFocus: true }
+  );
+  return (
+    <>
+      <PageTitle title={t('Recommendations', 'Recomendaciones')} />
+      <Link href="/" className="text-purple-300 hover:underline">
+        {t('Back to catalogue', 'Volver al catálogo')}
+      </Link>
+      <div className="my-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold text-white">
+          {t('Recommendations', 'Recomendaciones')}
+        </h1>
+        <RandomPickButton />
+      </div>
+      <p className="mb-6 text-gray-300">
+        {t(
+          'Today’s categories: the catalogue picks, plus ten more to explore.',
+          'Las categorías de hoy: las del catálogo y diez más para explorar.'
+        )}
+      </p>
+      {error ? (
+        <p role="alert">
+          {t(
+            'Recommendations are temporarily unavailable.',
+            'Las recomendaciones no están disponibles temporalmente.'
+          )}
+        </p>
+      ) : !data ? (
+        <p role="status">{t('Loading…', 'Cargando…')}</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {data.results.map((category) => (
+            <CategoryCard key={category.id} category={category} fullWidth />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 export function CuratedPage() {

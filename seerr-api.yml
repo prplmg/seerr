@@ -2153,10 +2153,19 @@ components:
 paths:
   /curated:
     get:
-      summary: Daily selection of up to fifteen curated categories
+      summary: Daily selection of curated categories
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            enum: [15, 25]
+            default: 15
       responses:
         '200':
-          description: Categories in a deterministic daily order for America/Merida
+          description: Categories in a deterministic daily order for America/Merida; the first fifteen are shared by both sizes
+        '400':
+          description: Unsupported category limit
         '401':
           description: Authentication required
   /curated/random:

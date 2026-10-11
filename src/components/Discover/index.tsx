@@ -210,7 +210,6 @@ const Discover = () => {
           </Transition>
         </>
       )}
-      {!isEditing && <CuratedSlider />}
       {(isEditing ? sliders : discoverData)?.map((slider, index) => {
         if (!SHOW_WATCHLIST && slider.type === DiscoverSliderType.PLEX_WATCHLIST) return null;
         let sliderComponent: React.ReactNode;
@@ -260,7 +259,7 @@ const Discover = () => {
             );
             break;
           case DiscoverSliderType.STUDIOS:
-            sliderComponent = <StudioSlider />;
+            sliderComponent = <><StudioSlider />{!isEditing && <CuratedSlider />}</>;
             break;
           case DiscoverSliderType.POPULAR_TV:
             sliderComponent = (
@@ -464,6 +463,7 @@ const Discover = () => {
           <div key={`discover-slider-${slider.id}`}>{sliderComponent}</div>
         );
       })}
+      {!isEditing && discoverData && !discoverData.some(slider => slider.enabled && slider.type === DiscoverSliderType.STUDIOS) && <CuratedSlider />}
     </>
   );
 };

@@ -5,9 +5,12 @@ import { curatedLists, dailyCategories } from '@server/lib/curatedLists';
 import { Router } from 'express';
 
 const router = Router();
-router.get('/', (_req, res) => {
+router.get('/', (req, res) => {
+  const limit = Number(req.query.limit ?? 15);
+  if (limit !== 15 && limit !== 25)
+    return res.status(400).json({ message: 'Invalid category limit' });
   res.setHeader('Cache-Control', 'private, no-cache');
-  res.json(dailyCategories());
+  res.json(dailyCategories(undefined, new Date(), limit));
 });
 router.get('/random', async (req, res, next) => {
   try {
