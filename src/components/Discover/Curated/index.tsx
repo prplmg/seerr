@@ -148,8 +148,8 @@ export function CuratedCategoriesPage() {
       </div>
       <p className="mb-6 text-gray-300">
         {t(
-          'Today’s categories: the catalogue picks, plus ten more to explore.',
-          'Las categorías de hoy: las del catálogo y diez más para explorar.'
+          'Today’s categories: the catalogue picks, plus ten more to explore. Rotates every day.',
+          'Las categorías de hoy: las del catálogo y diez más para explorar. Cambia cada día.'
         )}
       </p>
       {error ? (

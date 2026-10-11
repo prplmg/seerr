@@ -39,8 +39,7 @@ const artToday = dailyCategories(artFixture,new Date('2026-10-10T06:00:00Z')).re
 const artLater = dailyCategories(artFixture,new Date('2026-10-11T05:59:59Z')).results[0];
 const artTomorrow = dailyCategories(artFixture,new Date('2026-10-11T06:00:00Z')).results[0];
 assert.equal(JSON.stringify(artToday.covers), JSON.stringify(artLater.covers));
-assert.equal(JSON.stringify(artToday.covers), JSON.stringify(artTomorrow.covers));
-assert.equal(artToday.cover, artFixture[0].items[0]);
+assert.notEqual(JSON.stringify(artToday.covers), JSON.stringify(artTomorrow.covers));
 assert.equal(artToday.covers.length,5);
 assert.equal(artToday.cover, artToday.covers[0]);
 for(const item of artToday.covers) assert.ok(artFixture[0].items.includes(item));

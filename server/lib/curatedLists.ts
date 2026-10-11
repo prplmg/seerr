@@ -77,8 +77,17 @@ export function dailyCategories(
     )
     .slice(0, limit)
     .map(({ list }) => {
-      // Prefer the newest (first) title, retaining bounded missing-art fallbacks.
-      const covers = list.items.slice(0, 5);
+      // Daily artwork selection is independent of the newest-first viewing order.
+      const covers = list.items
+        .map((item) => ({
+          item,
+          rank: createHash('sha256')
+            .update(`curated-art-v1:${day}:${list.id}:${item.type}:${item.tmdbId}`)
+            .digest('hex'),
+        }))
+        .sort((a, b) => a.rank.localeCompare(b.rank))
+        .slice(0, 5)
+        .map(({ item }) => item);
       return {
         id: list.id,
         title: list.title,
