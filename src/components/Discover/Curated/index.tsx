@@ -75,12 +75,12 @@ export default function CuratedSlider() {
   return (
     <section
       className="mb-8"
-      aria-label={t('Recommendations', 'Recomendaciones')}
+      aria-label={t('Curated Lists', 'Listas seleccionadas')}
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2>
           <Link href="/discover/curated" className="slider-title">
-            <span>{t('Recommendations', 'Recomendaciones')}</span>
+            <span>{t('Curated Lists', 'Listas seleccionadas')}</span>
             <ArrowRightCircleIcon />
           </Link>
         </h2>
@@ -89,8 +89,8 @@ export default function CuratedSlider() {
       {error ? (
         <p role="status" className="text-gray-300">
           {t(
-            'Recommendations are temporarily unavailable.',
-            'Las recomendaciones no están disponibles temporalmente.'
+            'Curated Lists are temporarily unavailable.',
+            'Las listas seleccionadas no están disponibles temporalmente.'
           )}
         </p>
       ) : (
@@ -116,13 +116,13 @@ export function CuratedCategoriesPage() {
   );
   return (
     <>
-      <PageTitle title={t('Recommendations', 'Recomendaciones')} />
+      <PageTitle title={t('Curated Lists', 'Listas seleccionadas')} />
       <Link href="/" className="text-purple-300 hover:underline">
         {t('Back to catalogue', 'Volver al catálogo')}
       </Link>
       <div className="my-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold text-white">
-          {t('Recommendations', 'Recomendaciones')}
+          {t('Curated Lists', 'Listas seleccionadas')}
         </h1>
         <RandomPickButton />
       </div>
@@ -135,8 +135,8 @@ export function CuratedCategoriesPage() {
       {error ? (
         <p role="alert">
           {t(
-            'Recommendations are temporarily unavailable.',
-            'Las recomendaciones no están disponibles temporalmente.'
+            'Curated Lists are temporarily unavailable.',
+            'Las listas seleccionadas no están disponibles temporalmente.'
           )}
         </p>
       ) : !data ? (

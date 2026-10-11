@@ -138,7 +138,7 @@ const DiscoverSliderEdit = ({
       case DiscoverSliderType.RECENTLY_WATCHED:
         return t('Recently Watched', 'Visto recientemente');
       case DiscoverSliderType.RECOMMENDATIONS:
-        return t('Recommendations', 'Recomendaciones');
+        return t('Curated Lists', 'Listas seleccionadas');
       case DiscoverSliderType.PLEX_WATCHLIST:
         return intl.formatMessage(sliderTitles.plexwatchlist);
       case DiscoverSliderType.TRENDING:
