@@ -1,4 +1,5 @@
 import source from '@server/data/curated-lists.json';
+import releaseDates from '@server/data/curated-release-dates.json';
 import { createHash } from 'crypto';
 
 export type CuratedList = {
@@ -36,7 +37,21 @@ export function validateLists(data: unknown): CuratedList[] {
   }
   return input.lists;
 }
-export const curatedLists = validateLists(source);
+export function newestFirst(
+  lists: CuratedList[],
+  dates: Record<string, string | null> = releaseDates
+) {
+  return lists.map((list) => ({
+    ...list,
+    // Stable ties preserve curation; undated titles come last. No runtime lookups.
+    items: [...list.items].sort((a, b) =>
+      (dates[`${b.type}:${b.tmdbId}`] || '').localeCompare(
+        dates[`${a.type}:${a.tmdbId}`] || ''
+      )
+    ),
+  }));
+}
+export const curatedLists = newestFirst(validateLists(source));
 export function dailyCategories(
   lists = curatedLists,
   now = new Date(),
@@ -62,19 +77,8 @@ export function dailyCategories(
     )
     .slice(0, limit)
     .map(({ list }) => {
-      // Artwork rotates independently of category order and never reorders the list itself.
-      const covers = [...list.items]
-        .map((item) => ({
-          item,
-          rank: createHash('sha256')
-            .update(
-              `curated-art-v1:${day}:${list.id}:${item.type}:${item.tmdbId}`
-            )
-            .digest('hex'),
-        }))
-        .sort((a, b) => a.rank.localeCompare(b.rank))
-        .slice(0, 5)
-        .map(({ item }) => item);
+      // Prefer the newest (first) title, retaining bounded missing-art fallbacks.
+      const covers = list.items.slice(0, 5);
       return {
         id: list.id,
         title: list.title,

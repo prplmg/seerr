@@ -7,8 +7,15 @@ const root = path.resolve(__dirname, '..');
 const data = require('../server/data/curated-lists.json');
 const compiled = ts.transpileModule(fs.readFileSync(path.join(root, 'server/lib/curatedLists.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const mod = {exports:{}};
-vm.runInNewContext(compiled, { exports: mod.exports, require: name => name.includes('/data/') ? {default:data} : require(name), Intl, Date });
-const { dailyCategories, validateLists } = mod.exports;
+const dates = require('../server/data/curated-release-dates.json');
+vm.runInNewContext(compiled, { exports: mod.exports, require: name => name.includes('/data/') ? {default:name.includes('release-dates') ? dates : data} : require(name), Intl, Date });
+const { dailyCategories, validateLists, newestFirst, curatedLists } = mod.exports;
+const mixed = [{...data.lists[0],items:[{type:'movie',tmdbId:1},{type:'tv',tmdbId:2},{type:'movie',tmdbId:3},{type:'movie',tmdbId:4}]}];
+assert.deepEqual(Array.from(newestFirst(mixed,{'movie:1':'1990-01-01','tv:2':'2020-01-01','movie:4':'1990-01-01'})[0].items,x=>x.tmdbId),[2,1,4,3]);
+for (const list of curatedLists) {
+  const ordered = list.items.map(x=>dates[`${x.type}:${x.tmdbId}`] || '');
+  for(let i=1;i<ordered.length;i++) assert.ok(ordered[i-1]>=ordered[i]);
+}
 const ids = result => Array.from(result.results, list => list.id);
 const beforeMidnight = dailyCategories(undefined, new Date('2026-10-11T05:59:59Z'));
 const morning = dailyCategories(undefined, new Date('2026-10-10T06:00:00Z'));
@@ -32,7 +39,8 @@ const artToday = dailyCategories(artFixture,new Date('2026-10-10T06:00:00Z')).re
 const artLater = dailyCategories(artFixture,new Date('2026-10-11T05:59:59Z')).results[0];
 const artTomorrow = dailyCategories(artFixture,new Date('2026-10-11T06:00:00Z')).results[0];
 assert.equal(JSON.stringify(artToday.covers), JSON.stringify(artLater.covers));
-assert.notEqual(JSON.stringify(artToday.covers), JSON.stringify(artTomorrow.covers));
+assert.equal(JSON.stringify(artToday.covers), JSON.stringify(artTomorrow.covers));
+assert.equal(artToday.cover, artFixture[0].items[0]);
 assert.equal(artToday.covers.length,5);
 assert.equal(artToday.cover, artToday.covers[0]);
 for(const item of artToday.covers) assert.ok(artFixture[0].items.includes(item));
