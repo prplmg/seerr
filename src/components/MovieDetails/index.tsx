@@ -26,6 +26,7 @@ import SocialPeople from '@app/components/SocialPeople';
 import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
+import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
@@ -626,6 +627,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               trailerUrl={trailerUrl}
               movieId={data.id}
             />
+            {router.query.random === '1' && <div className="mt-2"><RandomPickButton again exclude={data.mediaInfo?.id} /></div>}
           </div>
           <RequestButton
             mediaType="movie"

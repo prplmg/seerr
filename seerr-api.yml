@@ -2151,6 +2151,44 @@ components:
       name: X-Api-Key
 
 paths:
+  /curated:
+    get:
+      summary: Daily selection of up to fifteen curated categories
+      responses:
+        '200':
+          description: Categories in a deterministic daily order for America/Merida
+        '401':
+          description: Authentication required
+  /curated/random:
+    get:
+      summary: Pick one available Plex library title
+      parameters:
+        - in: query
+          name: exclude
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Random title or null if no eligible title exists
+        '401':
+          description: Authentication required
+  /curated/{id}:
+    get:
+      summary: Read a curated collection in its supplied item order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Localized collection metadata and movie or TV identifiers
+        '401':
+          description: Authentication required
+        '404':
+          description: Category not found
   /watch-party/resolve:
     get:
       summary: Resolve a title from the configured Plex server

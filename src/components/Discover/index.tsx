@@ -1,4 +1,5 @@
 import RecentlyWatchedSlider from '@app/components/Discover/RecentlyWatchedSlider';
+import CuratedSlider from '@app/components/Discover/Curated';
 import WatchingNowSlider from '@app/components/Discover/WatchingNowSlider';
 import Button from '@app/components/Common/Button';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
@@ -209,6 +210,7 @@ const Discover = () => {
           </Transition>
         </>
       )}
+      {!isEditing && <CuratedSlider />}
       {(isEditing ? sliders : discoverData)?.map((slider, index) => {
         if (!SHOW_WATCHLIST && slider.type === DiscoverSliderType.PLEX_WATCHLIST) return null;
         let sliderComponent: React.ReactNode;

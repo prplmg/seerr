@@ -29,6 +29,7 @@ import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/compone
 import Season from '@app/components/TvDetails/Season';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
+import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
@@ -666,6 +667,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
             )}
           <div className="z-20">
             <MediaActions links={mediaLinks} trailerUrl={trailerUrl} />
+            {router.query.random === '1' && <div className="mt-2"><RandomPickButton again exclude={data.mediaInfo?.id} /></div>}
           </div>
           <RequestButton
             mediaType="tv"
