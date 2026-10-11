@@ -1,5 +1,8 @@
 import type { DiscoverSliderType } from '@server/constants/discover';
-import { defaultSliders } from '@server/constants/discover';
+import {
+  defaultSliders,
+  reconcileDiscoverySliders,
+} from '@server/constants/discover';
 import { getRepository } from '@server/datasource';
 import logger from '@server/logger';
 import { DbAwareColumn, resolveDbType } from '@server/utils/DbColumnHelper';
@@ -15,21 +18,24 @@ class DiscoverSlider {
   public static async bootstrapSliders(): Promise<void> {
     const sliderRepository = getRepository(DiscoverSlider);
 
-    for (const slider of defaultSliders) {
-      const existingSlider = await sliderRepository.findOne({
-        where: {
-          type: slider.type,
-        },
+    await sliderRepository.manager.transaction(async (manager) => {
+      const repository = manager.getRepository(DiscoverSlider);
+      const existing = await repository.find({
+        order: { order: 'ASC', id: 'ASC' },
       });
-
-      if (!existingSlider) {
-        logger.info('Creating built-in discovery slider', {
-          label: 'Discover Slider',
-          slider,
-        });
-        await sliderRepository.save(new DiscoverSlider(slider));
-      }
-    }
+      if (
+        defaultSliders.every((slider) =>
+          existing.some((row) => row.type === slider.type)
+        )
+      )
+        return;
+      const rows = reconcileDiscoverySliders(existing);
+      logger.info(
+        'Adding missing built-in discovery sliders without resetting customization',
+        { label: 'Discover Slider' }
+      );
+      await repository.save(rows.map((row) => new DiscoverSlider(row)));
+    });
   }
 
   @PrimaryGeneratedColumn()

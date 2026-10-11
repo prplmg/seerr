@@ -7,6 +7,7 @@ import CreateSlider from '@app/components/Discover/CreateSlider';
 import { sliderTitles } from '@app/components/Discover/constants';
 import GenreTag from '@app/components/GenreTag';
 import KeywordTag from '@app/components/KeywordTag';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useToasts from '@app/hooks/useToasts';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
@@ -63,6 +64,7 @@ const DiscoverSliderEdit = ({
   disableDownButton,
 }: DiscoverSliderEditProps) => {
   const intl = useIntl();
+  const t = usePartyText();
   const { addToast } = useToasts();
   const [isEditing, setIsEditing] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -131,6 +133,12 @@ const DiscoverSliderEdit = ({
         return intl.formatMessage(sliderTitles.recentlyAdded);
       case DiscoverSliderType.RECENT_REQUESTS:
         return intl.formatMessage(sliderTitles.recentrequests);
+      case DiscoverSliderType.WATCHING_NOW:
+        return t('Watching Now', 'Viendo ahora');
+      case DiscoverSliderType.RECENTLY_WATCHED:
+        return t('Recently Watched', 'Visto recientemente');
+      case DiscoverSliderType.RECOMMENDATIONS:
+        return t('Recommendations', 'Recomendaciones');
       case DiscoverSliderType.PLEX_WATCHLIST:
         return intl.formatMessage(sliderTitles.plexwatchlist);
       case DiscoverSliderType.TRENDING:

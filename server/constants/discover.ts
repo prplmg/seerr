@@ -22,9 +22,12 @@ export enum DiscoverSliderType {
   TMDB_NETWORK,
   TMDB_MOVIE_STREAMING_SERVICES,
   TMDB_TV_STREAMING_SERVICES,
+  WATCHING_NOW,
+  RECENTLY_WATCHED,
+  RECOMMENDATIONS,
 }
 
-export const defaultSliders: Partial<DiscoverSlider>[] = [
+const legacyDefaultSliders: Partial<DiscoverSlider>[] = [
   {
     type: DiscoverSliderType.RECENTLY_ADDED,
     enabled: true,
@@ -98,3 +101,44 @@ export const defaultSliders: Partial<DiscoverSlider>[] = [
     order: 11,
   },
 ];
+
+const independentSliders = [
+  {
+    type: DiscoverSliderType.WATCHING_NOW,
+    after: DiscoverSliderType.RECENT_REQUESTS,
+  },
+  {
+    type: DiscoverSliderType.RECENTLY_WATCHED,
+    after: DiscoverSliderType.WATCHING_NOW,
+  },
+  {
+    type: DiscoverSliderType.RECOMMENDATIONS,
+    after: DiscoverSliderType.STUDIOS,
+  },
+];
+
+// Runs only when built-ins are missing. Preserve customized order, IDs and toggles.
+export function reconcileDiscoverySliders(
+  existing: Partial<DiscoverSlider>[]
+): Partial<DiscoverSlider>[] {
+  const rows = existing.map((row) => ({ ...row }));
+  for (const slider of legacyDefaultSliders) {
+    if (!rows.some((row) => row.type === slider.type)) rows.push({ ...slider });
+  }
+  for (const { type, after } of independentSliders) {
+    if (rows.some((row) => row.type === type)) continue;
+    const anchor = rows.findIndex((row) => row.type === after);
+    rows.splice(anchor < 0 ? rows.length : anchor + 1, 0, {
+      type,
+      isBuiltIn: true,
+      // Previously the watching rows followed Recent Requests visibility.
+      enabled:
+        type === DiscoverSliderType.RECOMMENDATIONS
+          ? true
+          : (rows[anchor]?.enabled ?? true),
+    });
+  }
+  return rows.map((row, order) => ({ ...row, order }));
+}
+
+export const defaultSliders = reconcileDiscoverySliders([]);

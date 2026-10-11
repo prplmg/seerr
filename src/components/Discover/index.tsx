@@ -219,7 +219,16 @@ const Discover = () => {
             sliderComponent = <RecentlyAddedSlider />;
             break;
           case DiscoverSliderType.RECENT_REQUESTS:
-            sliderComponent = <><RecentRequestsSlider /><WatchingNowSlider /><RecentlyWatchedSlider /></>;
+            sliderComponent = <RecentRequestsSlider />;
+            break;
+          case DiscoverSliderType.WATCHING_NOW:
+            sliderComponent = <WatchingNowSlider />;
+            break;
+          case DiscoverSliderType.RECENTLY_WATCHED:
+            sliderComponent = <RecentlyWatchedSlider />;
+            break;
+          case DiscoverSliderType.RECOMMENDATIONS:
+            sliderComponent = <CuratedSlider />;
             break;
           case DiscoverSliderType.PLEX_WATCHLIST:
             sliderComponent = SHOW_WATCHLIST ? <PlexWatchlistSlider /> : null;
@@ -259,7 +268,7 @@ const Discover = () => {
             );
             break;
           case DiscoverSliderType.STUDIOS:
-            sliderComponent = <><StudioSlider />{!isEditing && <CuratedSlider />}</>;
+            sliderComponent = <StudioSlider />;
             break;
           case DiscoverSliderType.POPULAR_TV:
             sliderComponent = (
@@ -463,7 +472,6 @@ const Discover = () => {
           <div key={`discover-slider-${slider.id}`}>{sliderComponent}</div>
         );
       })}
-      {!isEditing && discoverData && !discoverData.some(slider => slider.enabled && slider.type === DiscoverSliderType.STUDIOS) && <CuratedSlider />}
     </>
   );
 };
