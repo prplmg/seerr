@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
-import RandomPickButton from './RandomPickButton';
 
 type Text = { en: string; es?: string };
 type Item = { type: 'movie' | 'tv'; tmdbId: number };
@@ -20,6 +19,7 @@ type Category = {
   description: Text;
   count: number;
   cover: Item;
+  covers?: Item[];
 };
 function useText() {
   const { locale } = useIntl();
@@ -35,23 +35,47 @@ function CategoryCard({
 }) {
   const text = useText();
   const { ref, inView } = useInView({ triggerOnce: true });
-  const { data } = useSWR<{ backdropPath?: string }>(
-    inView ? `/api/v1/${category.cover.type}/${category.cover.tmdbId}` : null,
-    { revalidateOnFocus: false }
-  );
+  const [coverIndex, setCoverIndex] = useState(0);
+  const [failedBackdrop, setFailedBackdrop] = useState(false);
+  const candidates = category.covers ?? [category.cover];
+  const cover = candidates[coverIndex];
+  const { data, error } = useSWR<{
+    backdropPath?: string;
+    posterPath?: string;
+  }>(inView && cover ? `/api/v1/${cover.type}/${cover.tmdbId}` : null, {
+    revalidateOnFocus: false,
+  });
+  const image =
+    !failedBackdrop && data?.backdropPath
+      ? data.backdropPath
+      : data?.posterPath;
+  useEffect(() => {
+    if (cover && (error || (data && !image))) {
+      setCoverIndex((i) => i + 1);
+      setFailedBackdrop(false);
+    }
+  }, [cover, error, data, image]);
   return (
     <Link
       ref={ref}
       href={`/discover/curated/${category.id}`}
-      className={`relative flex h-48 ${fullWidth ? 'w-full' : 'w-72 sm:w-80'} flex-col justify-end overflow-hidden rounded-xl bg-gray-800 p-5 ring-1 ring-gray-700 hover:ring-purple-400 focus-visible:ring-purple-400`}
+      className={`relative flex min-h-48 ${fullWidth ? 'w-full' : 'w-72 sm:w-80'} flex-col justify-end overflow-hidden whitespace-normal break-words rounded-xl bg-gray-800 p-5 ring-1 ring-gray-700 hover:ring-purple-400 focus-visible:ring-purple-400`}
     >
-      {data?.backdropPath && (
+      {image && (
         <CachedImage
           type="tmdb"
-          src={`https://image.tmdb.org/t/p/w780${data.backdropPath}`}
+          src={`https://image.tmdb.org/t/p/w780${image}`}
           alt=""
           fill
           style={{ objectFit: 'cover' }}
+          onError={() => {
+            if (!failedBackdrop && data?.backdropPath && data.posterPath)
+              setFailedBackdrop(true);
+            else {
+              setCoverIndex((i) => i + 1);
+              setFailedBackdrop(false);
+            }
+          }}
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-gray-900/40" />
@@ -59,7 +83,7 @@ function CategoryCard({
         <h3 className="text-lg font-bold leading-tight">
           {text(category.title)}
         </h3>
-        <p className="mt-2 line-clamp-2 text-sm text-gray-200">
+        <p className="mt-2 text-sm text-gray-200">
           {text(category.description)}
         </p>
       </div>
@@ -73,18 +97,14 @@ export default function CuratedSlider() {
     { refreshInterval: 60000, revalidateOnFocus: true }
   );
   return (
-    <section
-      className="mb-8"
-      aria-label={t('Curated Lists', 'Listas seleccionadas')}
-    >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <section aria-label={t('Curated Lists', 'Listas seleccionadas')}>
+      <div className="slider-header">
         <h2>
           <Link href="/discover/curated" className="slider-title">
             <span>{t('Curated Lists', 'Listas seleccionadas')}</span>
             <ArrowRightCircleIcon />
           </Link>
         </h2>
-        <RandomPickButton />
       </div>
       {error ? (
         <p role="status" className="text-gray-300">
@@ -95,6 +115,7 @@ export default function CuratedSlider() {
         </p>
       ) : (
         <Slider
+          stretchItems
           sliderKey={`curated-${data?.day ?? 'loading'}`}
           isLoading={!data}
           placeholder={
@@ -124,7 +145,6 @@ export function CuratedCategoriesPage() {
         <h1 className="text-3xl font-bold text-white">
           {t('Curated Lists', 'Listas seleccionadas')}
         </h1>
-        <RandomPickButton />
       </div>
       <p className="mb-6 text-gray-300">
         {t(

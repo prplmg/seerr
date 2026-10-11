@@ -67,6 +67,7 @@ export function dailyCategories(
       description: list.description,
       count: list.items.length,
       cover: list.items[0],
+      covers: list.items.slice(0, 5),
     }));
   return { day, timezone: 'America/Merida', results };
 }
