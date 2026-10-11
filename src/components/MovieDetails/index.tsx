@@ -497,6 +497,11 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
           />
         </div>
         <div className="media-title">
+          {router.query.random === '1' && (
+            <div className="mb-3 flex justify-center xl:justify-start">
+              <RandomPickButton again exclude={data.mediaInfo?.id} />
+            </div>
+          )}
           <div className="media-status">
             <StatusBadge
               status={data.mediaInfo?.status}
@@ -627,7 +632,6 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               trailerUrl={trailerUrl}
               movieId={data.id}
             />
-            {router.query.random === '1' && <div className="mt-2"><RandomPickButton again exclude={data.mediaInfo?.id} /></div>}
           </div>
           <RequestButton
             mediaType="movie"

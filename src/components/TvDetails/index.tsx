@@ -541,6 +541,11 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           />
         </div>
         <div className="media-title">
+          {router.query.random === '1' && (
+            <div className="mb-3 flex justify-center xl:justify-start">
+              <RandomPickButton again exclude={data.mediaInfo?.id} />
+            </div>
+          )}
           <div className="media-status">
             <StatusBadge
               status={data.mediaInfo?.status}
@@ -667,7 +672,6 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
             )}
           <div className="z-20">
             <MediaActions links={mediaLinks} trailerUrl={trailerUrl} />
-            {router.query.random === '1' && <div className="mt-2"><RandomPickButton again exclude={data.mediaInfo?.id} /></div>}
           </div>
           <RequestButton
             mediaType="tv"
