@@ -48,6 +48,7 @@ interface PlexLibrariesResponse {
 }
 
 export interface PlexMetadata {
+  Marker?: { type: string; startTimeOffset: number }[];
   ratingKey: string;
   grandparentRatingKey?: string;
   duration?: number;
@@ -197,12 +198,10 @@ class PlexAPI extends ExternalAPI {
 
   public async getMetadata(
     key: string,
-    options: { includeChildren?: boolean } = {}
+    options: { includeChildren?: boolean; includeMarkers?: boolean } = {}
   ): Promise<PlexMetadata> {
     const response = await this.get<PlexMetadataResponse>(
-      `/library/metadata/${key}${
-        options.includeChildren ? '?includeChildren=1' : ''
-      }`
+      `/library/metadata/${key}?includeChildren=${options.includeChildren ? 1 : 0}&includeMarkers=${options.includeMarkers ? 1 : 0}`
     );
 
     return response.MediaContainer.Metadata[0];

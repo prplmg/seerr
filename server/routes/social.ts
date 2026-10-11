@@ -7,6 +7,7 @@ import Media from '@server/entity/Media';
 import { User } from '@server/entity/User';
 import { MediaType, MediaStatus } from '@server/constants/media';
 import { appDataPath } from '@server/utils/appDataVolume';
+import { partyWatched } from '@server/lib/partyWatched';
 
 // Filter at serialization time, including cache hits. Never send raw history.
 type Person = { id: number; name: string; avatar: string; lastWatched?: number; seasons?: number[] };
@@ -143,7 +144,7 @@ router.get('/recently-watched', async (req, res) => {
   try {
     let p = policy();
     if (!p.enabled) return res.json({ enabled: false, page, totalResults: 0, totalPages: 0, results: [] });
-    const rows = await recentHistory(p);
+    const [rows, partyRows] = await Promise.all([recentHistory(p), partyWatched()]);
     const users = await getRepository(User).find();
     const mapped = new Map<string, number>();
     for (const user of users) if (user.plexId) mapped.set(String(user.plexId), user.id);
@@ -167,6 +168,12 @@ router.get('/recently-watched', async (req, res) => {
       const userId = mapped.get(row.plexId);
       if (userId === undefined || p.hiddenWatchers.includes(userId)) continue;
       const item = byKey.get(`${row.type}:${row.key}`);
+      if (item && (type === 'all' || item.mediaType === type) && row.stamp > (watched.get(item.id)?.stamp || 0)) watched.set(item.id, { item, stamp: row.stamp });
+    }
+    const byTmdb = new Map(media.filter(m => m.status !== MediaStatus.BLOCKLISTED && m.status4k !== MediaStatus.BLOCKLISTED).map(m => [`${m.mediaType}:${m.tmdbId}`, m]));
+    for (const row of partyRows) {
+      if (!users.some(u => u.id === row.userId) || p.hiddenWatchers.includes(row.userId)) continue;
+      const item = byTmdb.get(`${row.mediaType}:${row.tmdbId}`);
       if (item && (type === 'all' || item.mediaType === type) && row.stamp > (watched.get(item.id)?.stamp || 0)) watched.set(item.id, { item, stamp: row.stamp });
     }
     const results = [...watched.values()].sort((a,b) => b.stamp - a.stamp || b.item.id - a.item.id).slice((page - 1) * 20, page * 20)
@@ -218,6 +225,11 @@ router.get('/:type/:id', async (req, res) => {
         }
       }
     } catch { historyAvailable = false; }
+    for (const row of await partyWatched()) {
+      if (row.tmdbId !== id || row.mediaType !== type) continue;
+      const u = users.find(u => u.id === row.userId);
+      if (u && row.stamp > (watched.get(u.id)?.lastWatched || 0)) watched.set(u.id, { ...person(u), lastWatched: row.stamp });
+    }
     p = policy(); // Opt-outs apply even when changed during a history fetch.
     if (!p.enabled) return res.json({ watchers: [], requesters: [], enabled: false });
     return res.json({ enabled: true, historyAvailable, historyStale,

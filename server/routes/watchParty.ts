@@ -3,9 +3,11 @@ import { MediaStatus, MediaType } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { User } from '@server/entity/User';
+import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import type { ActivityRow, PartySnapshot } from '@server/lib/watchingNow';
 import { mergeWatchingNow } from '@server/lib/watchingNow';
+import { isAuthenticated } from '@server/middleware/auth';
 import { appDataPath } from '@server/utils/appDataVolume';
 import axios from 'axios';
 import { createHmac, randomUUID } from 'crypto';
@@ -99,6 +101,72 @@ async function rooms(p: Config): Promise<PartySnapshot[]> {
   return snapshot(`relay:${p.relayUrl}`, () => relay(p, 'get', 'rooms'));
 }
 const router = Router();
+// Coarse, browser-reported class only; never persist the raw user agent or IP.
+function controlDevice(agent = '') {
+  if (/iPad|Tablet|Android(?!.*Mobile)/i.test(agent)) return 'tablet';
+  if (/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(agent)) return 'phone';
+  return /Windows NT|Macintosh|X11|CrOS/i.test(agent) ? 'desktop' : 'unknown';
+}
+router.get(
+  '/admin/usage',
+  isAuthenticated(Permission.ADMIN),
+  async (req, res) => {
+    const days = Number(req.query.days || 30),
+      page = Number(req.query.page || 1);
+    if (
+      ![7, 30, 90].includes(days) ||
+      !Number.isSafeInteger(page) ||
+      page < 1 ||
+      page > 10000
+    )
+      return res.sendStatus(400);
+    res.setHeader('Cache-Control', 'private, no-store');
+    try {
+      const p = config();
+      if (!p) return res.sendStatus(503);
+      return res.json(await relay(p, 'get', `usage?days=${days}&page=${page}`));
+    } catch {
+      return res.status(503).json({ error: 'Activity history unavailable' });
+    }
+  }
+);
+router.get(
+  '/admin/usage/:id',
+  isAuthenticated(Permission.ADMIN),
+  async (req, res) => {
+    const id = Number(req.params.id),
+      after = Number(req.query.after || 0);
+    if (
+      !Number.isSafeInteger(id) ||
+      id < 1 ||
+      !Number.isSafeInteger(after) ||
+      after < 0
+    )
+      return res.sendStatus(400);
+    res.setHeader('Cache-Control', 'private, no-store');
+    try {
+      const p = config();
+      if (!p) return res.sendStatus(503);
+      const detail = await relay(p, 'get', `usage/${id}?after=${after}`);
+      const users = await getRepository(User).find({
+        select: { id: true, username: true, plexUsername: true, avatar: true },
+      });
+      const ids = new Set<number>(
+        detail.visits.map((v: { userId: number }) => v.userId)
+      );
+      return res.json({
+        ...detail,
+        users: users
+          .filter((u) => ids.has(u.id))
+          .map((u) => ({ id: u.id, name: u.displayName, avatar: u.avatar })),
+      });
+    } catch (error) {
+      return res.sendStatus(
+        axios.isAxiosError(error) && error.response?.status === 404 ? 404 : 503
+      );
+    }
+  }
+);
 async function cataloguePlex() {
   // Local catalogue accounts need not own a Plex token. Metadata lookup uses the
   // configured library owner; playback itself still uses the browser's Plex login.
@@ -337,7 +405,9 @@ router.post(
         ratingKey = episodeKey;
       }
       const plex = await cataloguePlex();
-      const metadata = await plex.getMetadata(ratingKey);
+      const metadata = await plex.getMetadata(ratingKey, {
+        includeMarkers: true,
+      });
       if (
         metadata.type !== (mediaType === 'tv' ? 'episode' : 'movie') ||
         (mediaType === 'tv' &&
@@ -349,6 +419,12 @@ router.post(
       const id = partyId || `cat-${randomUUID()}`;
       if (!partyId)
         await relay(p, 'post', 'rooms', {
+          title: metadata.title,
+          creditsStart:
+            metadata.Marker?.filter((m) => m.type === 'credits').reduce(
+              (v, m) => Math.min(v, m.startTimeOffset / 1000),
+              Infinity
+            ) || null,
           id,
           tmdbId,
           mediaType,
@@ -430,7 +506,9 @@ router.post(
         mediaType === 'tv' ? episodeKey : String(media.ratingKey);
       if (typeof ratingKey !== 'string' || !/^\d+$/.test(ratingKey))
         return res.sendStatus(400);
-      const metadata = await (await cataloguePlex()).getMetadata(ratingKey);
+      const metadata = await (
+        await cataloguePlex()
+      ).getMetadata(ratingKey, { includeMarkers: true });
       if (
         metadata.type !== (mediaType === 'tv' ? 'episode' : 'movie') ||
         (mediaType === 'tv' &&
@@ -438,6 +516,13 @@ router.post(
       )
         return res.sendStatus(400);
       const result = await relay(p, 'post', `rooms/${roomId}/switch`, {
+        title: metadata.title,
+        creditsStart:
+          metadata.Marker?.filter((m) => m.type === 'credits').reduce(
+            (v, m) => Math.min(v, m.startTimeOffset / 1000),
+            Infinity
+          ) || null,
+        device: controlDevice(req.get('user-agent')),
         userId: req.user!.id,
         requestId,
         tmdbId,
@@ -498,6 +583,7 @@ router.post(
       // Relay checks CURRENT membership/roles, not the cached public snapshot.
       // Never accept a user/peer identity supplied by the caller.
       const result = await relay(p, 'post', `rooms/${roomId}/control`, {
+        device: controlDevice(req.get('user-agent')),
         userId: req.user!.id,
         action,
         targetTime,

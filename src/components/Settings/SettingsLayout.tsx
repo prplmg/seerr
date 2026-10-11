@@ -1,7 +1,9 @@
 import PageTitle from '@app/components/Common/PageTitle';
 import type { SettingsRoute } from '@app/components/Common/SettingsTabs';
 import SettingsTabs from '@app/components/Common/SettingsTabs';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useSettings from '@app/hooks/useSettings';
+import { Permission, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
 import { MediaServerType } from '@server/constants/server';
@@ -28,6 +30,8 @@ type SettingsLayoutProps = {
 const SettingsLayout = ({ children }: SettingsLayoutProps) => {
   const intl = useIntl();
   const settings = useSettings();
+  const t = usePartyText();
+  const { hasPermission } = useUser();
   const settingsRoutes: SettingsRoute[] = [
     {
       text: intl.formatMessage(messages.menuGeneralSettings),
@@ -87,6 +91,12 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
     },
   ];
 
+  if (hasPermission(Permission.ADMIN))
+    settingsRoutes.splice(settingsRoutes.length - 1, 0, {
+      text: t('Watch Party Activity', 'Actividad de Ver Juntos'),
+      route: '/settings/watch-party',
+      regex: /^\/settings\/watch-party/,
+    });
   return (
     <>
       <PageTitle title={intl.formatMessage(globalMessages.settings)} />
