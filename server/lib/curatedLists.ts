@@ -61,13 +61,28 @@ export function dailyCategories(
         a.rank.localeCompare(b.rank) || a.list.id.localeCompare(b.list.id)
     )
     .slice(0, limit)
-    .map(({ list }) => ({
-      id: list.id,
-      title: list.title,
-      description: list.description,
-      count: list.items.length,
-      cover: list.items[0],
-      covers: list.items.slice(0, 5),
-    }));
+    .map(({ list }) => {
+      // Artwork rotates independently of category order and never reorders the list itself.
+      const covers = [...list.items]
+        .map((item) => ({
+          item,
+          rank: createHash('sha256')
+            .update(
+              `curated-art-v1:${day}:${list.id}:${item.type}:${item.tmdbId}`
+            )
+            .digest('hex'),
+        }))
+        .sort((a, b) => a.rank.localeCompare(b.rank))
+        .slice(0, 5)
+        .map(({ item }) => item);
+      return {
+        id: list.id,
+        title: list.title,
+        description: list.description,
+        count: list.items.length,
+        cover: covers[0],
+        covers,
+      };
+    });
   return { day, timezone: 'America/Merida', results };
 }
