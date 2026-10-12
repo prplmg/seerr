@@ -1,4 +1,5 @@
 import type {
+  PartyExternalVideo,
   WatchingPerson,
   WatchingTitle,
 } from '@server/interfaces/api/watchParty';
@@ -20,6 +21,10 @@ export type PartySnapshot = {
   duration: number;
   paused: boolean;
   switchStatus?: 'loading' | 'ready' | 'failed';
+  external?: PartyExternalVideo;
+  canReturn?: boolean;
+  returnTo?: { ratingKey: string; position: number; duration: number };
+  controllerUserIds?: number[];
 };
 type MediaIdentity = {
   tmdbId: number;
@@ -64,6 +69,19 @@ export function mergeWatchingNow(
     );
     const person = visible(plexToSeerr.get(String(row.user_id)) ?? -1);
     if (!item || !person) continue;
+    // The paused return tab is not a second current viewing session for the
+    // same participant. Preserve other viewers and unrelated Plex activity.
+    if (
+      row.state === 'paused' &&
+      parties.some(
+        (p) =>
+          p.external &&
+          p.tmdbId === item.tmdbId &&
+          p.mediaType === type &&
+          p.userIds.includes(person.id)
+      )
+    )
+      continue;
     const title = ensure(item.tmdbId, type);
     if (!title.viewers.some((p) => p.id === person.id))
       title.viewers.push(person);
@@ -73,6 +91,19 @@ export function mergeWatchingNow(
       .map(visible)
       .filter((p): p is WatchingPerson => !!p);
     if (!members.length) continue;
+    let external: PartyExternalVideo | undefined;
+    if (party.external) {
+      const id = party.external.videoId;
+      if (party.external.provider !== 'youtube' || !/^[\w-]{11}$/.test(id))
+        continue;
+      external = {
+        provider: 'youtube',
+        videoId: id,
+        title: party.external.title.slice(0, 200),
+        url: `https://www.youtube.com/watch?v=${id}`,
+        thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      };
+    }
     const title = ensure(party.tmdbId, party.mediaType);
     title.parties.push({
       id: party.id,
@@ -83,6 +114,9 @@ export function mergeWatchingNow(
       paused: party.paused,
       ratingKey: party.ratingKey,
       switchStatus: party.switchStatus,
+      canReturn: party.canReturn,
+      canControl: party.controllerUserIds?.includes(viewerId) ?? false,
+      external,
     });
   }
   for (const title of titles.values()) {

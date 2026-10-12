@@ -22,6 +22,10 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
   );
   const mine = item.parties.find((p) => p.mine);
   const title = data && ('title' in data ? data.title : data.name);
+  const href = `/${item.mediaType}/${item.tmdbId}`;
+  const backdrop = data?.backdropPath
+    ? `https://image.tmdb.org/t/p/w780${data.backdropPath}`
+    : undefined;
   const year =
     data &&
     ('releaseDate' in data ? data.releaseDate : data.firstAirDate)?.slice(0, 4);
@@ -31,15 +35,15 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
       data-testid="watching-card"
       className="relative flex min-h-[152px] w-72 gap-3 rounded-xl bg-gray-800 bg-cover bg-center p-4 text-gray-400 shadow ring-1 ring-gray-700 sm:min-h-[200px] sm:w-96"
       style={
-        data?.backdropPath
+        backdrop
           ? {
-              backgroundImage: `linear-gradient(135deg,rgba(17,24,39,.65),rgba(17,24,39,1)),url(https://image.tmdb.org/t/p/w780${data.backdropPath})`,
+              backgroundImage: `linear-gradient(135deg,rgba(17,24,39,.65),rgba(17,24,39,1)),url(${backdrop})`,
             }
           : undefined
       }
     >
       <Link
-        href={`/${item.mediaType}/${item.tmdbId}`}
+        href={href}
         className="h-[120px] w-20 flex-none overflow-hidden rounded-md sm:h-[168px] sm:w-28"
       >
         <CachedImage
@@ -58,7 +62,7 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="hidden text-xs text-white sm:block">{year}</span>
         <Link
-          href={`/${item.mediaType}/${item.tmdbId}`}
+          href={href}
           className="truncate text-base font-bold text-white hover:underline sm:text-lg"
         >
           {title || '…'}

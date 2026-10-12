@@ -3,7 +3,7 @@ import CachedImage from '@app/components/Common/CachedImage';
 import Modal from '@app/components/Common/Modal';
 import { partyBridge } from '@app/components/WatchParty/bridge';
 import { usePartyText } from '@app/components/WatchParty/messages';
-import { Transition } from '@headlessui/react';
+import { Popover, Portal, Transition } from '@headlessui/react';
 import { PauseIcon, PlayIcon, UsersIcon } from '@heroicons/react/24/solid';
 import type {
   WatchingParty,
@@ -43,6 +43,24 @@ export function PartyPill({
   hasOwnParty: boolean;
 }) {
   const t = usePartyText();
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  const returnPrevious = async () => {
+    setBusy(true);
+    setError(false);
+    try {
+      await axios.post('/api/v1/watch-party/source', {
+        roomId: party.id,
+        requestId: crypto.randomUUID(),
+        source: 'previous',
+      });
+    } catch {
+      setError(true);
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <span
       title={`${party.mine ? t('Your party', 'Tu grupo') + ': ' : ''}${party.members.map((p) => p.name).join(', ')}`}
@@ -53,6 +71,68 @@ export function PartyPill({
       ))}
       {party.mine && (
         <span className="sr-only">{t('Your party', 'Tu grupo')}</span>
+      )}
+      {party.external && (
+        <Popover className="inline-flex">
+          <Popover.Button
+            aria-label={t(
+              `Currently on YouTube: ${party.external.title}`,
+              `Viendo en YouTube: ${party.external.title}`
+            )}
+            className="border-l border-current px-1.5 py-1 text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              setPosition({
+                left: Math.max(8, Math.min(rect.left, window.innerWidth - 296)),
+                top: Math.max(
+                  8,
+                  Math.min(rect.bottom + 8, window.innerHeight - 220)
+                ),
+              });
+            }}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 18" className="h-4 w-5">
+              <rect width="24" height="18" rx="5" fill="currentColor" />
+              <path d="m10 5 6 4-6 4z" fill="white" />
+            </svg>
+          </Popover.Button>
+          <Portal>
+            <Popover.Panel
+              style={position}
+              className="fixed z-[100] w-72 max-w-[calc(100vw-16px)] rounded-lg border border-gray-600 bg-gray-800 p-3 text-sm text-white shadow-xl"
+            >
+              <p className="mb-2 break-words font-semibold">
+                {party.external.title}
+              </p>
+              <a
+                href={party.external.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block py-2 text-purple-300 hover:underline"
+              >
+                {t('Open on YouTube', 'Abrir en YouTube')}
+              </a>
+              {party.mine && party.canReturn && party.canControl !== false && (
+                <button
+                  type="button"
+                  disabled={busy || party.switchStatus === 'loading'}
+                  onClick={returnPrevious}
+                  className="block py-2 text-left text-purple-300 hover:underline disabled:opacity-50"
+                >
+                  {t('Return to previous video', 'Volver al video anterior')}
+                </button>
+              )}
+              {error && (
+                <p role="alert" className="text-yellow-300">
+                  {t(
+                    'Could not switch. Try again.',
+                    'No se pudo cambiar. Intenta de nuevo.'
+                  )}
+                </p>
+              )}
+            </Popover.Panel>
+          </Portal>
+        </Popover>
       )}
     </span>
   );
@@ -82,7 +162,27 @@ export function WatchingPeople({
         <Avatar key={p.id} person={p} />
       ))}
       {item.parties.map((p) => (
-        <PartyPill key={p.id} party={p} hasOwnParty={own} />
+        <div key={p.id} className="min-w-0 max-w-full">
+          <PartyPill party={p} hasOwnParty={own} />
+          {list && p.external && (
+            <a
+              href={p.external.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 hidden max-w-full items-center gap-2 text-xs hover:underline sm:flex"
+            >
+              <img
+                src={p.external.thumbnail}
+                alt=""
+                loading="lazy"
+                className="h-7 w-12 flex-none rounded object-cover"
+              />
+              <span className="min-w-0 truncate" title={p.external.title}>
+                {p.external.title}
+              </span>
+            </a>
+          )}
+        </div>
       ))}
     </div>
   );
@@ -239,8 +339,8 @@ export function PartyControls({ party }: { party: WatchingParty }) {
               'Cargando el nuevo título para todos…'
             )
           : t(
-              'A player could not load. Check each desktop, then use Play in party to retry.',
-              'Un reproductor no pudo cargar. Revisa cada computadora y vuelve a intentar con Reproducir en el grupo.'
+              'A player could not load. Check each desktop, then retry the switch or return to the previous video.',
+              'Un reproductor no pudo cargar. Revisa cada computadora y vuelve a intentar el cambio o regresa al video anterior.'
             )}
       </p>
     );
@@ -344,7 +444,9 @@ export function WatchingDetail({
   const t = usePartyText();
   const item =
     !error && data?.enabled
-      ? data.results.find((r) => r.tmdbId === id && r.mediaType === type)
+      ? data.results.find(
+          (r) => !r.external && r.tmdbId === id && r.mediaType === type
+        )
       : undefined;
   if (!item) return null;
   return (
@@ -368,7 +470,7 @@ export function DetailPartyControls({
   const party =
     !error && data?.enabled
       ? data.results
-          .find((r) => r.tmdbId === id && r.mediaType === type)
+          .find((r) => !r.external && r.tmdbId === id && r.mediaType === type)
           ?.parties.find((p) => p.mine)
       : undefined;
   if (!party) return null;
@@ -549,7 +651,13 @@ export default function WatchTogether({
     selectedParty || (ownParties.length === 1 ? ownParties[0].id : '');
   const { data: episodes } = useSWR<{
     results: { key: string; title: string; season: number; episode: number }[];
+    suggestedKey?: string;
+    profileLabel?: string;
   }>(open && type === 'tv' ? `/api/v1/watch-party/episodes/${id}` : null);
+  useEffect(() => {
+    if (open && !episodeKey && episodes?.suggestedKey)
+      setEpisodeKey(episodes.suggestedKey);
+  }, [open, episodeKey, episodes]);
   useEffect(() => {
     setMobile(
       /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
@@ -557,11 +665,18 @@ export default function WatchTogether({
     );
   }, []);
   const item = data?.results.find(
-    (r) => r.tmdbId === id && r.mediaType === type
+    (r) => !r.external && r.tmdbId === id && r.mediaType === type
   );
   const playingHere =
-    type === 'movie' && ownParties.length === 1 &&
-    !!item?.parties.some((p) => p.mine && p.switchStatus !== 'failed' && p.switchStatus !== 'loading');
+    type === 'movie' &&
+    ownParties.length === 1 &&
+    !!item?.parties.some(
+      (p) =>
+        p.mine &&
+        !p.external &&
+        p.switchStatus !== 'failed' &&
+        p.switchStatus !== 'loading'
+    );
   const switchMedia = async () => {
     setBusy(true);
     setError('');
@@ -661,8 +776,8 @@ export default function WatchTogether({
             {playingHere
               ? t('Playing in party', 'Reproduciendo en el grupo')
               : switching
-              ? t('Play in party', 'Reproducir en el grupo')
-              : t('Watch Together', 'Ver Juntos')}
+                ? t('Play in party', 'Reproducir en el grupo')
+                : t('Watch Together', 'Ver Juntos')}
           </span>
         </Button>
         {hint && (
@@ -778,6 +893,14 @@ export default function WatchTogether({
               {type === 'tv' && (
                 <label className="mb-3 block text-sm">
                   {t('Choose an episode', 'Elige un episodio')}
+                  {episodes?.profileLabel && (
+                    <span className="block text-xs text-gray-400">
+                      {t(
+                        `Plex profile progress: ${episodes.profileLabel}`,
+                        `Progreso del perfil de Plex: ${episodes.profileLabel}`
+                      )}
+                    </span>
+                  )}
                   <select
                     value={episodeKey}
                     onChange={(e) => setEpisodeKey(e.target.value)}

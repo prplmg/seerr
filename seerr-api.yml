@@ -2277,6 +2277,44 @@ paths:
       responses:
         '200':
           description: Short-lived signed launch ticket
+  /watch-party/source:
+    post:
+      summary: Switch an existing party to YouTube or its saved previous video
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [roomId, requestId, source]
+              properties:
+                roomId:
+                  type: string
+                  pattern: '^cat-[a-f0-9-]{36}$'
+                requestId:
+                  type: string
+                  format: uuid
+                source:
+                  type: string
+                  enum: [youtube, previous]
+                videoId:
+                  type: string
+                  pattern: '^[A-Za-z0-9_-]{11}$'
+                title:
+                  type: string
+                  maxLength: 200
+                duration:
+                  type: number
+                  minimum: 0.001
+                  maximum: 86400
+      responses:
+        '202':
+          description: Party players are switching sources
+        '403':
+          description: Not a current party member or controller
+        '409':
+          description: Update extensions or wait for the current transition
   /watch-party/switch:
     post:
       summary: Replace media in your existing party from any signed-in device

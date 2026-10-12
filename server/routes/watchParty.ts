@@ -3,6 +3,7 @@ import { MediaStatus, MediaType } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { User } from '@server/entity/User';
+import { preferredPartyEpisode } from '@server/lib/partyEpisodePreference';
 import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import type { ActivityRow, PartySnapshot } from '@server/lib/watchingNow';
@@ -308,6 +309,10 @@ router.get(
       return res.json({
         tmdbId: media.tmdbId,
         mediaType: media.mediaType,
+        plexMedia: {
+          title: metadata.title,
+          duration: Number(metadata.duration || 0) / 1000,
+        },
         ...(metadata.type === 'episode' ? { episodeKey: key } : {}),
       });
     } catch {
@@ -355,7 +360,54 @@ router.get('/episodes/:tmdbId', async (req, res) => {
           });
       }
     }
-    return res.json({ results });
+    let suggestedKey: string | undefined;
+    let profileLabel: string | undefined;
+    try {
+      // Independent many-to-one playback preferences; never change the avatar
+      // map or use these associations to credit watched history.
+      const preferences = read('playback-profiles.json');
+      const profile =
+        preferences.version === 1
+          ? preferences.users?.[String(req.user!.id)]
+          : undefined;
+      if (profile && /^\d+$/.test(String(profile.plexUserId))) {
+        const policy = social();
+        const query = async (cmd: string, extra = {}) => {
+          const response = (
+            await axios.get(`${policy.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
+              params: { apikey: policy.tautulliKey, cmd, ...extra },
+              timeout: 5000,
+            })
+          ).data.response;
+          if (response?.result !== 'success')
+            throw Error('Progress unavailable');
+          return response.data;
+        };
+        const activity = await query('get_activity');
+        const active = (activity.sessions || []).filter(
+          (s: ActivityRow) =>
+            String(s.user_id) === String(profile.plexUserId) &&
+            String(s.grandparent_rating_key) === String(media.ratingKey) &&
+            ['playing', 'paused', 'buffering'].includes(s.state)
+        );
+        let recent;
+        if (!active.length) {
+          const history = await query('get_history', {
+            user_id: profile.plexUserId,
+            grandparent_rating_key: media.ratingKey,
+            length: 1,
+            order_column: 'date',
+            order_dir: 'desc',
+          });
+          recent = history.data?.[0];
+        }
+        suggestedKey = preferredPartyEpisode(results, active, recent);
+        profileLabel = String(profile.label || profile.plexUserId).slice(0, 80);
+      }
+    } catch {
+      /* No mapping/progress: keep an explicit episode selection. */
+    }
+    return res.json({ results, suggestedKey, profileLabel });
   } catch {
     return res.status(503).json({ error: 'Episodes unavailable' });
   }
@@ -389,6 +441,7 @@ router.post(
       )
         return res.status(404).json({ error: 'Media is not available' });
       let ratingKey = String(media.ratingKey);
+      let externalParty: PartySnapshot | undefined;
       if (partyId) {
         const existing = (
           (await relay(p, 'get', 'rooms')) as PartySnapshot[]
@@ -398,7 +451,21 @@ router.post(
         );
         if (!existing)
           return res.status(409).json({ error: 'This party has ended' });
-        ratingKey = existing.ratingKey;
+        if (
+          existing.switchStatus === 'loading' ||
+          existing.switchStatus === 'failed'
+        )
+          return res
+            .status(409)
+            .json({ error: 'Wait for this party to finish switching' });
+        if (existing.external) {
+          if (!existing.returnTo || !/^\d+$/.test(existing.returnTo.ratingKey))
+            return res
+              .status(409)
+              .json({ error: 'Previous media unavailable' });
+          externalParty = existing;
+        }
+        ratingKey = externalParty?.returnTo?.ratingKey || existing.ratingKey;
       } else if (mediaType === 'tv') {
         if (typeof episodeKey !== 'string' || !/^\d+$/.test(episodeKey))
           return res.status(400).json({ error: 'Choose a specific episode' });
@@ -430,6 +497,7 @@ router.post(
           mediaType,
           ratingKey,
           duration: Number(metadata.duration || 0) / 1000,
+          serverId: getSettings().plex.machineId,
         });
       const claims = {
         roomId: id,
@@ -448,14 +516,90 @@ router.post(
         catalogueUrl: `https://catalogue.prpl.com.mx/${mediaType}/${tmdbId}`,
         username: req.user!.displayName,
         plexUrl,
+        plexMedia: {
+          title: metadata.title,
+          duration: Number(metadata.duration || 0) / 1000,
+        },
         mediaType: mediaType === 'tv' ? 'episode' : 'movie',
         launchMode: partyId ? 'join' : 'create',
         serverUrl: p.browserRelayUrl,
+        ...(externalParty
+          ? {
+              external: externalParty.external,
+              externalDuration: externalParty.duration,
+            }
+          : {}),
       });
     } catch {
       return res.status(503).json({
         error: 'Unable to prepare this party. Check Plex access and the relay.',
       });
+    }
+  }
+);
+
+router.post(
+  '/source',
+  rateLimit({ windowMs: 60000, limit: 6 }),
+  async (req, res) => {
+    try {
+      const p = config();
+      if (!p || !social().enabled) return res.sendStatus(503);
+      const origin = req.get('origin');
+      if (
+        origin &&
+        ![
+          'https://catalogue.prpl.com.mx',
+          'http://127.0.0.1:15056',
+          'http://localhost:15056',
+        ].includes(origin)
+      )
+        return res.sendStatus(403);
+      const { roomId, requestId, source, videoId, duration, title } = req.body;
+      if (
+        !/^cat-[a-f0-9-]{36}$/.test(roomId || '') ||
+        !/^[a-f0-9-]{36}$/.test(requestId || '') ||
+        !['youtube', 'previous'].includes(source)
+      )
+        return res.sendStatus(400);
+      if (
+        source === 'youtube' &&
+        (!/^[\w-]{11}$/.test(videoId || '') ||
+          !Number.isFinite(duration) ||
+          duration <= 0 ||
+          duration > 86400 ||
+          typeof title !== 'string' ||
+          title.length > 200)
+      )
+        return res.sendStatus(400);
+      const party = ((await relay(p, 'get', 'rooms')) as PartySnapshot[]).find(
+        (r) => r.id === roomId
+      );
+      if (!party?.userIds.includes(req.user!.id)) return res.sendStatus(403);
+      const result = await relay(p, 'post', `rooms/${roomId}/switch`, {
+        userId: req.user!.id,
+        requestId,
+        source,
+        device: controlDevice(req.get('user-agent')),
+        ...(source === 'youtube'
+          ? {
+              url: `https://www.youtube.com/watch?v=${videoId}`,
+              duration,
+              title: title.trim() || 'YouTube',
+            }
+          : {}),
+      });
+      cache.delete(`relay:${p.relayUrl}`);
+      return res.status(202).json(result);
+    } catch (error) {
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
+      return res
+        .status(
+          status && [400, 403, 404, 409, 429].includes(status) ? status : 503
+        )
+        .json({ error: 'Party source switch unavailable' });
     }
   }
 );
