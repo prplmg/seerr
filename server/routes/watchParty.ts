@@ -555,7 +555,15 @@ router.post(
         ].includes(origin)
       )
         return res.sendStatus(403);
-      const { roomId, requestId, source, videoId, duration, title } = req.body;
+      const {
+        roomId,
+        requestId,
+        source,
+        videoId,
+        duration,
+        title,
+        position = 0,
+      } = req.body;
       if (
         !/^cat-[a-f0-9-]{36}$/.test(roomId || '') ||
         !/^[a-f0-9-]{36}$/.test(requestId || '') ||
@@ -568,6 +576,9 @@ router.post(
           !Number.isFinite(duration) ||
           duration <= 0 ||
           duration > 86400 ||
+          !Number.isFinite(position) ||
+          position < 0 ||
+          position > duration ||
           typeof title !== 'string' ||
           title.length > 200)
       )
@@ -585,6 +596,7 @@ router.post(
           ? {
               url: `https://www.youtube.com/watch?v=${videoId}`,
               duration,
+              position,
               title: title.trim() || 'YouTube',
             }
           : {}),
