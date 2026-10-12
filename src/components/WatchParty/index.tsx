@@ -742,6 +742,32 @@ export default function WatchTogether({
         { timeout: 30000 }
       );
       const response = await partyBridge('launch', result.data);
+      const launchErrors: Record<string, string> = {
+        launch_pending: t(
+          'A launch is already in progress. Finish choosing your Plex profile or starting position, or close the Plex tab to cancel and retry.',
+          'Ya hay un inicio en curso. Termina de elegir tu perfil o posición inicial en Plex, o cierra la pestaña de Plex para cancelar e intentar de nuevo.'
+        ),
+        room_busy: t(
+          'The extension is already connected or connecting to a party. Leave it from the extension before creating another.',
+          'La extensión ya está conectada o conectándose a un grupo. Sal de él desde la extensión antes de crear otro.'
+        ),
+        launch_cancelled: t(
+          'The previous launch was cancelled. Try creating the party again.',
+          'Se canceló el inicio anterior. Intenta crear el grupo de nuevo.'
+        ),
+        update_required: t(
+          'Update and reload multimeldia sync, then refresh this page.',
+          'Actualiza y recarga multimeldia sync y luego actualiza esta página.'
+        ),
+        stale_target: t(
+          'The Plex player changed. Reopen the extension on the movie or episode you want to share.',
+          'El reproductor de Plex cambió. Abre la extensión de nuevo en la película o episodio que quieras compartir.'
+        ),
+      };
+      if (launchErrors[response.status]) {
+        setError(launchErrors[response.status]);
+        return;
+      }
       if (response.status !== 'ok') throw Error('Launch rejected');
       setOpen(false);
       setPending(undefined);
