@@ -11,7 +11,13 @@ import { partyWatched } from '@server/lib/partyWatched';
 
 // Filter at serialization time, including cache hits. Never send raw history.
 type Person = { id: number; name: string; avatar: string; lastWatched?: number; seasons?: number[] };
-type Policy = { historyConcurrency?: number; enabled: boolean; hiddenWatchers: number[]; hiddenRequesters: number[]; tautulliUrl: string; tautulliKey: string; mappingScript: string };
+type Policy = { historyAliases?: Record<string, string[]>; historyConcurrency?: number; enabled: boolean; hiddenWatchers: number[]; hiddenRequesters: number[]; tautulliUrl: string; tautulliKey: string; mappingScript: string };
+// Verified historical Plex IDs only; never infer identity from a title at runtime.
+function historyKeys(item: Media, p: Policy): string[] {
+  const aliases = p.historyAliases?.[`${item.mediaType}:${item.tmdbId}`] ?? [];
+  if (!Array.isArray(aliases) || aliases.some(key => typeof key !== 'string' || !/^\d+$/.test(key))) throw Error('Invalid history aliases');
+  return [...new Set([item.ratingKey, item.ratingKey4k, ...aliases].filter(Boolean) as string[])];
+}
 function policy(): Policy {
   const p = JSON.parse(fs.readFileSync(path.join(appDataPath(), 'social.json'), 'utf8').replace(/^\uFEFF/, ''));
   if (typeof p.enabled !== 'boolean' || !Array.isArray(p.hiddenWatchers) || !Array.isArray(p.hiddenRequesters)) throw Error('Invalid social policy');
@@ -158,7 +164,11 @@ router.get('/recently-watched', async (req, res) => {
     const byKey = new Map<string, Media>();
     for (const item of media) {
       if (item.status === MediaStatus.BLOCKLISTED || item.status4k === MediaStatus.BLOCKLISTED) continue;
-      for (const key of [item.ratingKey, item.ratingKey4k].filter(Boolean)) byKey.set(`${item.mediaType}:${key}`, item);
+      for (const key of historyKeys(item, p)) {
+        const identity = `${item.mediaType}:${key}`;
+        if (byKey.has(identity) && byKey.get(identity)?.id !== item.id) throw Error('Ambiguous history alias');
+        byKey.set(identity, item);
+      }
     }
     // Re-read opt-outs after I/O, including cache hits. Never expose timestamps.
     p = policy();
@@ -216,7 +226,7 @@ router.get('/:type/:id', async (req, res) => {
     let historyAvailable = true;
     let historyStale = false;
     try {
-      for (const key of [...new Set([media.ratingKey, media.ratingKey4k].filter(Boolean))]) {
+      for (const key of historyKeys(media, p)) {
         const snapshot = await history(String(key), type, p);
         historyStale ||= snapshot.stale;
         for (const [plexId, lastWatched] of snapshot.value) {
