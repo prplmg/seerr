@@ -16,7 +16,11 @@ const profiles = new Map<string, { token: string; until: number }>();
 
 // Playback sharing controls watchlists, not attribution of watched history.
 export async function plexWatchlistToken(userId: number): Promise<string> {
-  const users = await getRepository(User).find();
+  // Tokens are excluded from ordinary ORM queries. Select explicitly here only;
+  // this private resolver never returns credentials in an HTTP response.
+  const users = await getRepository(User).find({
+    select: ['id', 'username', 'plexId', 'plexToken'],
+  });
   const user = users.find((u) => u.id === userId);
   if (!user) throw Error('User not found');
   let plexId: string | undefined;
