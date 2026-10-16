@@ -10,7 +10,7 @@ Keep custom work on this branch. For an upstream upgrade, create a separate upgr
 
 ## Public profiles and Plex watchlists
 
-Authenticated members can browse a read-only user directory and profile requests, Plex watchlists, and recent watched movies. User-management controls and write APIs retain their existing administrator permissions. Recent movies reuse the social-history aliases, completion criteria, party history and hidden-user policy; they do not expose raw session data or watch timestamps.
+Authenticated members can browse a read-only user directory and profile requests, Plex watchlists, and recently watched movies and series (grouped by show). User-management controls and write APIs retain their existing administrator permissions. Recent history reuses the social-history aliases, completion criteria, party history and hidden-user policy; it does not expose raw session data or watch timestamps.
 
 Bookmarks on movie/series details write directly to Plex, not the local Watchlist table. Plex changes are read on focus and every 30 seconds. Profile watchlists use that same Plex source, including shared `playback-profiles.json` mappings (misu/gerry -> edgy); validated avatar mappings supply the other managed profiles. Missing credentials fail closed, never falling back to the owner's watchlist. Existing local watchlists are preserved but no longer mask Plex profile lists. Shared playback mappings do not attribute a watch to every linked user.
 

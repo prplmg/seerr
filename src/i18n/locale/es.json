@@ -1,7 +1,7 @@
 {
   "components.UserProfile.watchlistError": "La lista de seguimiento de Plex no está disponible temporalmente.",
   "components.UserProfile.historyError": "El historial de reproducción no está disponible temporalmente.",
-  "components.UserProfile.noHistory": "Todavía no hay películas vistas.",
+  "components.UserProfile.noHistory": "Todavía no hay películas ni series vistas.",
   "components.UserDirectory.title": "Usuarios",
   "components.UserDirectory.previous": "Anterior",
   "components.UserDirectory.next": "Siguiente",

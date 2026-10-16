@@ -1,7 +1,7 @@
 {
   "components.UserProfile.watchlistError": "Plex Watchlist is temporarily unavailable.",
   "components.UserProfile.historyError": "Watch history is temporarily unavailable.",
-  "components.UserProfile.noHistory": "No watched movies yet.",
+  "components.UserProfile.noHistory": "No watched movies or series yet.",
   "components.UserDirectory.title": "Users",
   "components.UserDirectory.previous": "Previous",
   "components.UserDirectory.next": "Next",

@@ -1,4 +1,7 @@
+import Button from '@app/components/Common/Button';
+import Header from '@app/components/Common/Header';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
+import PageTitle from '@app/components/Common/PageTitle';
 import defineMessages from '@app/utils/defineMessages';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -18,13 +21,17 @@ export default function UserDirectory() {
     results: { id: number; displayName: string; avatar: string }[];
     pageInfo: { pages: number };
   }>(`/api/v1/user?take=20&skip=${page * 20}&sort=displayname`);
-  if (error) return <p role="alert">{intl.formatMessage(messages.error)}</p>;
   return (
-    <>
-      <h1 className="mb-6 text-2xl font-bold">
-        {intl.formatMessage(messages.title)}
-      </h1>
-      {!data ? (
+    <div className="text-white">
+      <PageTitle title={intl.formatMessage(messages.title)} />
+      <div className="mb-6">
+        <Header>{intl.formatMessage(messages.title)}</Header>
+      </div>
+      {error ? (
+        <p role="alert" className="text-red-300">
+          {intl.formatMessage(messages.error)}
+        </p>
+      ) : !data ? (
         <LoadingSpinner />
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -32,36 +39,38 @@ export default function UserDirectory() {
             <Link
               key={user.id}
               href={`/users/${user.id}`}
-              className="flex items-center gap-3 rounded-lg bg-gray-800 p-4 hover:bg-gray-700 hover:underline"
+              className="flex min-w-0 items-center gap-3 rounded-lg border border-gray-700 bg-gray-800 p-4 text-white transition hover:border-gray-500 hover:bg-gray-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
             >
               {/* User avatars use the same trusted URLs as profile headers. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={user.avatar}
                 alt=""
-                className="h-10 w-10 rounded-full"
+                className="h-10 w-10 shrink-0 rounded-full"
               />
-              <span className="break-words">{user.displayName}</span>
+              <span className="min-w-0 break-words font-medium">
+                {user.displayName}
+              </span>
             </Link>
           ))}
         </div>
       )}
       <div className="mt-6 flex gap-4">
-        <button
+        <Button
           disabled={!page}
           onClick={() => setPage(page - 1)}
-          className="disabled:opacity-40"
+          className="disabled:cursor-not-allowed"
         >
           {intl.formatMessage(messages.previous)}
-        </button>
-        <button
+        </Button>
+        <Button
           disabled={!data || page + 1 >= data.pageInfo.pages}
           onClick={() => setPage(page + 1)}
-          className="disabled:opacity-40"
+          className="disabled:cursor-not-allowed"
         >
           {intl.formatMessage(messages.next)}
-        </button>
+        </Button>
       </div>
-    </>
+    </div>
   );
 }

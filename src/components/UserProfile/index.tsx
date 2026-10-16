@@ -38,7 +38,7 @@ const messages = defineMessages('components.UserProfile', {
   plexwatchlist: 'Plex Watchlist',
   watchlistError: 'Plex Watchlist is temporarily unavailable.',
   historyError: 'Watch history is temporarily unavailable.',
-  noHistory: 'No watched movies yet.',
+  noHistory: 'No watched movies or series yet.',
   localWatchlist: "{username}'s Watchlist",
   emptywatchlist:
     'Media added to your <PlexWatchlistSupportLink>Plex Watchlist</PlexWatchlistSupportLink> will appear here.',
@@ -81,7 +81,7 @@ const UserProfile = () => {
   const { data: watchData, error: watchDataError } = useSWR<{
     results: UserWatchDataResponse['recentlyWatched'];
   }>(
-    user ? `/api/v1/social/recently-watched?type=movie&userId=${user.id}` : null
+    user ? `/api/v1/social/recently-watched?type=all&userId=${user.id}` : null
   );
 
   const { data: watchlistItems, error: watchlistError } =
