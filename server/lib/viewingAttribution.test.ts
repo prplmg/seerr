@@ -2,6 +2,7 @@ import {
   attributedViewers,
   changeAttribution,
   historyViewers,
+  isPlaybackViewer,
   sessionIdentity,
 } from '@server/lib/viewingAttribution';
 import assert from 'node:assert/strict';
@@ -15,6 +16,27 @@ const row = {
   watched_status: 1,
 };
 describe('session-specific viewing attribution', () => {
+  it('distinguishes default and claimed playback viewers from co-viewers', () => {
+    assert.equal(isPlaybackViewer(1, 1), true);
+    assert.equal(isPlaybackViewer(2, 1), false);
+    const claimed = changeAttribution(undefined, 'claim', 2, 1, false);
+    assert.equal(isPlaybackViewer(2, 1, claimed), true);
+    assert.equal(isPlaybackViewer(1, 1, claimed), false);
+    const joined = changeAttribution(claimed, 'join', 3, 1, false);
+    assert.equal(isPlaybackViewer(3, 1, joined), false);
+    assert.equal(
+      isPlaybackViewer(2, 1, changeAttribution(joined, 'join', 2, 1, false)),
+      true
+    );
+    assert.equal(
+      isPlaybackViewer(
+        1,
+        1,
+        changeAttribution(undefined, 'unclaim', 1, 1, false)
+      ),
+      false
+    );
+  });
   it('replaces the default person without adding the shared account automatically', () => {
     const entry = changeAttribution(undefined, 'claim', 2, 1, false);
     assert.deepEqual(attributedViewers(1, entry), [2]);

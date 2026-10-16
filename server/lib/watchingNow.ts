@@ -19,6 +19,7 @@ export type ActivityRow = {
     names: string[];
     canClaim: boolean;
     isMe: boolean;
+    isPlaybackViewer?: boolean;
     joined: boolean;
   };
   viewerIds?: number[];

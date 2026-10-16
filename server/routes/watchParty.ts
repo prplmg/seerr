@@ -9,6 +9,7 @@ import { getSettings } from '@server/lib/settings';
 import type { AttributionAction } from '@server/lib/viewingAttribution';
 import {
   attributedViewers,
+  isPlaybackViewer,
   readAttributions,
   saveAttribution,
   sessionIdentity,
@@ -404,6 +405,11 @@ router.get('/', async (req, res) => {
                   .filter((name): name is string => !!name),
                 canClaim: canClaim(req.user!.id, String(row.user_id), mapped),
                 isMe: viewerIds.includes(req.user!.id),
+                isPlaybackViewer: isPlaybackViewer(
+                  req.user!.id,
+                  defaultId,
+                  entry
+                ),
                 joined: !!entry?.added.includes(req.user!.id),
               }
             : undefined,

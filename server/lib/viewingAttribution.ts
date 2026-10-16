@@ -48,6 +48,14 @@ export function readAttributions(): Store {
     throw error;
   }
 }
+export function isPlaybackViewer(
+  userId: number,
+  defaultId: number | undefined,
+  entry?: Attribution
+): boolean {
+  const base = entry?.replacement === undefined ? defaultId : entry.replacement;
+  return base === userId && !entry?.excluded.includes(userId);
+}
 export function attributedViewers(
   defaultId: number | undefined,
   entry?: Attribution

@@ -25,6 +25,7 @@ export type WatchingTitle = {
     names: string[];
     canClaim: boolean;
     isMe: boolean;
+    isPlaybackViewer?: boolean;
     joined: boolean;
   }[];
   tmdbId: number;
