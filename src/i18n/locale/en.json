@@ -371,7 +371,7 @@
   "components.MovieDetails.streamingproviders": "Currently Streaming On",
   "components.MovieDetails.studio": "{studioCount, plural, one {Studio} other {Studios}}",
   "components.MovieDetails.theatricalrelease": "Theatrical Release",
-  "components.MovieDetails.tmdbuserscore": "TMDB User Score",
+  "components.MovieDetails.letterboxdscore": "Letterboxd rating: {score} out of 5 stars",
   "components.MovieDetails.viewfullcrew": "View Full Crew",
   "components.MovieDetails.watchlistDeleted": "<strong>{title}</strong> Removed from watchlist successfully!",
   "components.MovieDetails.watchlistError": "Something went wrong. Please try again.",

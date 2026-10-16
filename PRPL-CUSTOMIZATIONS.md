@@ -12,6 +12,8 @@ Keep custom work on this branch. For an upstream upgrade, create a separate upgr
 
 Movie and TV detail pages use independent Plex and Trailer buttons; movies also have a Letterboxd icon linking through the TMDB ID. Existing permission-filtered playback URLs and 4K variants are retained. This does not change iPhone Plex deep-link handling.
 
+Movie detail ratings replace the TMDB percentage with Letterboxd's public JSON-LD aggregate rating (stars out of five), fetched separately through `/api/v1/movie/:id/letterboxd`. Successful results are cached for 24 hours; missing/unavailable results retry after an hour, retaining a previous score during outages. Requests are deduplicated and bounded (eight concurrent, 1,000 cached titles, ten-second timeout, 2 MiB response limit). No credentials or browser scraping are involved. Series retain their existing rating because Letterboxd's TMDB redirect is movie-specific. English and both Spanish locales include the rating label. This source change requires a frontend/backend build and deployment before appearing live.
+
 Detail status pills are inert unless their authenticated media response contains download items. During downloading they open a read-only progress panel, with no request-management actions or additional permissions. Other uses of the shared status badge retain their original behavior. Trailer and progress labels include Spanish and Mexican Spanish translations.
 
 ## Build and rollback

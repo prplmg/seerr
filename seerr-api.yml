@@ -7163,6 +7163,37 @@ paths:
                   audienceRating:
                     type: string
                     enum: ['Spilled', 'Upright']
+  /movie/{movieId}/letterboxd:
+    get:
+      summary: Get cached Letterboxd movie rating
+      tags:
+        - movies
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Letterboxd rating, or null when unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rating:
+                    type: object
+                    nullable: true
+                    properties:
+                      score:
+                        type: number
+                        minimum: 0
+                        maximum: 5
+                      url:
+                        type: string
+                        format: uri
   /movie/{movieId}/ratingscombined:
     get:
       summary: Get RT and IMDB movie ratings combined

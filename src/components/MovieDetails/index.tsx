@@ -4,7 +4,6 @@ import RTFresh from '@app/assets/rt_fresh.svg';
 import RTRotten from '@app/assets/rt_rotten.svg';
 import ImdbLogo from '@app/assets/services/imdb.svg';
 import Spinner from '@app/assets/spinner.svg';
-import TmdbLogo from '@app/assets/tmdb_logo.svg';
 import BlocklistModal from '@app/components/BlocklistModal';
 import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
@@ -13,6 +12,7 @@ import PageTitle from '@app/components/Common/PageTitle';
 import type { PlayButtonLink } from '@app/components/Common/PlayButton';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
+import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
 import IssueModal from '@app/components/IssueModal';
@@ -23,16 +23,18 @@ import PersonCard from '@app/components/PersonCard';
 import RequestButton from '@app/components/RequestButton';
 import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
-import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
+import WatchTogether, {
+  DetailPartyControls,
+  WatchingDetail,
+} from '@app/components/WatchParty';
 import useDeepLinks from '@app/hooks/useDeepLinks';
-import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
-import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
 import ErrorPage from '@app/pages/_error';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import { sortCrewPriority } from '@app/utils/creditHelpers';
 import defineMessages from '@app/utils/defineMessages';
 import { refreshIntervalHelper } from '@app/utils/refreshIntervalHelper';
@@ -51,6 +53,7 @@ import {
   ChevronDoubleDownIcon,
   ChevronDoubleUpIcon,
 } from '@heroicons/react/24/solid';
+import type { LetterboxdRating } from '@server/api/rating/letterboxd';
 import { type RatingResponse } from '@server/api/ratings';
 import { IssueStatus } from '@server/constants/issue';
 import { MediaStatus, MediaType } from '@server/constants/media';
@@ -101,7 +104,7 @@ const messages = defineMessages('components.MovieDetails', {
   managemovie: 'Manage Movie',
   rtcriticsscore: 'Rotten Tomatoes Tomatometer',
   rtaudiencescore: 'Rotten Tomatoes Audience Score',
-  tmdbuserscore: 'TMDB User Score',
+  letterboxdscore: 'Letterboxd rating: {score} out of 5 stars',
   imdbuserscore: 'IMDB User Score – votes: {formattedCount}',
   watchlistSuccess: '<strong>{title}</strong> added to watchlist successfully!',
   watchlistDeleted:
@@ -152,6 +155,12 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
   const { data: ratingData } = useSWR<RatingResponse>(
     `/api/v1/movie/${router.query.movieId}/ratingscombined`
   );
+  const { data: letterboxdData } = useSWR<{ rating: LetterboxdRating | null }>(
+    router.query.movieId
+      ? `/api/v1/movie/${router.query.movieId}/letterboxd`
+      : null,
+    { revalidateOnFocus: false }
+  );
 
   const sortedCrew = useMemo(
     () => sortCrewPriority(data?.credits.crew ?? []),
@@ -192,9 +201,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
   const showAllStudios = data.productionCompanies.length <= minStudios + 1;
   const mediaLinks: PlayButtonLink[] = [];
 
-  if (
-    plexUrl
-  ) {
+  if (plexUrl) {
     mediaLinks.push({
       text: getAvailableMediaServerName(),
       url: plexUrl,
@@ -202,10 +209,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
     });
   }
 
-  if (
-    settings.currentSettings.movie4kEnabled &&
-    plexUrl4k
-  ) {
+  if (settings.currentSettings.movie4kEnabled && plexUrl4k) {
     mediaLinks.push({
       text: getAvailable4kMediaServerName(),
       url: plexUrl4k,
@@ -591,7 +595,8 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
-          {SHOW_WATCHLIST && data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
+          {SHOW_WATCHLIST &&
+            data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
             user?.userType !== UserType.PLEX && (
               <>
                 {toggleWatchlist ? (
@@ -666,7 +671,12 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
             )}
           {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
             data.mediaInfo?.status4k === MediaStatus.AVAILABLE) && (
-            <WatchTogether id={data.id} type="movie" title={data.title} poster={data.posterPath} />
+            <WatchTogether
+              id={data.id}
+              type="movie"
+              title={data.title}
+              poster={data.posterPath}
+            />
           )}
           {hasPermission(Permission.MANAGE_REQUESTS) &&
             data.mediaInfo &&
@@ -693,8 +703,8 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                       ) ?? []
                     ).length > 0 && (
                       <>
-                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-600" />
-                        <div className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
+                        <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
+                        <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
                       </>
                     )}
                 </Button>
@@ -740,7 +750,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 <Link
                   href={`/discover/movies?keywords=${keyword.id}`}
                   key={`keyword-id-${keyword.id}`}
-                  className="mr-2 mb-2 inline-flex last:mr-0"
+                  className="mb-2 mr-2 inline-flex last:mr-0"
                 >
                   <Tag>{keyword.name}</Tag>
                 </Link>
@@ -784,7 +794,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
             </div>
           )}
           <div className="media-facts">
-            {(!!data.voteCount ||
+            {(!!letterboxdData?.rating ||
               (ratingData?.rt?.criticsRating &&
                 typeof ratingData?.rt?.criticsScore === 'number') ||
               (ratingData?.rt?.audienceRating &&
@@ -855,16 +865,30 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                     </a>
                   </Tooltip>
                 )}
-                {!!data.voteCount && (
-                  <Tooltip content={intl.formatMessage(messages.tmdbuserscore)}>
+                {letterboxdData?.rating && (
+                  <Tooltip
+                    content={intl.formatMessage(messages.letterboxdscore, {
+                      score: intl.formatNumber(letterboxdData.rating.score),
+                    })}
+                  >
                     <a
-                      href={`https://www.themoviedb.org/movie/${data.id}?language=${locale}`}
+                      href={letterboxdData.rating.url}
+                      aria-label={intl.formatMessage(messages.letterboxdscore, {
+                        score: intl.formatNumber(letterboxdData.rating.score),
+                      })}
                       className="media-rating"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <TmdbLogo className="mr-1 w-6" />
-                      <span>{Math.round(data.voteAverage * 10)}%</span>
+                      <span aria-hidden="true" className="mr-1 text-green-400">
+                        ★
+                      </span>
+                      <span>
+                        {intl.formatNumber(letterboxdData.rating.score, {
+                          maximumFractionDigits: 2,
+                        })}
+                        /5
+                      </span>
                     </a>
                   </Tooltip>
                 )}

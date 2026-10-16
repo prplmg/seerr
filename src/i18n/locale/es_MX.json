@@ -955,7 +955,7 @@
   "components.Discover.updatesuccess": "Opciones personalizadas de recomendaciones actualizadas.",
   "components.ManageSlideOver.opentautulli": "Abrir en Tautulli",
   "components.ManageSlideOver.playedby": "Reproducido Por",
-  "components.MovieDetails.tmdbuserscore": "Puntuación de usuario de TMDB",
+  "components.MovieDetails.letterboxdscore": "Calificación de Letterboxd: {score} de 5 estrellas",
   "components.Discover.DiscoverMovies.discovermovies": "Películas",
   "components.Discover.DiscoverMovies.sortPopularityAsc": "Popularidad Ascendente",
   "components.Discover.DiscoverMovies.sortPopularityDesc": "Popularidad descendente",
