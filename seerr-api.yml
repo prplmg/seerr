@@ -2252,6 +2252,34 @@ paths:
       responses:
         '200':
           description: Filtered live activity
+  /watch-party/attribution:
+    post:
+      summary: Attribute the authenticated user to a live viewing session
+      tags: [Watch Party]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [sessionId, action]
+              properties:
+                sessionId:
+                  type: string
+                  pattern: '^[a-f0-9]{64}$'
+                action:
+                  type: string
+                  enum: [claim, unclaim, join, leave]
+      responses:
+        '200':
+          description: Attribution updated
+        '403':
+          description: Not allowed for this session
+        '409':
+          description: Session no longer active
+        '503':
+          description: Activity unavailable
   /watch-party/launch:
     post:
       summary: Prepare an authenticated catalogue party launch

@@ -29,6 +29,70 @@ const mapped = new Map([
   ['plex2', 2],
 ]);
 describe('external watching activity', () => {
+  it('uses session attribution without merging it into party membership', () => {
+    const result = mergeWatchingNow(
+      [
+        {
+          user_id: 'plex1',
+          rating_key: '42',
+          media_type: 'movie',
+          state: 'playing',
+          viewerIds: [2],
+          attribution: {
+            id: 'session',
+            names: ['user2'],
+            canClaim: true,
+            isMe: true,
+            joined: false,
+          },
+        },
+      ],
+      [party],
+      media,
+      users,
+      mapped,
+      [],
+      2
+    );
+    assert.deepEqual(
+      result[0].viewers.map((p) => p.id),
+      [2]
+    );
+    assert.deepEqual(
+      result[0].parties[0].members.map((p) => p.id),
+      [1]
+    );
+    assert.equal(result[0].parties[0].mine, false);
+    assert.equal(result[0].sessions?.[0].id, 'session');
+  });
+  it('keeps a session available for correction when its default person opts out', () => {
+    const result = mergeWatchingNow(
+      [
+        {
+          user_id: 'plex1',
+          rating_key: '42',
+          media_type: 'movie',
+          state: 'playing',
+          viewerIds: [],
+          attribution: {
+            id: 'session',
+            names: [],
+            canClaim: true,
+            isMe: false,
+            joined: false,
+          },
+        },
+      ],
+      [],
+      media,
+      users,
+      mapped,
+      [],
+      1
+    );
+    assert.deepEqual(result[0].viewers, []);
+    assert.equal(result[0].sessions?.length, 1);
+  });
   it('keeps the main movie and canonicalizes each party source', () => {
     const result = mergeWatchingNow([], [party], media, users, mapped, [], 1);
     assert.equal(result.length, 1);

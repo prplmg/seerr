@@ -10,6 +10,18 @@ export type ActivityRow = {
   grandparent_rating_key?: string;
   media_type: string;
   state: string;
+  session_key?: string;
+  machine_id?: string;
+  started?: number;
+  watched_status?: number;
+  attribution?: {
+    id: string;
+    names: string[];
+    canClaim: boolean;
+    isMe: boolean;
+    joined: boolean;
+  };
+  viewerIds?: number[];
 };
 export type PartySnapshot = {
   id: string;
@@ -67,24 +79,32 @@ export function mergeWatchingNow(
     const item = byKey.get(
       `${type}:${type === 'tv' ? row.grandparent_rating_key : row.rating_key}`
     );
-    const person = visible(plexToSeerr.get(String(row.user_id)) ?? -1);
-    if (!item || !person) continue;
-    // The paused return tab is not a second current viewing session for the
-    // same participant. Preserve other viewers and unrelated Plex activity.
-    if (
-      row.state === 'paused' &&
-      parties.some(
-        (p) =>
-          p.external &&
-          p.tmdbId === item.tmdbId &&
-          p.mediaType === type &&
-          p.userIds.includes(person.id)
-      )
-    )
-      continue;
+    if (!item) continue;
+    const viewerIds = row.viewerIds ?? [
+      plexToSeerr.get(String(row.user_id)) ?? -1,
+    ];
+    if (!row.attribution && !viewerIds.some((id) => visible(id))) continue;
     const title = ensure(item.tmdbId, type);
-    if (!title.viewers.some((p) => p.id === person.id))
-      title.viewers.push(person);
+    if (row.attribution) (title.sessions ||= []).push(row.attribution);
+    for (const personId of viewerIds) {
+      const person = visible(personId);
+      if (!person) continue;
+      // The paused return tab is not a second current viewing session for the
+      // same participant. Preserve other viewers and unrelated Plex activity.
+      if (
+        row.state === 'paused' &&
+        parties.some(
+          (p) =>
+            p.external &&
+            p.tmdbId === item.tmdbId &&
+            p.mediaType === type &&
+            p.userIds.includes(person.id)
+        )
+      )
+        continue;
+      if (!title.viewers.some((p) => p.id === person.id))
+        title.viewers.push(person);
+    }
   }
   for (const party of parties) {
     const members = [...new Set(party.userIds)]

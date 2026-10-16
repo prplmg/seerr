@@ -20,6 +20,13 @@ export type WatchingParty = {
   external?: PartyExternalVideo;
 };
 export type WatchingTitle = {
+  sessions?: {
+    id: string;
+    names: string[];
+    canClaim: boolean;
+    isMe: boolean;
+    joined: boolean;
+  }[];
   tmdbId: number;
   mediaType: 'movie' | 'tv';
   viewers: WatchingPerson[];

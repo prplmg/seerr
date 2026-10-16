@@ -7,6 +7,7 @@ import {
   WatchingPeople,
 } from '@app/components/WatchParty';
 import { usePartyText } from '@app/components/WatchParty/messages';
+import ViewingMenu from '@app/components/WatchParty/ViewingMenu';
 import type { WatchingTitle } from '@server/interfaces/api/watchParty';
 import type { MovieDetails } from '@server/models/Movie';
 import type { TvDetails } from '@server/models/Tv';
@@ -42,6 +43,7 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
           : undefined
       }
     >
+      <ViewingMenu item={item} />
       <Link
         href={href}
         className="h-[120px] w-20 flex-none overflow-hidden rounded-md sm:h-[168px] sm:w-28"
@@ -63,7 +65,7 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
         <span className="hidden text-xs text-white sm:block">{year}</span>
         <Link
           href={href}
-          className="truncate text-base font-bold text-white hover:underline sm:text-lg"
+          className="truncate pr-5 text-base font-bold text-white hover:underline sm:text-lg"
         >
           {title || '…'}
         </Link>

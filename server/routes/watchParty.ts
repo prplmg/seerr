@@ -6,6 +6,13 @@ import { User } from '@server/entity/User';
 import { preferredPartyEpisode } from '@server/lib/partyEpisodePreference';
 import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
+import type { AttributionAction } from '@server/lib/viewingAttribution';
+import {
+  attributedViewers,
+  readAttributions,
+  saveAttribution,
+  sessionIdentity,
+} from '@server/lib/viewingAttribution';
 import type { ActivityRow, PartySnapshot } from '@server/lib/watchingNow';
 import { mergeWatchingNow } from '@server/lib/watchingNow';
 import { isAuthenticated } from '@server/middleware/auth';
@@ -182,6 +189,145 @@ router.use((_req, res, next) => {
   res.setHeader('Cache-Control', 'private, no-store');
   next();
 });
+async function liveActivity(policy: Social): Promise<ActivityRow[]> {
+  return snapshot(`activity:${policy.tautulliUrl}`, async () => {
+    const query = async (cmd: string, extra = {}) => {
+      const result = (
+        await axios.get(`${policy.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
+          params: { apikey: policy.tautulliKey, cmd, ...extra },
+          timeout: 5000,
+        })
+      ).data.response;
+      if (result?.result !== 'success') throw Error('Activity unavailable');
+      return result.data;
+    };
+    const [activity, history] = await Promise.all([
+      query('get_activity'),
+      query('get_history', {
+        include_activity: 1,
+        grouping: 0,
+        length: 500,
+      }).catch(() => ({ data: [] })),
+    ]);
+    if (!Array.isArray(activity.sessions) || !Array.isArray(history.data))
+      throw Error('Activity unavailable');
+    return activity.sessions.map((row: ActivityRow) => {
+      const match = history.data.find(
+        (h: ActivityRow) =>
+          h.session_key != null &&
+          String(h.session_key) === String(row.session_key) &&
+          String(h.user_id) === String(row.user_id) &&
+          String(h.rating_key) === String(row.rating_key) &&
+          h.machine_id === row.machine_id
+      );
+      return {
+        ...row,
+        started: match ? Number(match.started) : undefined,
+        watched_status: match ? Number(match.watched_status) : undefined,
+      };
+    });
+  });
+}
+function userMappings(users: User[], policy: Social) {
+  const mapped = new Map<string, number>();
+  for (const u of users) if (u.plexId) mapped.set(String(u.plexId), u.id);
+  const block = fs
+    .readFileSync(policy.mappingScript, 'utf8')
+    .match(/const mappings = \[([\s\S]*?)\];/)?.[1];
+  if (!block) throw Error('Mapping unavailable');
+  for (const m of block.matchAll(
+    /\['(\d+)'\s*,\s*'[^']+'\s*,\s*(\d+)\s*,\s*'([^']+)'\]/g
+  )) {
+    if (users.some((u) => u.id === Number(m[2]) && u.username === m[3]))
+      mapped.set(m[1], Number(m[2]));
+  }
+  return mapped;
+}
+function canClaim(userId: number, plexId: string, mapped: Map<string, number>) {
+  let profiles: { users?: Record<string, { plexUserId: string }> } = {};
+  try {
+    profiles = read('playback-profiles.json');
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
+  const ids = new Set(
+    Object.entries(profiles.users || {})
+      .filter(([, p]) => String(p.plexUserId) === plexId)
+      .map(([id]) => Number(id))
+  );
+  const defaultId = mapped.get(plexId);
+  if (defaultId) ids.add(defaultId);
+  return ids.size > 1 && ids.has(userId);
+}
+router.post(
+  '/attribution',
+  rateLimit({ windowMs: 60000, max: 30 }),
+  async (req, res) => {
+    const { sessionId, action } = req.body;
+    if (
+      typeof sessionId !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(sessionId) ||
+      !['claim', 'unclaim', 'join', 'leave'].includes(action)
+    )
+      return res.sendStatus(400);
+    try {
+      const policy = social();
+      if (!policy.enabled || policy.hiddenWatchers.includes(req.user!.id))
+        return res.sendStatus(403);
+      const [activity, users] = await Promise.all([
+        liveActivity(policy),
+        getRepository(User).find(),
+      ]);
+      const row = activity.find(
+        (r) =>
+          sessionIdentity(r) === sessionId &&
+          ['playing', 'paused', 'buffering'].includes(r.state)
+      );
+      if (!row || !['movie', 'episode'].includes(row.media_type))
+        return res
+          .status(409)
+          .json({ error: 'Session ended. Refresh and try again.' });
+      const mapped = userMappings(users, policy),
+        defaultId = mapped.get(String(row.user_id));
+      if (!defaultId || policy.hiddenWatchers.includes(defaultId))
+        return res.sendStatus(403);
+      const type =
+        row.media_type === 'episode' ? MediaType.TV : MediaType.MOVIE;
+      const key =
+        type === MediaType.TV ? row.grandparent_rating_key : row.rating_key;
+      if (!key) return res.sendStatus(409);
+      const media = await getRepository(Media).findOne({
+        where: [
+          { mediaType: type, ratingKey: key },
+          { mediaType: type, ratingKey4k: key },
+        ],
+      });
+      if (
+        !media ||
+        media.status === MediaStatus.BLOCKLISTED ||
+        media.status4k === MediaStatus.BLOCKLISTED
+      )
+        return res.sendStatus(403);
+      if (
+        ['claim', 'unclaim'].includes(action) &&
+        !canClaim(req.user!.id, String(row.user_id), mapped)
+      )
+        return res.sendStatus(403);
+      saveAttribution(
+        sessionId,
+        action as AttributionAction,
+        req.user!.id,
+        defaultId,
+        Number(row.watched_status) === 1
+      );
+      return res.json({ ok: true });
+    } catch {
+      return res
+        .status(503)
+        .json({ error: 'Could not update viewing attribution' });
+    }
+  }
+);
 router.get('/', async (req, res) => {
   try {
     let policy = social();
@@ -189,20 +335,7 @@ router.get('/', async (req, res) => {
     if (!policy.enabled)
       return res.json({ enabled: false, partiesEnabled: false, results: [] });
     const [activity, partyData, users, media] = await Promise.all([
-      snapshot<ActivityRow[]>(`activity:${policy.tautulliUrl}`, async () => {
-        const result = (
-          await axios.get(`${policy.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
-            params: { apikey: policy.tautulliKey, cmd: 'get_activity' },
-            timeout: 5000,
-          })
-        ).data.response;
-        if (
-          result?.result !== 'success' ||
-          !Array.isArray(result.data?.sessions)
-        )
-          throw Error('Activity unavailable');
-        return result.data.sessions;
-      }).then(
+      liveActivity(policy).then(
         (data) => ({ available: true, data }),
         () => ({ available: false, data: [] as ActivityRow[] })
       ),
@@ -248,6 +381,34 @@ router.get('/', async (req, res) => {
     const allowedKeys = new Set(
       allowedMedia.map((m) => `${m.mediaType}:${m.tmdbId}`)
     );
+    const attributions = readAttributions();
+    const attributed = activity.data.map((row) => {
+      const id = sessionIdentity(row),
+        defaultId = mapped.get(String(row.user_id));
+      const entry = id ? attributions[id] : undefined;
+      const viewerIds = attributedViewers(defaultId, entry);
+      const visibleSession =
+        defaultId &&
+        !policy.hiddenWatchers.includes(defaultId) &&
+        !policy.hiddenWatchers.includes(req.user!.id);
+      return {
+        ...row,
+        viewerIds,
+        attribution:
+          id && visibleSession
+            ? {
+                id,
+                names: viewerIds
+                  .filter((id) => !policy.hiddenWatchers.includes(id))
+                  .map((id) => users.find((u) => u.id === id)?.displayName)
+                  .filter((name): name is string => !!name),
+                canClaim: canClaim(req.user!.id, String(row.user_id), mapped),
+                isMe: viewerIds.includes(req.user!.id),
+                joined: !!entry?.added.includes(req.user!.id),
+              }
+            : undefined,
+      };
+    });
     return res.json({
       enabled: true,
       partiesEnabled: !!cfg,
@@ -255,7 +416,7 @@ router.get('/', async (req, res) => {
       activityAvailable: activity.available,
       relayAvailable: partyData.available,
       results: mergeWatchingNow(
-        activity.data,
+        attributed,
         partyData.data.filter((p) =>
           allowedKeys.has(`${p.mediaType}:${p.tmdbId}`)
         ),

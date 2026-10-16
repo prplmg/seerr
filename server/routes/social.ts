@@ -8,6 +8,8 @@ import { User } from '@server/entity/User';
 import { MediaType, MediaStatus } from '@server/constants/media';
 import { appDataPath } from '@server/utils/appDataVolume';
 import { partyWatched } from '@server/lib/partyWatched';
+import { historyViewers, readAttributions } from '@server/lib/viewingAttribution';
+import type { SessionIdentity } from '@server/lib/viewingAttribution';
 
 // Filter at serialization time, including cache hits. Never send raw history.
 type Person = { id: number; name: string; avatar: string; lastWatched?: number; seasons?: number[] };
@@ -23,8 +25,9 @@ function policy(): Policy {
   if (typeof p.enabled !== 'boolean' || !Array.isArray(p.hiddenWatchers) || !Array.isArray(p.hiddenRequesters)) throw Error('Invalid social policy');
   return p;
 }
-type HistoryResult = { value: Map<string, number>; stale: boolean };
-const cache = new Map<string, { until: number; value: Map<string, number> }>();
+type AttributedHistory = SessionIdentity & { stamp: number };
+type HistoryResult = { value: AttributedHistory[]; stale: boolean };
+const cache = new Map<string, { until: number; value: AttributedHistory[] }>();
 const pending = new Map<string, Promise<HistoryResult>>();
 const cooldown = new Map<string, number>();
 let active = 0;
@@ -68,7 +71,7 @@ async function history(key: string, type: string, p: Policy): Promise<HistoryRes
     try {
       release = await permit(concurrency(p));
       const deadline = Date.now() + 20000;
-      const result = new Map<string, number>();
+      const result: AttributedHistory[] = [];
       for (let start = 0; start < 20000; start += 500) {
         const remaining = deadline - Date.now();
         if (remaining <= 0) throw Error('History lookup deadline');
@@ -81,9 +84,9 @@ async function history(key: string, type: string, p: Policy): Promise<HistoryRes
         if (payload?.result !== 'success' || !Array.isArray(payload.data?.data)) throw Error('History unavailable');
         for (const row of payload.data.data) {
           if (String(type === 'tv' ? row.grandparent_rating_key : row.rating_key) !== key) continue;
-          if (Number(row.watched_status) !== 1 || row.media_type !== (type === 'tv' ? 'episode' : 'movie')) continue;
-          const stamp = Number(row.stopped || row.date || row.started), id = String(row.user_id);
-          if (Number.isFinite(stamp)) result.set(id, Math.max(result.get(id) || 0, stamp));
+          if (row.media_type !== (type === 'tv' ? 'episode' : 'movie')) continue;
+          const stamp = Number(row.stopped || row.date || row.started);
+          if (Number.isFinite(stamp)) result.push({ user_id: String(row.user_id), rating_key: String(row.rating_key), machine_id: row.machine_id, started: Number(row.started), watched_status: Number(row.watched_status), stamp });
         }
         if (start + payload.data.data.length >= Number(payload.data.recordsFiltered) || payload.data.data.length < 500) {
           if (!cache.has(cacheKey) && cache.size >= 500) cache.delete(cache.keys().next().value!);
@@ -107,7 +110,7 @@ async function history(key: string, type: string, p: Policy): Promise<HistoryRes
 }
 
 const router = Router();
-type RecentWatch = { plexId: string; key: string; type: string; stamp: number };
+type RecentWatch = AttributedHistory & { plexId: string; key: string; type: string };
 let recentCache: { until: number; rows: RecentWatch[]; source: string } | undefined;
 let recentPending: Promise<RecentWatch[]> | undefined;
 async function recentHistory(p: Policy): Promise<RecentWatch[]> {
@@ -126,10 +129,10 @@ async function recentHistory(p: Policy): Promise<RecentWatch[]> {
       const payload = response.data.response;
       if (payload?.result !== 'success' || !Array.isArray(payload.data?.data)) throw Error('History unavailable');
       for (const row of payload.data.data) {
-        if (Number(row.watched_status) !== 1 || !['movie', 'episode'].includes(row.media_type)) continue;
+        if (!['movie', 'episode'].includes(row.media_type)) continue;
         const stamp = Number(row.stopped || row.date || row.started);
         const key = String(row.media_type === 'episode' ? row.grandparent_rating_key : row.rating_key);
-        if (Number.isFinite(stamp) && stamp > 0 && key && key !== 'undefined') rows.push({ plexId: String(row.user_id), key, type: row.media_type === 'episode' ? 'tv' : 'movie', stamp });
+        if (Number.isFinite(stamp) && stamp > 0 && key && key !== 'undefined') rows.push({ plexId: String(row.user_id), key, type: row.media_type === 'episode' ? 'tv' : 'movie', stamp, user_id: String(row.user_id), rating_key: String(row.rating_key), machine_id: row.machine_id, started: Number(row.started), watched_status: Number(row.watched_status) });
       }
       if (start + payload.data.data.length >= Number(payload.data.recordsFiltered) || payload.data.data.length < 500) {
         recentCache = { until: Date.now() + 120000, rows, source: p.tautulliUrl };
@@ -176,11 +179,14 @@ router.get('/recently-watched', async (req, res) => {
     p = policy();
     if (!p.enabled) return res.json({ enabled: false, page, totalResults: 0, totalPages: 0, results: [] });
     const watched = new Map<number, { item: Media; stamp: number }>();
+    const attribution = readAttributions();
     for (const row of rows) {
-      const userId = mapped.get(row.plexId);
+      for (const userId of historyViewers(row, mapped.get(row.plexId), attribution)) {
       if (userId === undefined || p.hiddenWatchers.includes(userId) || (profileId !== undefined && profileId !== userId)) continue;
+      if (!users.some(u => u.id === userId)) continue;
       const item = byKey.get(`${row.type}:${row.key}`);
       if (item && (type === 'all' || item.mediaType === type) && row.stamp > (watched.get(item.id)?.stamp || 0)) watched.set(item.id, { item, stamp: row.stamp });
+      }
     }
     const byTmdb = new Map(media.filter(m => m.status !== MediaStatus.BLOCKLISTED && m.status4k !== MediaStatus.BLOCKLISTED).map(m => [`${m.mediaType}:${m.tmdbId}`, m]));
     for (const row of partyRows) {
@@ -227,13 +233,17 @@ router.get('/:type/:id', async (req, res) => {
     const watched = new Map<number, Person>();
     let historyAvailable = true;
     let historyStale = false;
+    const attribution = readAttributions();
     try {
       for (const key of historyKeys(media, p)) {
         const snapshot = await history(String(key), type, p);
         historyStale ||= snapshot.stale;
-        for (const [plexId, lastWatched] of snapshot.value) {
-          const u = mapped.get(plexId);
+        for (const row of snapshot.value) {
+          const lastWatched = row.stamp;
+          for (const userId of historyViewers(row, mapped.get(String(row.user_id))?.id, attribution)) {
+          const u = users.find(u => u.id === userId);
           if (u && lastWatched > (watched.get(u.id)?.lastWatched || 0)) watched.set(u.id, { ...person(u), lastWatched });
+          }
         }
       }
     } catch { historyAvailable = false; }
