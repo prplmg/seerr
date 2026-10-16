@@ -8,6 +8,14 @@ Commit `254225e7` captures the pre-existing deployed source, including social ac
 
 Keep custom work on this branch. For an upstream upgrade, create a separate upgrade branch and merge the selected upstream release, reviewing conflicts and changed assumptions. Build and test in staging before replacing production. Do not blindly overwrite new upstream source with old snapshots.
 
+## Public profiles and Plex watchlists
+
+Authenticated members can browse a read-only user directory and profile requests, Plex watchlists, and recent watched movies. User-management controls and write APIs retain their existing administrator permissions. Recent movies reuse the social-history aliases, completion criteria, party history and hidden-user policy; they do not expose raw session data or watch timestamps.
+
+Bookmarks on movie/series details write directly to Plex, not the local Watchlist table. Plex changes are read on focus and every 30 seconds. Profile watchlists use that same Plex source, including shared `playback-profiles.json` mappings (misu/gerry -> edgy); validated avatar mappings supply the other managed profiles. Missing credentials fail closed, never falling back to the owner's watchlist. Existing local watchlists are preserved but no longer mask Plex profile lists. Shared playback mappings do not attribute a watch to every linked user.
+
+`SHOW_REQUEST_ALLOWANCE = false` hides the profile allowance/statistics block and avoids fetching its quota data. Limits, settings, and markup remain intact; toggle it back to restore the section. `SHOW_WATCHLIST` remains false for legacy catalogue-only bookmark controls; the new Plex bookmark and profile watchlist do not use that switch.
+
 ## Media actions and progress
 
 Movie and TV detail pages use independent Plex and Trailer buttons; movies also have a Letterboxd icon linking through the TMDB ID. Existing permission-filtered playback URLs and 4K variants are retained. This does not change iPhone Plex deep-link handling.

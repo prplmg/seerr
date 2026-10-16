@@ -130,7 +130,6 @@ const MobileMenu = ({
       svgIcon: <UsersIcon className="mr-3 h-6 w-6" />,
       svgIconSelected: <FilledUsersIcon className="mr-3 h-6 w-6" />,
       activeRegExp: /^\/users/,
-      requiredPermission: Permission.MANAGE_USERS,
       dataTestId: 'sidebar-menu-users',
     },
     {

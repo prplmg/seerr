@@ -285,7 +285,8 @@ class PlexTvAPI extends ExternalAPI {
   public async getWatchlist({
     offset = 0,
     size = 20,
-  }: { offset?: number; size?: number } = {}): Promise<{
+    strict = false,
+  }: { offset?: number; size?: number; strict?: boolean } = {}): Promise<{
     offset: number;
     size: number;
     totalSize: number;
@@ -294,7 +295,7 @@ class PlexTvAPI extends ExternalAPI {
     try {
       const watchlistCache = cacheManager.getCache('plexwatchlist');
       let cachedWatchlist = watchlistCache.data.get<PlexWatchlistCache>(
-        this.authToken
+        `${this.authToken}:${offset}:${size}`
       );
 
       const response = await this.axios.get<WatchlistResponse>(
@@ -320,7 +321,7 @@ class PlexTvAPI extends ExternalAPI {
         };
 
         watchlistCache.data.set<PlexWatchlistCache>(
-          this.authToken,
+          `${this.authToken}:${offset}:${size}`,
           cachedWatchlist
         );
       }
@@ -393,6 +394,7 @@ class PlexTvAPI extends ExternalAPI {
         items: filteredList,
       };
     } catch (e) {
+      if (strict) throw new Error('Plex watchlist unavailable');
       logger.error('Failed to retrieve watchlist items', {
         label: 'Plex.TV Metadata API',
         errorMessage: e.message,

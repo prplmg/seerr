@@ -1,11 +1,15 @@
+import UserDirectory from '@app/components/UserDirectory';
 import UserList from '@app/components/UserList';
-import useRouteGuard from '@app/hooks/useRouteGuard';
-import { Permission } from '@app/hooks/useUser';
+import { Permission, useUser } from '@app/hooks/useUser';
 import type { NextPage } from 'next';
 
 const UsersPage: NextPage = () => {
-  useRouteGuard(Permission.MANAGE_USERS);
-  return <UserList />;
+  const { hasPermission } = useUser();
+  return hasPermission(Permission.MANAGE_USERS) ? (
+    <UserList />
+  ) : (
+    <UserDirectory />
+  );
 };
 
 export default UsersPage;

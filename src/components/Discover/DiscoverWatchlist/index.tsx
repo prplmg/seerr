@@ -5,7 +5,6 @@ import useDiscover from '@app/hooks/useDiscover';
 import { useUser } from '@app/hooks/useUser';
 import ErrorPage from '@app/pages/_error';
 import defineMessages from '@app/utils/defineMessages';
-import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import type { WatchlistItem } from '@server/interfaces/api/discoverInterfaces';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -39,7 +38,7 @@ const DiscoverWatchlist = () => {
         ? `user/${currentUser?.id}`
         : router.query.userId
           ? `user/${router.query.userId}`
-          : 'discover'
+          : `user/${currentUser?.id}`
     }/watchlist`
   );
 
@@ -86,5 +85,5 @@ const DiscoverWatchlist = () => {
 };
 
 export default function WatchlistAvailability() {
-  return SHOW_WATCHLIST ? <DiscoverWatchlist /> : <ErrorPage statusCode={404} />;
+  return <DiscoverWatchlist />;
 }

@@ -5,12 +5,29 @@ import {
 } from '@server/entity/Watchlist';
 import logger from '@server/logger';
 import { Router } from 'express';
+import { plexBookmark } from '@server/lib/plexWatchlist';
 import { QueryFailedError } from 'typeorm';
 
 import { MediaType } from '@server/constants/media';
 import { watchlistCreate } from '@server/interfaces/api/watchlistCreate';
 
 const watchlistRoutes = Router();
+
+watchlistRoutes.route('/plex/:type/:id')
+  .get(async (req, res) => {
+    if (!req.user) return res.sendStatus(401);
+    const { type, id } = req.params;
+    if (!['movie', 'tv'].includes(type) || !Number.isSafeInteger(Number(id)) || Number(id) <= 0) return res.sendStatus(400);
+    try { return res.json(await plexBookmark(req.user.id, type as 'movie' | 'tv', Number(id))); }
+    catch { return res.status(503).json({ message: 'Plex watchlist unavailable' }); }
+  })
+  .put(async (req, res) => {
+    if (!req.user) return res.sendStatus(401);
+    const { type, id } = req.params;
+    if (!['movie', 'tv'].includes(type) || !Number.isSafeInteger(Number(id)) || Number(id) <= 0 || typeof req.body.added !== 'boolean') return res.sendStatus(400);
+    try { return res.json(await plexBookmark(req.user.id, type as 'movie' | 'tv', Number(id), req.body.added)); }
+    catch { return res.status(503).json({ message: 'Plex watchlist unavailable' }); }
+  });
 
 watchlistRoutes.post<never, Watchlist, Watchlist>(
   '/',

@@ -5252,6 +5252,41 @@ paths:
           description: Successfully removed collection from blocklist
         '500':
           description: Error removing collection from blocklist
+  /watchlist/plex/{type}/{id}:
+    parameters:
+      - in: path
+        name: type
+        required: true
+        schema:
+          type: string
+          enum: [movie, tv]
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    get:
+      summary: Read the current user's mapped Plex watchlist state
+      responses:
+        '200':
+          description: Bookmark state
+    put:
+      summary: Update only the current user's mapped Plex watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [added]
+              additionalProperties: false
+              properties:
+                added:
+                  type: boolean
+      responses:
+        '200':
+          description: Confirmed Plex bookmark state
   /watchlist:
     post:
       summary: Add media to watchlist
@@ -7526,6 +7561,11 @@ paths:
       summary: Recent completed watches across mapped non-hidden users
       tags: [media]
       parameters:
+        - in: query
+          name: userId
+          schema:
+            type: integer
+            minimum: 1
         - in: query
           name: type
           schema:

@@ -143,6 +143,8 @@ async function recentHistory(p: Policy): Promise<RecentWatch[]> {
 }
 
 router.get('/recently-watched', async (req, res) => {
+  const profileId = req.query.userId === undefined ? undefined : Number(req.query.userId);
+  if (profileId !== undefined && (!Number.isSafeInteger(profileId) || profileId < 1)) return res.status(400).json({ error: 'Invalid user' });
   const type = req.query.type ?? 'all';
   const page = Number(req.query.page ?? 1);
   if (!['all', 'movie', 'tv'].includes(String(type)) || typeof type !== 'string' || !Number.isSafeInteger(page) || page < 1 || page > 100000) return res.status(400).json({ error: 'Invalid type or page' });
@@ -176,13 +178,13 @@ router.get('/recently-watched', async (req, res) => {
     const watched = new Map<number, { item: Media; stamp: number }>();
     for (const row of rows) {
       const userId = mapped.get(row.plexId);
-      if (userId === undefined || p.hiddenWatchers.includes(userId)) continue;
+      if (userId === undefined || p.hiddenWatchers.includes(userId) || (profileId !== undefined && profileId !== userId)) continue;
       const item = byKey.get(`${row.type}:${row.key}`);
       if (item && (type === 'all' || item.mediaType === type) && row.stamp > (watched.get(item.id)?.stamp || 0)) watched.set(item.id, { item, stamp: row.stamp });
     }
     const byTmdb = new Map(media.filter(m => m.status !== MediaStatus.BLOCKLISTED && m.status4k !== MediaStatus.BLOCKLISTED).map(m => [`${m.mediaType}:${m.tmdbId}`, m]));
     for (const row of partyRows) {
-      if (!users.some(u => u.id === row.userId) || p.hiddenWatchers.includes(row.userId)) continue;
+      if (!users.some(u => u.id === row.userId) || p.hiddenWatchers.includes(row.userId) || (profileId !== undefined && profileId !== row.userId)) continue;
       const item = byTmdb.get(`${row.mediaType}:${row.tmdbId}`);
       if (item && (type === 'all' || item.mediaType === type) && row.stamp > (watched.get(item.id)?.stamp || 0)) watched.set(item.id, { item, stamp: row.stamp });
     }
