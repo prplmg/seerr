@@ -24,6 +24,8 @@ Bookmarks on movie/series details write directly to Plex, not the local Watchlis
 
 ### Multi-season approval and initial search
 
+While a multi-season request is pending approval, non-admins cannot add more seasons to that series (including through edits or API calls). The modal explains the block in English/Spanish; approval or decline releases it. Administrators retain management access.
+
 Non-admin requests for more than two distinct, newly requested seasons require approval even with auto-approve permissions. Existing available/requested seasons are filtered before this rule is applied; it is per request, not a cumulative limit across separate requests. Expanding an existing request beyond the threshold also places it in pending approval. The requester sees an English/Spanish notice at the bottom of the TV request modal. Held requests cannot be approved or retried by non-admin request managers.
 
 Administrators can choose “Add without searching” when creating a TV request or approving it from the request list, carousel, detail request block, or edit modal. The persisted `skipInitialSearch` flag disables only the initial Sonarr search, including on retries; seasons remain monitored and future RSS grabs are possible. Global Sonarr prevent-search settings still take precedence. Other requests retain their normal behavior.
@@ -49,6 +51,8 @@ The independently removable/reorderable Recent Reviews Discover row uses a confi
 SQLite/Postgres migration `1792200000000-AddMovieReviews` adds `movie_review` and `letterboxd_account`; it does not alter existing tables. Before release, validate with a real account export and mapping. Phase 2 authenticated Letterboxd writes are intentionally excluded. An application rollback can leave these additive tables in place to preserve imported data.
 
 ## Build and rollback procedure
+
+2026-10-16 release verification: Letterboxd phase 1 and multi-season approval/search controls are deployed in build `Q6dJdTC0GdG8kMcTSrAE0`. The focused automated suites contain 35 passing tests plus an isolated SQLite migration test. The initial live permission smoke check caught a reversed argument order in the Letterboxd admin helper; deployment rolled back automatically, the helper was fixed with a route regression test, and the corrected release passed live permission and compatibility checks. `prplmg -> prplmg` RSS is enabled and successfully imported the Citizen Kane review. The supplied historical ratings CSV has been parsed/validated but has not been bulk-imported. Tests did not issue real Sonarr searches or test emails. SMTP is configured/enabled; actual delivery is not asserted by the mock tests.
 
 Production runs on Mini. Source is staged at `C:\ProgramData\Seerr\social-stage`; `tools\social-feature\Build.ps1` builds the frontend and backend. The media-actions patch kit is under `tools\media-actions`, outside the application folder. Its guarded `recent-reapply.cjs APP_ROOT check|apply|revert` operates only on matching source and must be followed by a build. Apply this layer after history-queue; revert layers in reverse order.
 
