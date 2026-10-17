@@ -5,6 +5,7 @@ import Alert from '@app/components/Common/Alert';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import Dropdown from '@app/components/Common/Dropdown';
 import PageTitle from '@app/components/Common/PageTitle';
+import LetterboxdSettings from '@app/components/Reviews/LetterboxdSettings';
 import LinkJellyfinQuickConnectModal from '@app/components/UserProfile/UserSettings/UserLinkedAccountsSettings/LinkJellyfinQuickConnectModal';
 import useSettings from '@app/hooks/useSettings';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
@@ -54,7 +55,7 @@ const UserLinkedAccountsSettings = () => {
   const intl = useIntl();
   const settings = useSettings();
   const router = useRouter();
-  const { user: currentUser } = useUser();
+  const { user: currentUser, hasPermission: currentHasPermission } = useUser();
   const {
     user,
     hasPermission,
@@ -181,6 +182,9 @@ const UserLinkedAccountsSettings = () => {
 
   return (
     <>
+      {user && currentHasPermission(Permission.ADMIN) && (
+        <LetterboxdSettings key={user.id} userId={user.id} />
+      )}
       <PageTitle
         title={[
           intl.formatMessage(messages.linkedAccounts),

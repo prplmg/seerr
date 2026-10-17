@@ -1,3 +1,4 @@
+import { DiscoverSliderType } from '@server/constants/discover';
 import { getRepository } from '@server/datasource';
 import DiscoverSlider from '@server/entity/DiscoverSlider';
 import logger from '@server/logger';
@@ -25,6 +26,15 @@ discoverSettingRoutes.post('/', async (req, res) => {
     if (existingSlider && slider.id) {
       existingSlider.enabled = slider.enabled;
       existingSlider.order = x;
+      if (
+        existingSlider.type === DiscoverSliderType.RECENT_REVIEWS &&
+        slider.data !== undefined
+      ) {
+        const days = Number(slider.data);
+        if (!Number.isInteger(days) || days < 1 || days > 365)
+          return res.status(400).json({ error: 'Invalid review lookback' });
+        existingSlider.data = String(days);
+      }
 
       // Only allow changes to the following when the slider is not built in
       if (!existingSlider.isBuiltIn) {
@@ -89,6 +99,12 @@ discoverSettingRoutes.put('/:sliderId', async (req, res, next) => {
       },
     });
 
+    if (existingSlider.type === DiscoverSliderType.RECENT_REVIEWS) {
+      const days = Number(slider.data);
+      if (!Number.isInteger(days) || days < 1 || days > 365)
+        return res.sendStatus(400);
+      existingSlider.data = String(days);
+    }
     // Only allow changes to the following when the slider is not built in
     if (!existingSlider.isBuiltIn) {
       existingSlider.title = slider.title;

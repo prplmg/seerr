@@ -159,6 +159,7 @@ app
       server.enable('trust proxy');
     }
     server.use(cookieParser());
+    server.use('/api/v1/reviews/import', express.json({ limit: '6mb' }));
     server.use(express.json());
     server.use(express.urlencoded({ extended: true }));
     server.use((req, _res, next) => {

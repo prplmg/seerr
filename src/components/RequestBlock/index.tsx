@@ -3,8 +3,9 @@ import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
 import Tooltip from '@app/components/Common/Tooltip';
 import RequestModal from '@app/components/RequestModal';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useRequestOverride from '@app/hooks/useRequestOverride';
-import { useUser } from '@app/hooks/useUser';
+import { Permission, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
 import {
@@ -16,7 +17,7 @@ import {
   UserIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid';
-import { MediaRequestStatus } from '@server/constants/media';
+import { MediaRequestStatus, MediaStatus } from '@server/constants/media';
 import type { MediaRequest } from '@server/entity/MediaRequest';
 import axios from 'axios';
 import Link from 'next/link';
@@ -46,7 +47,15 @@ interface RequestBlockProps {
 }
 
 const RequestBlock = ({ request, onUpdate }: RequestBlockProps) => {
-  const { user } = useUser();
+  const { user, hasPermission } = useUser();
+  const t = usePartyText();
+  const [skipInitialSearch, setSkipInitialSearch] = useState(false);
+  const manualSearch =
+    request.skipInitialSearch &&
+    request.media[request.is4k ? 'status4k' : 'status'] ===
+      MediaStatus.PROCESSING &&
+    !(request.media[request.is4k ? 'downloadStatus4k' : 'downloadStatus'] ?? [])
+      .length;
   const intl = useIntl();
   const [isUpdating, setIsUpdating] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -55,7 +64,12 @@ const RequestBlock = ({ request, onUpdate }: RequestBlockProps) => {
 
   const updateRequest = async (type: 'approve' | 'decline'): Promise<void> => {
     setIsUpdating(true);
-    await axios.post(`/api/v1/request/${request.id}/${type}`);
+    await axios.post(
+      `/api/v1/request/${request.id}/${type}`,
+      type === 'approve' && hasPermission(Permission.ADMIN)
+        ? { skipInitialSearch }
+        : {}
+    );
 
     if (onUpdate) {
       onUpdate();
@@ -167,6 +181,16 @@ const RequestBlock = ({ request, onUpdate }: RequestBlockProps) => {
                     <CheckIcon className="icon-sm" />
                   </Button>
                 </Tooltip>
+                {request.type === 'tv' && hasPermission(Permission.ADMIN) && (
+                  <label className="mr-2 flex items-center gap-2 text-sm text-gray-100">
+                    <input
+                      type="checkbox"
+                      checked={skipInitialSearch}
+                      onChange={(e) => setSkipInitialSearch(e.target.checked)}
+                    />
+                    {t('Add without searching', 'Agregar sin buscar')}
+                  </label>
+                )}
                 <Tooltip content={intl.formatMessage(messages.decline)}>
                   <Button
                     buttonType="danger"
@@ -210,8 +234,10 @@ const RequestBlock = ({ request, onUpdate }: RequestBlockProps) => {
                 </span>
               )}
               {request.status === MediaRequestStatus.APPROVED && (
-                <Badge badgeType="success">
-                  {intl.formatMessage(globalMessages.approved)}
+                <Badge badgeType={manualSearch ? 'warning' : 'success'}>
+                  {manualSearch
+                    ? t('Manual search', 'Búsqueda manual')
+                    : intl.formatMessage(globalMessages.approved)}
                 </Badge>
               )}
               {request.status === MediaRequestStatus.DECLINED && (

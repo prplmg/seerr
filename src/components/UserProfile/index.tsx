@@ -53,6 +53,9 @@ const UserProfile = () => {
     id: Number(router.query.userId),
   });
   const { user: currentUser, hasPermission: currentHasPermission } = useUser();
+  const { data: letterboxd } = useSWR<{ account: { username: string } | null }>(
+    user ? `/api/v1/reviews/account/${user.id}` : null
+  );
   const [availableTitles, setAvailableTitles] = useState<
     Record<number, MediaTitle>
   >({});
@@ -134,6 +137,18 @@ const UserProfile = () => {
         </div>
       )}
       <ProfileHeader user={user} />
+      {letterboxd?.account && (
+        <div className="relative z-10 mb-6 text-green-400">
+          <a
+            href={`https://letterboxd.com/${encodeURIComponent(letterboxd.account.username)}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Letterboxd · @{letterboxd.account.username} ↗
+          </a>
+        </div>
+      )}
       {SHOW_REQUEST_ALLOWANCE &&
         quota &&
         (user.id === currentUser?.id ||

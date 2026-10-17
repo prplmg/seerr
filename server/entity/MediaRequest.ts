@@ -11,6 +11,10 @@ import OverrideRule from '@server/entity/OverrideRule';
 import type { MediaRequestBody } from '@server/interfaces/api/requestInterfaces';
 import notificationManager, { Notification } from '@server/lib/notifications';
 import { Permission } from '@server/lib/permissions';
+import {
+  hasPendingSeasonApproval,
+  requiresSeasonApproval,
+} from '@server/lib/requestSearchPolicy';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { DbAwareColumn, resolveDbType } from '@server/utils/DbColumnHelper';
@@ -425,6 +429,14 @@ export class MediaRequest {
       }
 
       let existingSeasons: number[] = [];
+      if (
+        !user.hasPermission(Permission.ADMIN) &&
+        hasPendingSeasonApproval(media.requests)
+      ) {
+        throw new RequestPermissionError(
+          'Cannot request more seasons until the previous request is approved.'
+        );
+      }
 
       // We need to check existing requests on this title to make sure we don't double up on seasons that were
       // already requested. In the case they were, we just throw out any duplicates but still approve the request.
@@ -480,6 +492,13 @@ export class MediaRequest {
 
       const request = new MediaRequest({
         type: MediaType.TV,
+        skipInitialSearch:
+          user.hasPermission(Permission.ADMIN) &&
+          requestBody.skipInitialSearch === true,
+        requiresSeasonApproval: requiresSeasonApproval(
+          user.hasPermission(Permission.ADMIN),
+          finalSeasons
+        ),
         media,
         requestedBy: requestUser,
         // If the user is an admin or has the "auto approve" permission, automatically approve the request
@@ -541,10 +560,23 @@ export class MediaRequest {
         ignoreQuota,
       });
 
+      if (request.requiresSeasonApproval) {
+        request.status = MediaRequestStatus.PENDING;
+        request.modifiedBy = undefined;
+        request.seasons.forEach((season) => {
+          season.status = MediaRequestStatus.PENDING;
+        });
+      }
       await requestRepository.save(request);
       return request;
     }
   }
+
+  @Column({ type: 'boolean', default: false })
+  public skipInitialSearch: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  public requiresSeasonApproval: boolean;
 
   @PrimaryGeneratedColumn()
   public id: number;

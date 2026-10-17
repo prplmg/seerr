@@ -6,6 +6,7 @@ import ImdbLogo from '@app/assets/services/imdb.svg';
 import Spinner from '@app/assets/spinner.svg';
 import BlocklistModal from '@app/components/BlocklistModal';
 import Button from '@app/components/Common/Button';
+import { MovieReviews } from '@app/components/Reviews';
 import CachedImage from '@app/components/Common/CachedImage';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -1146,6 +1147,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
           </div>
         </div>
       </div>
+      <MovieReviews movieId={data.id} />
       {data.credits.cast.length > 0 && (
         <>
           <div className="slider-header">

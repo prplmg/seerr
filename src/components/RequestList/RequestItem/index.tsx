@@ -5,6 +5,7 @@ import CachedImage from '@app/components/Common/CachedImage';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import RequestModal from '@app/components/RequestModal';
 import StatusBadge from '@app/components/StatusBadge';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, useUser } from '@app/hooks/useUser';
@@ -304,6 +305,8 @@ const RequestItem = ({ request, revalidateList }: RequestItemProps) => {
   const { addToast } = useToasts();
   const intl = useIntl();
   const { user, hasPermission } = useUser();
+  const t = usePartyText();
+  const [skipInitialSearch, setSkipInitialSearch] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const url =
     request.type === 'movie'
@@ -333,7 +336,12 @@ const RequestItem = ({ request, revalidateList }: RequestItemProps) => {
   const modifyRequest = async (type: 'approve' | 'decline') => {
     setUpdatingType(type);
     try {
-      await axios.post(`/api/v1/request/${request.id}/${type}`);
+      await axios.post(
+        `/api/v1/request/${request.id}/${type}`,
+        type === 'approve' && hasPermission(Permission.ADMIN)
+          ? { skipInitialSearch }
+          : {}
+      );
       revalidate();
       revalidateList();
       mutate('/api/v1/request/count');
@@ -539,6 +547,10 @@ const RequestItem = ({ request, revalidateList }: RequestItemProps) => {
                 </Badge>
               ) : (
                 <StatusBadge
+                  manualSearch={
+                    requestData.status === MediaRequestStatus.APPROVED &&
+                    requestData.skipInitialSearch
+                  }
                   status={
                     requestData.media[requestData.is4k ? 'status4k' : 'status']
                   }
@@ -731,6 +743,18 @@ const RequestItem = ({ request, revalidateList }: RequestItemProps) => {
                   </ConfirmButton>
                 )}
               </>
+            )}
+          {requestData.status === MediaRequestStatus.PENDING &&
+            requestData.type === 'tv' &&
+            hasPermission(Permission.ADMIN) && (
+              <label className="mb-2 flex items-center gap-2 text-sm text-gray-100">
+                <input
+                  type="checkbox"
+                  checked={skipInitialSearch}
+                  onChange={(e) => setSkipInitialSearch(e.target.checked)}
+                />
+                {t('Add without searching', 'Agregar sin buscar')}
+              </label>
             )}
           {requestData.status === MediaRequestStatus.PENDING &&
             hasPermission(Permission.MANAGE_REQUESTS) && (

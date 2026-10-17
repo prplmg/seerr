@@ -14,6 +14,7 @@ export interface RequestResultsResponse extends PaginatedResponse {
 }
 
 export type MediaRequestBody = {
+  skipInitialSearch?: boolean;
   mediaType: MediaType;
   mediaId: number;
   tvdbId?: number;

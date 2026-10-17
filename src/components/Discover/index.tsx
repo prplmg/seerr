@@ -1,27 +1,28 @@
-import RecentlyWatchedSlider from '@app/components/Discover/RecentlyWatchedSlider';
-import CuratedSlider from '@app/components/Discover/Curated';
-import WatchingNowSlider from '@app/components/Discover/WatchingNowSlider';
 import Button from '@app/components/Common/Button';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import Tooltip from '@app/components/Common/Tooltip';
 import CreateSlider from '@app/components/Discover/CreateSlider';
+import CuratedSlider from '@app/components/Discover/Curated';
 import DiscoverSliderEdit from '@app/components/Discover/DiscoverSliderEdit';
 import MovieGenreSlider from '@app/components/Discover/MovieGenreSlider';
 import NetworkSlider from '@app/components/Discover/NetworkSlider';
 import PlexWatchlistSlider from '@app/components/Discover/PlexWatchlistSlider';
-import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import RecentRequestsSlider from '@app/components/Discover/RecentRequestsSlider';
 import RecentlyAddedSlider from '@app/components/Discover/RecentlyAddedSlider';
+import RecentlyWatchedSlider from '@app/components/Discover/RecentlyWatchedSlider';
 import StudioSlider from '@app/components/Discover/StudioSlider';
 import TvGenreSlider from '@app/components/Discover/TvGenreSlider';
+import WatchingNowSlider from '@app/components/Discover/WatchingNowSlider';
 import { sliderTitles } from '@app/components/Discover/constants';
 import MediaSlider from '@app/components/MediaSlider';
+import { RecentReviews } from '@app/components/Reviews';
 import { encodeURIExtraParams } from '@app/hooks/useDiscover';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import defineMessages from '@app/utils/defineMessages';
 import { Transition } from '@headlessui/react';
 import {
@@ -211,7 +212,11 @@ const Discover = () => {
         </>
       )}
       {(isEditing ? sliders : discoverData)?.map((slider, index) => {
-        if (!SHOW_WATCHLIST && slider.type === DiscoverSliderType.PLEX_WATCHLIST) return null;
+        if (
+          !SHOW_WATCHLIST &&
+          slider.type === DiscoverSliderType.PLEX_WATCHLIST
+        )
+          return null;
         let sliderComponent: React.ReactNode;
 
         switch (slider.type) {
@@ -223,6 +228,11 @@ const Discover = () => {
             break;
           case DiscoverSliderType.WATCHING_NOW:
             sliderComponent = <WatchingNowSlider />;
+            break;
+          case DiscoverSliderType.RECENT_REVIEWS:
+            sliderComponent = (
+              <RecentReviews days={Number(slider.data) || 28} />
+            );
             break;
           case DiscoverSliderType.RECENTLY_WATCHED:
             sliderComponent = <RecentlyWatchedSlider />;
@@ -415,6 +425,13 @@ const Discover = () => {
         if (isEditing) {
           return (
             <DiscoverSliderEdit
+              onDataChange={(value) =>
+                setSliders((rows) =>
+                  rows.map((row) =>
+                    row.id === slider.id ? { ...row, data: value } : row
+                  )
+                )
+              }
               key={`discover-slider-${slider.id}-edit`}
               slider={slider}
               onDelete={async () => {

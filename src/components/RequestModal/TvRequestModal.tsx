@@ -5,6 +5,7 @@ import type { RequestOverrides } from '@app/components/RequestModal/AdvancedRequ
 import AdvancedRequester from '@app/components/RequestModal/AdvancedRequester';
 import QuotaDisplay from '@app/components/RequestModal/QuotaDisplay';
 import SearchByNameModal from '@app/components/RequestModal/SearchByNameModal';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
 import { useUser } from '@app/hooks/useUser';
@@ -81,7 +82,18 @@ const TvRequestModal = ({
     editRequest ? editingSeasons : []
   );
   const intl = useIntl();
+  const t = usePartyText();
+  const [skipInitialSearch, setSkipInitialSearch] = useState(
+    editRequest?.skipInitialSearch ?? false
+  );
   const { user, hasPermission } = useUser();
+  const pendingSeasonApproval =
+    !hasPermission(Permission.ADMIN) &&
+    data?.mediaInfo?.requests?.some(
+      (request) =>
+        request.requiresSeasonApproval &&
+        request.status === MediaRequestStatus.PENDING
+    );
   const [searchModal, setSearchModal] = useState<{
     show: boolean;
   }>({
@@ -124,7 +136,10 @@ const TvRequestModal = ({
         });
 
         if (alsoApproveRequest) {
-          await axios.post(`/api/v1/request/${editRequest.id}/approve`);
+          await axios.post(
+            `/api/v1/request/${editRequest.id}/approve`,
+            hasPermission(Permission.ADMIN) ? { skipInitialSearch } : {}
+          );
         }
       } else {
         await axios.delete(`/api/v1/request/${editRequest.id}`);
@@ -199,6 +214,9 @@ const TvRequestModal = ({
         tvdbId: tvdbId ?? data?.externalIds.tvdbId,
         mediaType: 'tv',
         is4k,
+        skipInitialSearch: hasPermission(Permission.ADMIN)
+          ? skipInitialSearch
+          : undefined,
         ignoreQuota: requestOverrides?.ignoreQuota,
         seasons: settings.currentSettings.partialRequestsEnabled
           ? selectedSeasons.sort((a, b) => a - b)
@@ -434,16 +452,18 @@ const TvRequestModal = ({
                   )
       }
       okDisabled={
-        editRequest
-          ? false
-          : !settings.currentSettings.partialRequestsEnabled &&
-              quota?.tv.limit &&
-              unrequestedSeasons.length > quota.tv.limit &&
-              !requestOverrides?.ignoreQuota
-            ? true
-            : getAllRequestedSeasons().length >= getAllSeasons().length ||
-              (settings.currentSettings.partialRequestsEnabled &&
-                selectedSeasons.length === 0)
+        !editRequest && pendingSeasonApproval
+          ? true
+          : editRequest
+            ? false
+            : !settings.currentSettings.partialRequestsEnabled &&
+                quota?.tv.limit &&
+                unrequestedSeasons.length > quota.tv.limit &&
+                !requestOverrides?.ignoreQuota
+              ? true
+              : getAllRequestedSeasons().length >= getAllSeasons().length ||
+                (settings.currentSettings.partialRequestsEnabled &&
+                  selectedSeasons.length === 0)
       }
       okButtonType={
         editRequest
@@ -485,6 +505,10 @@ const TvRequestModal = ({
           unrequestedSeasons.length > (quota?.tv.remaining ?? 0)
         ) &&
         getAllRequestedSeasons().length < getAllSeasons().length &&
+        (hasPermission(Permission.ADMIN) ||
+          (settings.currentSettings.partialRequestsEnabled
+            ? selectedSeasons.length
+            : unrequestedSeasons.length) <= 2) &&
         !editRequest && (
           <p className="mt-6">
             <Alert
@@ -738,6 +762,43 @@ const TvRequestModal = ({
           }
         />
       )}
+      {!editRequest && pendingSeasonApproval && (
+        <div
+          role="note"
+          className="mt-4 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-yellow-200"
+        >
+          {t(
+            'Cannot request more seasons until the previous request is approved.',
+            'No puedes solicitar más temporadas hasta que se apruebe la solicitud anterior.'
+          )}
+        </div>
+      )}
+      {hasPermission(Permission.ADMIN) && (
+        <label className="mt-4 flex items-center gap-2 text-gray-100">
+          <input
+            type="checkbox"
+            checked={skipInitialSearch}
+            onChange={(e) => setSkipInitialSearch(e.target.checked)}
+          />
+          {t('Add without searching', 'Agregar sin buscar')}
+        </label>
+      )}
+      {!hasPermission(Permission.ADMIN) &&
+        (settings.currentSettings.partialRequestsEnabled
+          ? selectedSeasons.length
+          : getAllSeasons().filter(
+              (season) => !getAllRequestedSeasons().includes(season)
+            ).length) > 2 && (
+          <div
+            role="note"
+            className="mt-4 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-yellow-200"
+          >
+            {t(
+              'Downloading more than 2 seasons requires admin approval.',
+              'Descargar más de 2 temporadas requiere aprobación del administrador.'
+            )}
+          </div>
+        )}
     </Modal>
   );
 };

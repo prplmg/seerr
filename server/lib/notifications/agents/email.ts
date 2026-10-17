@@ -5,6 +5,7 @@ import { User } from '@server/entity/User';
 import { defineMessages, getIntl } from '@server/i18n';
 import globalMessages from '@server/i18n/globalMessages';
 import PreparedEmail from '@server/lib/email';
+import { canReceiveSeasonApprovalEmail } from '@server/lib/requestSearchPolicy';
 import type { NotificationAgentEmail } from '@server/lib/settings';
 import { NotificationAgentKey, getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
@@ -351,6 +352,11 @@ class EmailAgent
         users
           .filter(
             (user) =>
+              canReceiveSeasonApprovalEmail(
+                type === Notification.MEDIA_PENDING &&
+                  !!payload.request?.requiresSeasonApproval,
+                user.id
+              ) &&
               (!user.settings ||
                 (user.settings.hasNotificationType(
                   NotificationAgentKey.EMAIL,

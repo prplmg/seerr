@@ -18,6 +18,7 @@ import { MediaRequest } from '@server/entity/MediaRequest';
 import Season from '@server/entity/Season';
 import SeasonRequest from '@server/entity/SeasonRequest';
 import notificationManager, { Notification } from '@server/lib/notifications';
+import { shouldSearchInitially } from '@server/lib/requestSearchPolicy';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isEqual, truncate } from 'lodash';
@@ -712,7 +713,10 @@ export class MediaRequestSubscriber implements EntitySubscriberInterface<MediaRe
           tags,
           monitored: true,
           monitorNewItems: sonarrSettings.monitorNewItems,
-          searchNow: !sonarrSettings.preventSearch,
+          searchNow: shouldSearchInitially(
+            sonarrSettings.preventSearch,
+            entity.skipInitialSearch
+          ),
         };
 
         // Run entity asynchronously so we don't wait for it on the UI side

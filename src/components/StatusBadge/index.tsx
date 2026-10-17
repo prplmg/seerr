@@ -2,6 +2,7 @@ import Spinner from '@app/assets/spinner.svg';
 import Badge from '@app/components/Common/Badge';
 import Tooltip from '@app/components/Common/Tooltip';
 import DownloadBlock from '@app/components/DownloadBlock';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useSettings from '@app/hooks/useSettings';
 import { Permission, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
@@ -22,6 +23,7 @@ const messages = defineMessages('components.StatusBadge', {
 });
 
 interface StatusBadgeProps {
+  manualSearch?: boolean;
   readOnly?: boolean;
   status?: MediaStatus;
   downloadItem?: DownloadingItem[];
@@ -36,6 +38,7 @@ interface StatusBadgeProps {
 }
 
 const StatusBadge = ({
+  manualSearch = false,
   readOnly = false,
   status,
   downloadItem = [],
@@ -49,6 +52,7 @@ const StatusBadge = ({
   statusLabelOverride,
 }: StatusBadgeProps) => {
   const intl = useIntl();
+  const t = usePartyText();
   const { hasPermission } = useUser();
   const settings = useSettings();
 
@@ -142,7 +146,7 @@ const StatusBadge = ({
 
   const badgeDownloadProgress = (
     <div
-      className={`absolute top-0 left-0 z-10 flex h-full ${
+      className={`absolute left-0 top-0 z-10 flex h-full ${
         status === MediaStatus.DELETED
           ? 'bg-red-600/80'
           : status === MediaStatus.PROCESSING
@@ -157,6 +161,25 @@ const StatusBadge = ({
     />
   );
 
+  if (
+    manualSearch &&
+    status === MediaStatus.PROCESSING &&
+    !inProgress &&
+    downloadItem.length === 0
+  ) {
+    return (
+      <Tooltip
+        content={t(
+          'Added to Sonarr without an initial search. The administrator will handle searching.',
+          'Agregado a Sonarr sin búsqueda inicial. El administrador se encargará de buscar.'
+        )}
+      >
+        <Badge badgeType="warning">
+          {t('Manual search', 'Búsqueda manual')}
+        </Badge>
+      </Tooltip>
+    );
+  }
   switch (status) {
     case MediaStatus.AVAILABLE:
       return (

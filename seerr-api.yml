@@ -1274,6 +1274,11 @@ components:
           type: boolean
           example: false
           description: If true, this request will not count against the user's quota. Requires MANAGE_REQUESTS permission.
+        skipInitialSearch:
+          type: boolean
+        requiresSeasonApproval:
+          type: boolean
+          readOnly: true
       required:
         - id
         - status
@@ -2198,6 +2203,133 @@ paths:
           description: Authentication required
         '404':
           description: Category not found
+  /reviews:
+    get:
+      summary: List movie reviews
+      parameters:
+        - in: query
+          name: movieId
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: days
+          schema: { type: integer, minimum: 1, maximum: 365 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, maximum: 10000 }
+      responses:
+        '200': { description: Reviews }
+  /reviews/entry/{id}:
+    get:
+      summary: Read one review for a direct link
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, maxLength: 180 }
+      responses:
+        '200': { description: Review }
+  /reviews/mine/{movieId}:
+    parameters:
+      - in: path
+        name: movieId
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      summary: Read your local movie review
+      responses:
+        '200': { description: Local review }
+    put:
+      summary: Save your local movie review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [rating, text, spoiler]
+              properties:
+                rating:
+                  {
+                    type: number,
+                    nullable: true,
+                    minimum: 0.5,
+                    maximum: 5,
+                    multipleOf: 0.5,
+                  }
+                text: { type: string, maxLength: 20000 }
+                spoiler: { type: boolean }
+      responses:
+        '200': { description: Saved }
+    delete:
+      summary: Delete your local movie review
+      responses:
+        '204': { description: Deleted }
+  /reviews/account/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      summary: Read public Letterboxd username; sync status is admin-only
+      responses:
+        '200': { description: Account status }
+    delete:
+      summary: Unlink account and remove its imported reviews (admin only)
+      responses:
+        '204': { description: Unlinked; local reviews retained }
+    put:
+      summary: Link a Letterboxd account (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [username, enabled]
+              properties:
+                username: { type: string, pattern: '^[A-Za-z0-9_]{1,40}$' }
+                enabled: { type: boolean }
+      responses:
+        '200': { description: Linked }
+  /reviews/account/{userId}/sync:
+    post:
+      summary: Refresh public RSS (admin only)
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Sync status }
+  /reviews/import/{userId}:
+    post:
+      summary: Preview or import a batch of Letterboxd CSV entries (admin only)
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [csv, mode]
+              properties:
+                csv: { type: string, maxLength: 2097152 }
+                mode: { type: string, enum: [preview, commit] }
+                offset: { type: integer, minimum: 0, maximum: 10000 }
+                confirmPublic: { type: boolean }
+                matches:
+                  type: object
+                  additionalProperties: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Import batch and next offset }
   /watch-party/admin/usage:
     get:
       summary: Admin-only party activity history
@@ -6883,6 +7015,9 @@ paths:
                   type: boolean
                   example: false
                   description: If true, this request will not count against the user's quota. Requires MANAGE_REQUESTS permission.
+                skipInitialSearch:
+                  type: boolean
+                  description: Admin-only; add monitored seasons without an initial Sonarr search.
               required:
                 - mediaType
                 - mediaId
@@ -7040,6 +7175,16 @@ paths:
                 $ref: '#/components/schemas/MediaRequest'
   /request/{requestId}/{status}:
     post:
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                skipInitialSearch:
+                  type: boolean
       summary: Update a request's status
       description: |
         Updates a request's status to approved or declined. Also returns the request in a JSON object.

@@ -1,4 +1,5 @@
 import socialRoutes from './social';
+import reviewRoutes from './reviews';
 import curatedRoutes from './curated';
 import watchPartyRoutes from './watchParty';
 import GithubAPI from '@server/api/github';
@@ -49,6 +50,7 @@ import user from './user';
 const router = Router();
 
 router.use(checkUser);
+router.use('/reviews', isAuthenticated(), reviewRoutes);
 router.use('/curated', isAuthenticated(), curatedRoutes);
 router.use('/social', isAuthenticated(), socialRoutes);
 router.use('/watch-party', isAuthenticated(), watchPartyRoutes);

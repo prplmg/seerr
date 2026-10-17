@@ -5,6 +5,7 @@ import CachedImage from '@app/components/Common/CachedImage';
 import Tooltip from '@app/components/Common/Tooltip';
 import RequestModal from '@app/components/RequestModal';
 import StatusBadge from '@app/components/StatusBadge';
+import { usePartyText } from '@app/components/WatchParty/messages';
 import useDeepLinks from '@app/hooks/useDeepLinks';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, useUser } from '@app/hooks/useUser';
@@ -226,6 +227,8 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
   });
   const intl = useIntl();
   const { user, hasPermission } = useUser();
+  const t = usePartyText();
+  const [skipInitialSearch, setSkipInitialSearch] = useState(false);
   const { addToast } = useToasts();
   const [isRetrying, setRetrying] = useState(false);
   const [updatingType, setUpdatingType] = useState<
@@ -269,7 +272,12 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
   const modifyRequest = async (type: 'approve' | 'decline') => {
     setUpdatingType(type);
     try {
-      await axios.post(`/api/v1/request/${request.id}/${type}`);
+      await axios.post(
+        `/api/v1/request/${request.id}/${type}`,
+        type === 'approve' && hasPermission(Permission.ADMIN)
+          ? { skipInitialSearch }
+          : {}
+      );
       revalidate();
       mutate('/api/v1/request/count');
     } catch {
@@ -456,6 +464,10 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
               </Badge>
             ) : (
               <StatusBadge
+                manualSearch={
+                  requestData.status === MediaRequestStatus.APPROVED &&
+                  requestData.skipInitialSearch
+                }
                 status={
                   requestData.media[requestData.is4k ? 'status4k' : 'status']
                 }
@@ -505,6 +517,19 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
             {requestData.status === MediaRequestStatus.PENDING &&
               hasPermission(Permission.MANAGE_REQUESTS) && (
                 <>
+                  {requestData.type === 'tv' &&
+                    hasPermission(Permission.ADMIN) && (
+                      <label className="mr-2 flex items-center gap-2 text-sm text-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={skipInitialSearch}
+                          onChange={(e) =>
+                            setSkipInitialSearch(e.target.checked)
+                          }
+                        />
+                        {t('Add without searching', 'Agregar sin buscar')}
+                      </label>
+                    )}
                   <div>
                     <Button
                       buttonType="success"

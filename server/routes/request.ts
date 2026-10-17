@@ -22,6 +22,10 @@ import type {
   RequestResultsResponse,
 } from '@server/interfaces/api/requestInterfaces';
 import { Permission } from '@server/lib/permissions';
+import {
+  hasPendingSeasonApproval,
+  requiresSeasonApproval,
+} from '@server/lib/requestSearchPolicy';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
@@ -567,6 +571,16 @@ requestRoutes.put<{ requestId: string }>(
         const newSeasons = requestedSeasons.filter(
           (sn) => !request.seasons.map((s) => s.seasonNumber).includes(sn)
         );
+        if (
+          newSeasons.length &&
+          !req.user?.hasPermission(Permission.ADMIN) &&
+          hasPendingSeasonApproval(media.requests)
+        ) {
+          return res.status(403).json({
+            message:
+              'Cannot request more seasons until the previous request is approved.',
+          });
+        }
 
         request.seasons = request.seasons.filter((rs) =>
           filteredSeasons.includes(rs.seasonNumber)
@@ -588,7 +602,22 @@ requestRoutes.put<{ requestId: string }>(
           );
         }
 
+        const heldForSeasons =
+          newSeasons.length > 0 &&
+          requiresSeasonApproval(
+            !!req.user?.hasPermission(Permission.ADMIN),
+            request.seasons.map((season) => season.seasonNumber)
+          );
+        if (heldForSeasons) {
+          request.requiresSeasonApproval = true;
+          request.status = MediaRequestStatus.PENDING;
+          request.seasons.forEach((season) => {
+            if (newSeasons.includes(season.seasonNumber))
+              season.status = MediaRequestStatus.PENDING;
+          });
+        }
         await requestRepository.save(request);
+        if (heldForSeasons) await request.notifyNewRequest();
       }
 
       return res.status(200).json(request);
@@ -645,6 +674,11 @@ requestRoutes.post<{
       });
 
       // this also triggers updating the parent media's status & sending to *arr
+      if (
+        request.requiresSeasonApproval &&
+        !req.user?.hasPermission(Permission.ADMIN)
+      )
+        return res.sendStatus(403);
       request.status = MediaRequestStatus.APPROVED;
       request.modifiedBy = req.user;
       await requestRepository.save(request);
@@ -682,6 +716,18 @@ requestRoutes.post<{
           newStatus = MediaRequestStatus.PENDING;
           break;
         case 'approve':
+          if (
+            request.requiresSeasonApproval &&
+            !req.user?.hasPermission(Permission.ADMIN)
+          )
+            return res.sendStatus(403);
+          if (req.body?.skipInitialSearch !== undefined) {
+            if (!req.user?.hasPermission(Permission.ADMIN))
+              return res.sendStatus(403);
+            if (typeof req.body.skipInitialSearch !== 'boolean')
+              return res.sendStatus(400);
+            request.skipInitialSearch = req.body.skipInitialSearch;
+          }
           newStatus = MediaRequestStatus.APPROVED;
           break;
         case 'decline':

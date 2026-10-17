@@ -14,29 +14,32 @@ import type { PlayButtonLink } from '@app/components/Common/PlayButton';
 import StatusBadgeMini from '@app/components/Common/StatusBadgeMini';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
+import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
 import IssueModal from '@app/components/IssueModal';
 import ManageSlideOver from '@app/components/ManageSlideOver';
 import MediaActions from '@app/components/MediaActions';
-import PlexBookmark from '@app/components/PlexBookmark';
 import MediaSlider from '@app/components/MediaSlider';
 import PersonCard from '@app/components/PersonCard';
+import PlexBookmark from '@app/components/PlexBookmark';
 import RequestButton from '@app/components/RequestButton';
 import RequestModal from '@app/components/RequestModal';
 import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
-import WatchTogether, { WatchingDetail, DetailPartyControls } from '@app/components/WatchParty';
 import Season from '@app/components/TvDetails/Season';
+import WatchTogether, {
+  DetailPartyControls,
+  WatchingDetail,
+} from '@app/components/WatchParty';
 import useDeepLinks from '@app/hooks/useDeepLinks';
-import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
-import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
 import ErrorPage from '@app/pages/_error';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import { sortCrewPriority } from '@app/utils/creditHelpers';
 import defineMessages from '@app/utils/defineMessages';
 import { refreshIntervalHelper } from '@app/utils/refreshIntervalHelper';
@@ -190,9 +193,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
 
   const mediaLinks: PlayButtonLink[] = [];
 
-  if (
-    plexUrl
-  ) {
+  if (plexUrl) {
     mediaLinks.push({
       text: getAvailableMediaServerName(),
       url: plexUrl,
@@ -200,10 +201,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
     });
   }
 
-  if (
-    settings.currentSettings.series4kEnabled &&
-    plexUrl4k
-  ) {
+  if (settings.currentSettings.series4kEnabled && plexUrl4k) {
     mediaLinks.push({
       text: getAvailable4kMediaServerName(),
       url: plexUrl4k,
@@ -549,6 +547,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           )}
           <div className="media-status">
             <StatusBadge
+              manualSearch={data.mediaInfo?.requests?.some(
+                (request) =>
+                  !request.is4k &&
+                  request.skipInitialSearch &&
+                  request.status === MediaRequestStatus.APPROVED
+              )}
               status={data.mediaInfo?.status}
               downloadItem={data.mediaInfo?.downloadStatus}
               title={data.name}
@@ -570,6 +574,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 }
               ) && (
                 <StatusBadge
+                  manualSearch={data.mediaInfo?.requests?.some(
+                    (request) =>
+                      request.is4k &&
+                      request.skipInitialSearch &&
+                      request.status === MediaRequestStatus.APPROVED
+                  )}
                   status={data.mediaInfo?.status4k}
                   downloadItem={data.mediaInfo?.downloadStatus4k}
                   title={data.name}
@@ -636,7 +646,8 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 </Button>
               </Tooltip>
             )}
-          {SHOW_WATCHLIST && data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
+          {SHOW_WATCHLIST &&
+            data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
             user?.userType !== UserType.PLEX && (
               <>
                 {toggleWatchlist ? (
@@ -712,7 +723,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
             data.mediaInfo?.status === MediaStatus.PARTIALLY_AVAILABLE ||
             data.mediaInfo?.status4k === MediaStatus.AVAILABLE ||
             data.mediaInfo?.status4k === MediaStatus.PARTIALLY_AVAILABLE) && (
-            <WatchTogether id={data.id} type="tv" title={data.name} poster={data.posterPath} />
+            <WatchTogether
+              id={data.id}
+              type="tv"
+              title={data.name}
+              poster={data.posterPath}
+            />
           )}
           {hasPermission(Permission.MANAGE_REQUESTS) && data.mediaInfo && (
             <Tooltip content={intl.formatMessage(messages.manageseries)}>
@@ -734,8 +750,8 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                     ) ?? []
                   ).length > 0 && (
                     <>
-                      <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-600" />
-                      <div className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
+                      <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
+                      <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
                     </>
                   )}
               </Button>
@@ -795,7 +811,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 <Link
                   href={`/discover/tv?keywords=${keyword.id}`}
                   key={`keyword-id-${keyword.id}`}
-                  className="mr-2 mb-2 inline-flex last:mr-0"
+                  className="mb-2 mr-2 inline-flex last:mr-0"
                 >
                   <Tag>{keyword.name}</Tag>
                 </Link>
@@ -871,7 +887,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                         <Disclosure.Button
                           className={`mt-2 flex w-full items-center justify-between space-x-2 border-gray-700 bg-gray-800 px-4 py-2 text-gray-200 ${
                             open
-                              ? 'rounded-t-md border-t border-r border-l'
+                              ? 'rounded-t-md border-l border-r border-t'
                               : 'rounded-md border'
                           }`}
                         >
@@ -1094,7 +1110,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                           // Not sure why this transition is adding a margin without this here
                           style={{ margin: '0px' }}
                         >
-                          <Disclosure.Panel className="w-full rounded-b-md border-r border-b border-l border-gray-700 px-4 pb-2">
+                          <Disclosure.Panel className="w-full rounded-b-md border-b border-l border-r border-gray-700 px-4 pb-2">
                             <Season
                               tvId={data.id}
                               seasonNumber={season.seasonNumber}

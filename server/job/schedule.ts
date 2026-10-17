@@ -4,6 +4,7 @@ import availabilitySync from '@server/lib/availabilitySync';
 import downloadTracker from '@server/lib/downloadtracker';
 import ImageProxy from '@server/lib/imageproxy';
 import refreshToken from '@server/lib/refreshToken';
+import { pollReviews } from '@server/lib/reviews';
 import {
   jellyfinFullScanner,
   jellyfinRecentScanner,
@@ -31,6 +32,12 @@ interface ScheduledJob {
 export const scheduledJobs: ScheduledJob[] = [];
 
 export const startJobs = (): void => {
+  if (!schedule.scheduledJobs['letterboxd-review-rss'])
+    schedule.scheduleJob('letterboxd-review-rss', '*/15 * * * *', () => {
+      void pollReviews().catch(() =>
+        logger.warn('Review RSS poll failed', { label: 'Letterboxd' })
+      );
+    });
   const jobs = getSettings().jobs;
   const mediaServerType = getSettings().main.mediaServerType;
 

@@ -25,6 +25,7 @@ export enum DiscoverSliderType {
   WATCHING_NOW,
   RECENTLY_WATCHED,
   RECOMMENDATIONS,
+  RECENT_REVIEWS,
 }
 
 const legacyDefaultSliders: Partial<DiscoverSlider>[] = [
@@ -103,6 +104,10 @@ const legacyDefaultSliders: Partial<DiscoverSlider>[] = [
 ];
 
 const independentSliders = [
+  {
+    type: DiscoverSliderType.RECENT_REVIEWS,
+    after: DiscoverSliderType.RECENT_REQUESTS,
+  },
   {
     type: DiscoverSliderType.WATCHING_NOW,
     after: DiscoverSliderType.RECENT_REQUESTS,
