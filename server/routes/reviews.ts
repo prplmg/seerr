@@ -23,7 +23,7 @@ const router = Router();
 const positive = (v: unknown) =>
   Number.isSafeInteger(Number(v)) && Number(v) > 0;
 const admin = (req: Express.Request) =>
-  hasPermission(req.user!.permissions, Permission.ADMIN);
+  hasPermission(Permission.ADMIN, req.user!.permissions);
 router.use((_req, res, next) => {
   res.setHeader('Cache-Control', 'private, no-store');
   next();
