@@ -5,6 +5,7 @@ import path from 'node:path';
 import { it } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import * as jsxRuntime from 'react/jsx-runtime';
 import ts from 'typescript';
 
 function badge(es = false) {
@@ -23,7 +24,7 @@ function badge(es = false) {
   ).outputText;
   const exports: any = {};
   new Function('require', 'exports', compiled)((name: string) => {
-    if (name === 'react/jsx-runtime') return require(name);
+    if (name === 'react/jsx-runtime') return jsxRuntime;
     if (name === '@server/constants/media') return { MediaStatus };
     if (name.endsWith('/Common/Badge'))
       return (p: any) =>

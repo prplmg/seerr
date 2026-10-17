@@ -1,3 +1,4 @@
+import * as mediaConstants from '@server/constants/media';
 import { MediaRequestStatus } from '@server/constants/media';
 import { Permission } from '@server/lib/permissions';
 import assert from 'node:assert/strict';
@@ -10,12 +11,12 @@ import * as policy from './requestSearchPolicy';
 // Execute the real route handlers with in-memory repositories. No server,
 // Sonarr, email service or production database is contacted.
 function harness(isAdmin: boolean, request: Record<string, any>) {
-  const handlers = new Map<string, Function>();
+  const handlers = new Map<string, (...args: any[]) => any>();
   let saves = 0;
   const router = Object.fromEntries(
     ['get', 'post', 'put', 'delete'].map((method) => [
       method,
-      (url: string, ...functions: Function[]) =>
+      (url: string, ...functions: ((...args: any[]) => any)[]) =>
         handlers.set(`${method} ${url}`, functions[functions.length - 1]),
     ])
   );
@@ -41,8 +42,7 @@ function harness(isAdmin: boolean, request: Record<string, any>) {
     if (name === '@server/middleware/auth')
       return { isAuthenticated: () => () => {} };
     if (name === '@server/lib/requestSearchPolicy') return policy;
-    if (name === '@server/constants/media')
-      return require('@server/constants/media');
+    if (name === '@server/constants/media') return mediaConstants;
     if (name === '@server/lib/permissions') return { Permission };
     if (name === '@server/logger') return { error() {}, debug() {} };
     return {};
