@@ -59,9 +59,17 @@ class DownloadTracker {
     this.sonarrServers = {};
   }
 
-  public updateDownloads() {
-    this.updateRadarrDownloads();
-    this.updateSonarrDownloads();
+  private pending?: Promise<void>;
+  public updateDownloads(): Promise<void> {
+    if (this.pending) return this.pending;
+    this.pending = Promise.all([
+      this.updateRadarrDownloads(), this.updateSonarrDownloads(),
+    ]).then(() => undefined).finally(() => { this.pending = undefined; });
+    return this.pending;
+  }
+
+  public isRunning() {
+    return !!this.pending;
   }
 
   private async updateRadarrDownloads() {
@@ -77,7 +85,7 @@ class DownloadTracker {
     });
 
     // Load downloads from Radarr servers
-    Promise.all(
+    await Promise.all(
       filteredServers.map(async (server) => {
         if (server.syncEnabled) {
           const radarr = new RadarrAPI({
@@ -155,7 +163,7 @@ class DownloadTracker {
     });
 
     // Load downloads from Sonarr servers
-    Promise.all(
+    await Promise.all(
       filteredServers.map(async (server) => {
         if (server.syncEnabled) {
           const sonarr = new SonarrAPI({

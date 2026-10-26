@@ -1,4 +1,5 @@
 {
+  "components.Settings.SettingsJobsCache.letterboxd-publication-sync": "Letterboxd ratings and reviews publication",
   "components.UserProfile.watchlistError": "Plex Watchlist is temporarily unavailable.",
   "components.UserProfile.historyError": "Watch history is temporarily unavailable.",
   "components.UserProfile.noHistory": "No watched movies or series yet.",
@@ -1394,6 +1395,7 @@
   "components.TvDetails.removefromwatchlist": "Remove From Watchlist",
   "components.TvDetails.reportissue": "Report an Issue",
   "components.TvDetails.rtaudiencescore": "Rotten Tomatoes Audience Score",
+  "components.TvDetails.letterboxdscore": "Letterboxd rating: {score} out of 5 stars",
   "components.TvDetails.rtcriticsscore": "Rotten Tomatoes Tomatometer",
   "components.TvDetails.seasonnumber": "Season {seasonNumber}",
   "components.TvDetails.seasons": "{seasonCount, plural, one {# Season} other {# Seasons}}",

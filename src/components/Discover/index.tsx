@@ -1,4 +1,5 @@
 import Button from '@app/components/Common/Button';
+import DeferredSection from '@app/components/Common/DeferredSection';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -6,12 +7,14 @@ import Tooltip from '@app/components/Common/Tooltip';
 import CreateSlider from '@app/components/Discover/CreateSlider';
 import CuratedSlider from '@app/components/Discover/Curated';
 import DiscoverSliderEdit from '@app/components/Discover/DiscoverSliderEdit';
+import { DiscoveryListSections } from '@app/components/Discover/ListLibrary';
 import MovieGenreSlider from '@app/components/Discover/MovieGenreSlider';
 import NetworkSlider from '@app/components/Discover/NetworkSlider';
 import PlexWatchlistSlider from '@app/components/Discover/PlexWatchlistSlider';
 import RecentRequestsSlider from '@app/components/Discover/RecentRequestsSlider';
 import RecentlyAddedSlider from '@app/components/Discover/RecentlyAddedSlider';
 import RecentlyWatchedSlider from '@app/components/Discover/RecentlyWatchedSlider';
+import { ReleaseUpdates } from '@app/components/Discover/ReleaseUpdates';
 import StudioSlider from '@app/components/Discover/StudioSlider';
 import TvGenreSlider from '@app/components/Discover/TvGenreSlider';
 import WatchingNowSlider from '@app/components/Discover/WatchingNowSlider';
@@ -239,6 +242,18 @@ const Discover = () => {
             break;
           case DiscoverSliderType.RECOMMENDATIONS:
             sliderComponent = <CuratedSlider />;
+            break;
+          case DiscoverSliderType.NEW_EPISODES:
+            sliderComponent = <ReleaseUpdates section="episodes" />;
+            break;
+          case DiscoverSliderType.AWAITED_MOVIES:
+            sliderComponent = <ReleaseUpdates section="movies" />;
+            break;
+          case DiscoverSliderType.EXPLORE_LISTS:
+            sliderComponent = <DiscoveryListSections section="explore" />;
+            break;
+          case DiscoverSliderType.WATCHED_FROM_LISTS:
+            sliderComponent = <DiscoveryListSections section="activity" />;
             break;
           case DiscoverSliderType.PLEX_WATCHLIST:
             sliderComponent = SHOW_WATCHLIST ? <PlexWatchlistSlider /> : null;
@@ -486,7 +501,9 @@ const Discover = () => {
         }
 
         return (
-          <div key={`discover-slider-${slider.id}`}>{sliderComponent}</div>
+          <DeferredSection key={`discover-slider-${slider.id}`}>
+            {sliderComponent}
+          </DeferredSection>
         );
       })}
     </>

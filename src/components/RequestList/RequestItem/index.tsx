@@ -3,6 +3,7 @@ import Badge from '@app/components/Common/Badge';
 import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
+import { FollowReleases } from '@app/components/Discover/ReleaseUpdates';
 import RequestModal from '@app/components/RequestModal';
 import StatusBadge from '@app/components/StatusBadge';
 import { usePartyText } from '@app/components/WatchParty/messages';
@@ -814,6 +815,11 @@ const RequestItem = ({ request, revalidateList }: RequestItemProps) => {
             )}
         </div>
       </div>
+      <FollowReleases
+        id={request.media.tmdbId}
+        type={request.type}
+        metadata={title}
+      />
     </>
   );
 };

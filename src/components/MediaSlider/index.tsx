@@ -55,7 +55,7 @@ const MediaSlider = ({
       }`;
     },
     {
-      initialSize: 2,
+      initialSize: 1,
       revalidateFirstPage: false,
     }
   );
@@ -82,9 +82,22 @@ const MediaSlider = ({
     );
   }
 
+  const blocklistVisibility = hasPermission(
+    [Permission.MANAGE_BLOCKLIST, Permission.VIEW_BLOCKLIST],
+    { type: 'or' }
+  );
+  if (!blocklistVisibility) {
+    titles = titles.filter(
+      (item) =>
+        (item as TvResult | MovieResult).mediaInfo?.status !==
+        MediaStatus.BLOCKLISTED
+    );
+  }
+
   useEffect(() => {
     if (
-      titles.length < 24 &&
+      titles.length < 20 &&
+      data?.length === size &&
       size < 5 &&
       (data?.[0]?.totalResults ?? 0) > size * 20
     ) {
@@ -101,11 +114,6 @@ const MediaSlider = ({
   if (hideWhenEmpty && (data?.[0].results ?? []).length === 0) {
     return null;
   }
-
-  const blocklistVisibility = hasPermission(
-    [Permission.MANAGE_BLOCKLIST, Permission.VIEW_BLOCKLIST],
-    { type: 'or' }
-  );
 
   const finalTitles = titles
     .slice(0, 20)
@@ -162,12 +170,16 @@ const MediaSlider = ({
       }
     });
 
-  if (linkUrl && titles.length > 20) {
+  if (
+    linkUrl &&
+    (titles.length > 20 || (data?.[0]?.totalResults ?? 0) > size * 20)
+  ) {
     finalTitles.push(
       <ShowMoreCard
+        key="show-more"
         url={linkUrl}
         posters={titles
-          .slice(20, 24)
+          .slice(-4)
           .map((title) =>
             title.mediaType !== 'person' ? title.posterPath : undefined
           )}

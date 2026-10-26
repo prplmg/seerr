@@ -3,6 +3,7 @@ import Header from '@app/components/Common/Header';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import Tooltip from '@app/components/Common/Tooltip';
+import RequestCard from '@app/components/RequestCard';
 import RequestItem from '@app/components/RequestList/RequestItem';
 import { useUpdateQueryParams } from '@app/hooks/useUpdateQueryParams';
 import { Permission, useUser } from '@app/hooks/useUser';
@@ -313,10 +314,16 @@ const RequestList = () => {
       {data.results.map((request) => {
         return (
           <div className="py-2" key={`request-list-${request.id}`}>
-            <RequestItem
-              request={request}
-              revalidateList={() => revalidate()}
-            />
+            {hasPermission(Permission.ADMIN) ? (
+              <>
+                <RequestItem
+                  request={request}
+                  revalidateList={() => revalidate()}
+                />
+              </>
+            ) : (
+              <RequestCard request={request} simple />
+            )}
           </div>
         );
       })}

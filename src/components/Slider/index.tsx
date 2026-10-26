@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { useIntl } from 'react-intl';
 
 interface SliderProps {
+  header?: React.ReactNode;
   stretchItems?: boolean;
   sliderKey: string;
   items?: JSX.Element[];
@@ -22,6 +23,7 @@ enum Direction {
 }
 
 const Slider = ({
+  header,
   stretchItems = false,
   sliderKey,
   items,
@@ -147,27 +149,36 @@ const Slider = ({
 
   return (
     <div className="relative" data-testid="media-slider">
-      <div className="absolute right-0 -mt-10 flex text-gray-400">
-        <button
-          className={`${
-            scrollPos.isStart ? 'text-gray-800' : 'hover:text-white'
-          }`}
-          onClick={() => slide(Direction.LEFT)}
-          disabled={scrollPos.isStart}
-          type="button"
+      <div className={header ? 'slider-heading relative mb-3' : undefined}>
+        {header}
+        <div
+          className={
+            header
+              ? 'absolute right-0 top-1/2 flex -translate-y-1/2 text-gray-400'
+              : 'absolute right-0 -mt-10 flex text-gray-400'
+          }
         >
-          <ChevronLeftIcon className="h-6 w-6" />
-        </button>
-        <button
-          className={`${
-            scrollPos.isEnd ? 'text-gray-800' : 'hover:text-white'
-          }`}
-          onClick={() => slide(Direction.RIGHT)}
-          disabled={scrollPos.isEnd}
-          type="button"
-        >
-          <ChevronRightIcon className="h-6 w-6" />
-        </button>
+          <button
+            className={`${
+              scrollPos.isStart ? 'text-gray-800' : 'hover:text-white'
+            }`}
+            onClick={() => slide(Direction.LEFT)}
+            disabled={scrollPos.isStart}
+            type="button"
+          >
+            <ChevronLeftIcon className="h-6 w-6" />
+          </button>
+          <button
+            className={`${
+              scrollPos.isEnd ? 'text-gray-800' : 'hover:text-white'
+            }`}
+            onClick={() => slide(Direction.RIGHT)}
+            disabled={scrollPos.isEnd}
+            type="button"
+          >
+            <ChevronRightIcon className="h-6 w-6" />
+          </button>
+        </div>
       </div>
       <div
         className={`hide-scrollbar relative -my-2 -ml-4 -mr-4 overflow-y-auto overflow-x-scroll overscroll-x-contain whitespace-nowrap px-2 py-2 ${stretchItems ? 'flex items-stretch' : ''}`}

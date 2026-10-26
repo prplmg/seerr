@@ -17,6 +17,19 @@ export type Attribution = {
   completed: number[];
 };
 export type AttributionAction = 'claim' | 'unclaim' | 'join' | 'leave';
+export function canAssignViewer(
+  isAdmin: boolean,
+  action: string,
+  target: unknown
+): boolean {
+  return (
+    isAdmin &&
+    action === 'join' &&
+    typeof target === 'number' &&
+    Number.isSafeInteger(target) &&
+    target > 0
+  );
+}
 type Store = Record<string, Attribution>;
 const file = () => path.join(appDataPath(), 'viewing-attribution.json');
 

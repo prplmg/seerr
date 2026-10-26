@@ -1,6 +1,7 @@
 import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
 import Modal from '@app/components/Common/Modal';
+import { activeWatching } from '@app/components/WatchParty/activeWatching';
 import { partyBridge } from '@app/components/WatchParty/bridge';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { Popover, Portal, Transition } from '@headlessui/react';
@@ -442,12 +443,13 @@ export function WatchingDetail({
 }) {
   const { data, error } = useWatchingNow();
   const t = usePartyText();
-  const item =
+  const candidate =
     !error && data?.enabled
       ? data.results.find(
           (r) => !r.external && r.tmdbId === id && r.mediaType === type
         )
       : undefined;
+  const item = candidate ? activeWatching(candidate) : undefined;
   if (!item) return null;
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 xl:justify-start">
@@ -787,7 +789,7 @@ export default function WatchTogether({
   if (!data?.partiesEnabled) return null;
   return (
     <>
-      <span className="relative ml-2 inline-flex">
+      <span className="relative inline-flex min-w-0">
         <Button
           buttonType="primary"
           disabled={playingHere}
@@ -809,7 +811,7 @@ export default function WatchTogether({
         {hint && (
           <span
             role="tooltip"
-            className="absolute right-0 top-full z-50 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded border border-gray-600 bg-gray-800 p-3 text-sm leading-relaxed text-gray-100 shadow-lg"
+            className="absolute left-0 top-full z-50 mt-2 w-full min-w-0 rounded border border-gray-600 bg-gray-800 p-3 text-sm leading-relaxed text-gray-100 shadow-lg"
           >
             {t(
               'Only available on desktop web browsers',

@@ -1,6 +1,7 @@
 import { DiscoverSliderType } from '@server/constants/discover';
 import { getRepository } from '@server/datasource';
 import DiscoverSlider from '@server/entity/DiscoverSlider';
+import { reviewLookback } from '@server/lib/reviewLookback';
 import logger from '@server/logger';
 import { Router } from 'express';
 
@@ -13,6 +14,19 @@ discoverSettingRoutes.post('/', async (req, res) => {
 
   if (!Array.isArray(sliders)) {
     return res.status(400).json({ message: 'Invalid request body.' });
+  }
+
+  // Validate before saving any positions, so a bad lookback cannot partly reorder rows.
+  for (const slider of sliders) {
+    if (!slider.id) continue;
+    const existing = await sliderRepository.findOne({
+      where: { id: slider.id },
+    });
+    if (
+      existing?.type === DiscoverSliderType.RECENT_REVIEWS &&
+      reviewLookback(slider.data) === undefined
+    )
+      return res.status(400).json({ error: 'Invalid review lookback' });
   }
 
   for (let x = 0; x < sliders.length; x++) {
@@ -30,8 +44,8 @@ discoverSettingRoutes.post('/', async (req, res) => {
         existingSlider.type === DiscoverSliderType.RECENT_REVIEWS &&
         slider.data !== undefined
       ) {
-        const days = Number(slider.data);
-        if (!Number.isInteger(days) || days < 1 || days > 365)
+        const days = reviewLookback(slider.data);
+        if (days === undefined)
           return res.status(400).json({ error: 'Invalid review lookback' });
         existingSlider.data = String(days);
       }
@@ -100,9 +114,8 @@ discoverSettingRoutes.put('/:sliderId', async (req, res, next) => {
     });
 
     if (existingSlider.type === DiscoverSliderType.RECENT_REVIEWS) {
-      const days = Number(slider.data);
-      if (!Number.isInteger(days) || days < 1 || days > 365)
-        return res.sendStatus(400);
+      const days = reviewLookback(slider.data);
+      if (days === undefined) return res.sendStatus(400);
       existingSlider.data = String(days);
     }
     // Only allow changes to the following when the slider is not built in

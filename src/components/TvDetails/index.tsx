@@ -3,7 +3,6 @@ import RTAudRotten from '@app/assets/rt_aud_rotten.svg';
 import RTFresh from '@app/assets/rt_fresh.svg';
 import RTRotten from '@app/assets/rt_rotten.svg';
 import Spinner from '@app/assets/spinner.svg';
-import TmdbLogo from '@app/assets/tmdb_logo.svg';
 import BlocklistModal from '@app/components/BlocklistModal';
 import Badge from '@app/components/Common/Badge';
 import Button from '@app/components/Common/Button';
@@ -15,16 +14,20 @@ import StatusBadgeMini from '@app/components/Common/StatusBadgeMini';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
 import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
+import { FollowReleases } from '@app/components/Discover/ReleaseUpdates';
 import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
 import IssueModal from '@app/components/IssueModal';
 import ManageSlideOver from '@app/components/ManageSlideOver';
 import MediaActions from '@app/components/MediaActions';
+import DetailUtilityActions from '@app/components/MediaActions/DetailUtilityActions';
 import MediaSlider from '@app/components/MediaSlider';
 import PersonCard from '@app/components/PersonCard';
 import PlexBookmark from '@app/components/PlexBookmark';
 import RequestButton from '@app/components/RequestButton';
 import RequestModal from '@app/components/RequestModal';
+import { MovieReviews } from '@app/components/Reviews';
+import CommunityRating from '@app/components/Reviews/CommunityRating';
 import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
 import Season from '@app/components/TvDetails/Season';
@@ -54,6 +57,7 @@ import {
   PlayIcon,
   StarIcon,
 } from '@heroicons/react/24/solid';
+import type { LetterboxdRating } from '@server/api/rating/letterboxd';
 import type { RTRating } from '@server/api/rating/rottentomatoes';
 import { ANIME_KEYWORD_ID } from '@server/api/themoviedb/constants';
 import { IssueStatus } from '@server/constants/issue';
@@ -73,6 +77,7 @@ import { useRouter } from 'next/router';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
+import EpisodeWatchers from './Season/EpisodeWatchers';
 
 const messages = defineMessages('components.TvDetails', {
   firstAirDate: 'First Air Date',
@@ -105,7 +110,7 @@ const messages = defineMessages('components.TvDetails', {
   status4k: '4K {status}',
   rtcriticsscore: 'Rotten Tomatoes Tomatometer',
   rtaudiencescore: 'Rotten Tomatoes Audience Score',
-  tmdbuserscore: 'TMDB User Score',
+  letterboxdscore: 'Letterboxd rating: {score} out of 5 stars',
   watchlistSuccess: '<strong>{title}</strong> added to watchlist successfully!',
   watchlistDeleted:
     '<strong>{title}</strong> Removed from watchlist successfully!',
@@ -153,6 +158,10 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
 
   const { data: ratingData } = useSWR<RTRating>(
     `/api/v1/tv/${router.query.tvId}/ratings`
+  );
+  const { data: letterboxdData } = useSWR<{ rating: LetterboxdRating | null }>(
+    router.query.tvId ? `/api/v1/tv/${router.query.tvId}/letterboxd` : null,
+    { revalidateOnFocus: false }
   );
 
   const sortedCrew = useMemo(
@@ -522,7 +531,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
         revalidate={() => revalidate()}
         show={showManager}
       />
-      <div className="media-header">
+      <div className="media-header media-detail-header">
         <div className="media-poster">
           <CachedImage
             type="tmdb"
@@ -627,136 +636,150 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           </span>
         </div>
         <div className="media-actions">
-          {showHideButton &&
-            data?.mediaInfo?.status !== MediaStatus.PROCESSING &&
-            data?.mediaInfo?.status !== MediaStatus.AVAILABLE &&
-            data?.mediaInfo?.status !== MediaStatus.PARTIALLY_AVAILABLE &&
-            data?.mediaInfo?.status !== MediaStatus.PENDING &&
-            data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED && (
-              <Tooltip
-                content={intl.formatMessage(globalMessages.addToBlocklist)}
-              >
-                <Button
-                  buttonType={'ghost'}
-                  className="z-40 mr-2"
-                  buttonSize={'md'}
-                  onClick={() => setShowBlocklistModal(true)}
-                >
-                  <EyeSlashIcon />
-                </Button>
-              </Tooltip>
+          <div className="media-primary-actions">
+            <PlexBookmark id={data.id} type="tv" />
+            <MediaActions links={mediaLinks} trailerUrl={trailerUrl} />
+          </div>
+          <div className="media-secondary-actions">
+            <RequestButton
+              mediaType="tv"
+              onUpdate={() => revalidate()}
+              tmdbId={data.id}
+              media={data.mediaInfo}
+              isShowComplete={isComplete}
+              is4kShowComplete={is4kComplete}
+            />
+            <FollowReleases id={data.id} type="tv" metadata={data} />
+          </div>
+          <div className="media-tertiary-actions">
+            {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
+              data.mediaInfo?.status === MediaStatus.PARTIALLY_AVAILABLE ||
+              data.mediaInfo?.status4k === MediaStatus.AVAILABLE ||
+              data.mediaInfo?.status4k === MediaStatus.PARTIALLY_AVAILABLE) && (
+              <WatchTogether
+                id={data.id}
+                type="tv"
+                title={data.name}
+                poster={data.posterPath}
+              />
             )}
-          {SHOW_WATCHLIST &&
-            data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
-            user?.userType !== UserType.PLEX && (
-              <>
-                {toggleWatchlist ? (
+            <DetailUtilityActions>
+              {showHideButton &&
+                data?.mediaInfo?.status !== MediaStatus.PROCESSING &&
+                data?.mediaInfo?.status !== MediaStatus.AVAILABLE &&
+                data?.mediaInfo?.status !== MediaStatus.PARTIALLY_AVAILABLE &&
+                data?.mediaInfo?.status !== MediaStatus.PENDING &&
+                data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED && (
                   <Tooltip
-                    content={intl.formatMessage(messages.addtowatchlist)}
+                    content={intl.formatMessage(globalMessages.addToBlocklist)}
                   >
                     <Button
                       buttonType={'ghost'}
                       className="z-40 mr-2"
                       buttonSize={'md'}
-                      onClick={onClickWatchlistBtn}
+                      onClick={() => setShowBlocklistModal(true)}
                     >
-                      {isUpdating ? (
-                        <Spinner />
-                      ) : (
-                        <StarIcon className={'text-amber-300'} />
-                      )}
-                    </Button>
-                  </Tooltip>
-                ) : (
-                  <Tooltip
-                    content={intl.formatMessage(messages.removefromwatchlist)}
-                  >
-                    <Button
-                      className="z-40 mr-2"
-                      buttonSize={'md'}
-                      onClick={onClickDeleteWatchlistBtn}
-                    >
-                      {isUpdating ? <Spinner /> : <MinusCircleIcon />}
+                      <EyeSlashIcon />
                     </Button>
                   </Tooltip>
                 )}
-              </>
-            )}
-          <div className="z-20 flex flex-wrap items-center gap-2">
-            <PlexBookmark id={data.id} type="tv" />
-            <MediaActions links={mediaLinks} trailerUrl={trailerUrl} />
-          </div>
-          <RequestButton
-            mediaType="tv"
-            onUpdate={() => revalidate()}
-            tmdbId={data?.id}
-            media={data?.mediaInfo}
-            isShowComplete={isComplete}
-            is4kShowComplete={is4kComplete}
-          />
-          {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
-            data.mediaInfo?.status === MediaStatus.PARTIALLY_AVAILABLE ||
-            (settings.currentSettings.series4kEnabled &&
-              hasPermission([Permission.REQUEST_4K, Permission.REQUEST_4K_TV], {
-                type: 'or',
-              }) &&
-              (data.mediaInfo?.status4k === MediaStatus.AVAILABLE ||
-                data?.mediaInfo?.status4k ===
-                  MediaStatus.PARTIALLY_AVAILABLE))) &&
-            hasPermission(
-              [Permission.CREATE_ISSUES, Permission.MANAGE_ISSUES],
-              {
-                type: 'or',
-              }
-            ) && (
-              <Tooltip content={intl.formatMessage(messages.reportissue)}>
-                <Button
-                  buttonType="warning"
-                  onClick={() => setShowIssueModal(true)}
-                  className="ml-2 first:ml-0"
-                >
-                  <ExclamationTriangleIcon />
-                </Button>
-              </Tooltip>
-            )}
-          {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
-            data.mediaInfo?.status === MediaStatus.PARTIALLY_AVAILABLE ||
-            data.mediaInfo?.status4k === MediaStatus.AVAILABLE ||
-            data.mediaInfo?.status4k === MediaStatus.PARTIALLY_AVAILABLE) && (
-            <WatchTogether
-              id={data.id}
-              type="tv"
-              title={data.name}
-              poster={data.posterPath}
-            />
-          )}
-          {hasPermission(Permission.MANAGE_REQUESTS) && data.mediaInfo && (
-            <Tooltip content={intl.formatMessage(messages.manageseries)}>
-              <Button
-                buttonType="ghost"
-                onClick={() => setShowManager(true)}
-                className="relative ml-2 first:ml-0"
-              >
-                <CogIcon className="!mr-0" />
-                {hasPermission(
-                  [Permission.MANAGE_ISSUES, Permission.VIEW_ISSUES],
+              {SHOW_WATCHLIST &&
+                data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
+                user?.userType !== UserType.PLEX && (
+                  <>
+                    {toggleWatchlist ? (
+                      <Tooltip
+                        content={intl.formatMessage(messages.addtowatchlist)}
+                      >
+                        <Button
+                          buttonType={'ghost'}
+                          className="z-40 mr-2"
+                          buttonSize={'md'}
+                          onClick={onClickWatchlistBtn}
+                        >
+                          {isUpdating ? (
+                            <Spinner />
+                          ) : (
+                            <StarIcon className={'text-amber-300'} />
+                          )}
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip
+                        content={intl.formatMessage(
+                          messages.removefromwatchlist
+                        )}
+                      >
+                        <Button
+                          className="z-40 mr-2"
+                          buttonSize={'md'}
+                          onClick={onClickDeleteWatchlistBtn}
+                        >
+                          {isUpdating ? <Spinner /> : <MinusCircleIcon />}
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </>
+                )}
+              {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
+                data.mediaInfo?.status === MediaStatus.PARTIALLY_AVAILABLE ||
+                (settings.currentSettings.series4kEnabled &&
+                  hasPermission(
+                    [Permission.REQUEST_4K, Permission.REQUEST_4K_TV],
+                    {
+                      type: 'or',
+                    }
+                  ) &&
+                  (data.mediaInfo?.status4k === MediaStatus.AVAILABLE ||
+                    data?.mediaInfo?.status4k ===
+                      MediaStatus.PARTIALLY_AVAILABLE))) &&
+                hasPermission(
+                  [Permission.CREATE_ISSUES, Permission.MANAGE_ISSUES],
                   {
                     type: 'or',
                   }
-                ) &&
-                  (
-                    data.mediaInfo?.issues.filter(
-                      (issue) => issue.status === IssueStatus.OPEN
-                    ) ?? []
-                  ).length > 0 && (
-                    <>
-                      <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
-                      <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
-                    </>
-                  )}
-              </Button>
-            </Tooltip>
-          )}
+                ) && (
+                  <Tooltip content={intl.formatMessage(messages.reportissue)}>
+                    <Button
+                      buttonType="warning"
+                      aria-label={intl.formatMessage(messages.reportissue)}
+                      onClick={() => setShowIssueModal(true)}
+                      className="ml-2 first:ml-0"
+                    >
+                      <ExclamationTriangleIcon />
+                    </Button>
+                  </Tooltip>
+                )}
+              {hasPermission(Permission.MANAGE_REQUESTS) && data.mediaInfo && (
+                <Tooltip content={intl.formatMessage(messages.manageseries)}>
+                  <Button
+                    buttonType="ghost"
+                    onClick={() => setShowManager(true)}
+                    aria-label={intl.formatMessage(messages.manageseries)}
+                    className="relative ml-2 first:ml-0"
+                  >
+                    <CogIcon className="!mr-0" />
+                    {hasPermission(
+                      [Permission.MANAGE_ISSUES, Permission.VIEW_ISSUES],
+                      {
+                        type: 'or',
+                      }
+                    ) &&
+                      (
+                        data.mediaInfo?.issues.filter(
+                          (issue) => issue.status === IssueStatus.OPEN
+                        ) ?? []
+                      ).length > 0 && (
+                        <>
+                          <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
+                          <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
+                        </>
+                      )}
+                  </Button>
+                </Tooltip>
+              )}
+            </DetailUtilityActions>
+          </div>
         </div>
       </div>
       <div className="media-overview">
@@ -822,7 +845,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           <div className="flex w-full flex-col space-y-2">
             {data.seasons
               .slice()
-              .reverse()
+              .sort((a, b) => a.seasonNumber - b.seasonNumber)
               .filter(
                 (season) =>
                   settings.currentSettings.enableSpecialEpisodes ||
@@ -881,7 +904,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 }
 
                 return (
-                  <Disclosure key={`season-discoslure-${season.seasonNumber}`}>
+                  <Disclosure
+                    key={`season-discoslure-${season.seasonNumber}-${router.query.reviewSeason === String(season.seasonNumber)}`}
+                    defaultOpen={
+                      router.query.reviewSeason === String(season.seasonNumber)
+                    }
+                  >
                     {({ open }) => (
                       <>
                         <Disclosure.Button
@@ -891,8 +919,8 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                               : 'rounded-md border'
                           }`}
                         >
-                          <div className="flex flex-1 items-center space-x-2 text-lg">
-                            <span>
+                          <div className="flex min-w-0 flex-1 items-center space-x-2 text-lg">
+                            <span className="shrink-0 whitespace-nowrap">
                               {season.seasonNumber === 0
                                 ? intl.formatMessage(globalMessages.specials)
                                 : intl.formatMessage(messages.seasonnumber, {
@@ -904,6 +932,10 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                                 episodeCount: season.episodeCount,
                               })}
                             </Badge>
+                            <EpisodeWatchers
+                              tvId={data.id}
+                              season={season.seasonNumber}
+                            />
                           </div>
                           {((!mSeason &&
                             request?.status === MediaRequestStatus.APPROVED) ||
@@ -1126,63 +1158,70 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
         </div>
         <div className="media-overview-right">
           <div className="media-facts">
-            {(!!data.voteCount ||
-              (ratingData?.criticsRating && !!ratingData?.criticsScore) ||
-              (ratingData?.audienceRating && !!ratingData?.audienceScore)) && (
-              <div className="media-ratings">
-                {ratingData?.criticsRating && !!ratingData?.criticsScore && (
-                  <Tooltip
-                    content={intl.formatMessage(messages.rtcriticsscore)}
+            <div className="media-ratings">
+              {ratingData?.criticsRating && !!ratingData?.criticsScore && (
+                <Tooltip content={intl.formatMessage(messages.rtcriticsscore)}>
+                  <a
+                    href={ratingData.url}
+                    className="media-rating"
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    <a
-                      href={ratingData.url}
-                      className="media-rating"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {ratingData.criticsRating === 'Rotten' ? (
-                        <RTRotten className="mr-1 w-6" />
-                      ) : (
-                        <RTFresh className="mr-1 w-6" />
-                      )}
-                      <span>{ratingData.criticsScore}%</span>
-                    </a>
-                  </Tooltip>
-                )}
-                {ratingData?.audienceRating && !!ratingData?.audienceScore && (
-                  <Tooltip
-                    content={intl.formatMessage(messages.rtaudiencescore)}
+                    {ratingData.criticsRating === 'Rotten' ? (
+                      <RTRotten className="mr-1 w-6" />
+                    ) : (
+                      <RTFresh className="mr-1 w-6" />
+                    )}
+                    <span>{ratingData.criticsScore}%</span>
+                  </a>
+                </Tooltip>
+              )}
+              {ratingData?.audienceRating && !!ratingData?.audienceScore && (
+                <Tooltip content={intl.formatMessage(messages.rtaudiencescore)}>
+                  <a
+                    href={ratingData.url}
+                    className="media-rating"
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    <a
-                      href={ratingData.url}
-                      className="media-rating"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {ratingData.audienceRating === 'Spilled' ? (
-                        <RTAudRotten className="mr-1 w-6" />
-                      ) : (
-                        <RTAudFresh className="mr-1 w-6" />
-                      )}
-                      <span>{ratingData.audienceScore}%</span>
-                    </a>
-                  </Tooltip>
-                )}
-                {!!data.voteCount && (
-                  <Tooltip content={intl.formatMessage(messages.tmdbuserscore)}>
-                    <a
-                      href={`https://www.themoviedb.org/tv/${data.id}?language=${locale}`}
-                      className="media-rating"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <TmdbLogo className="mr-1 w-6" />
-                      <span>{Math.round(data.voteAverage * 10)}%</span>
-                    </a>
-                  </Tooltip>
-                )}
-              </div>
-            )}
+                    {ratingData.audienceRating === 'Spilled' ? (
+                      <RTAudRotten className="mr-1 w-6" />
+                    ) : (
+                      <RTAudFresh className="mr-1 w-6" />
+                    )}
+                    <span>{ratingData.audienceScore}%</span>
+                  </a>
+                </Tooltip>
+              )}
+              <CommunityRating id={data.id} mediaType="tv" />
+              {letterboxdData?.rating && (
+                <Tooltip
+                  content={intl.formatMessage(messages.letterboxdscore, {
+                    score: intl.formatNumber(letterboxdData.rating.score),
+                  })}
+                >
+                  <a
+                    href={letterboxdData.rating.url}
+                    aria-label={intl.formatMessage(messages.letterboxdscore, {
+                      score: intl.formatNumber(letterboxdData.rating.score),
+                    })}
+                    className="media-rating"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span aria-hidden="true" className="mr-1 text-green-400">
+                      ★
+                    </span>
+                    <span>
+                      {intl.formatNumber(letterboxdData.rating.score, {
+                        maximumFractionDigits: 2,
+                      })}
+                      /5
+                    </span>
+                  </a>
+                </Tooltip>
+              )}
+            </div>
             {data.originalName &&
               data.originalLanguage !== locale.slice(0, 2) && (
                 <div className="media-fact">
@@ -1356,6 +1395,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           </div>
         </div>
       </div>
+      <MovieReviews movieId={data.id} mediaType="tv" />
       {data.credits.cast.length > 0 && (
         <>
           <div className="slider-header">

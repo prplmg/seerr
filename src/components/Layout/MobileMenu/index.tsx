@@ -1,15 +1,19 @@
 import Badge from '@app/components/Common/Badge';
 import { menuMessages } from '@app/components/Layout/Sidebar';
 import useClickOutside from '@app/hooks/useClickOutside';
+import useDiscovery from '@app/hooks/useDiscovery';
 import { Permission, useUser } from '@app/hooks/useUser';
+import { installMobileBarRecovery } from '@app/utils/mobileBarRecovery';
 import { Transition } from '@headlessui/react';
 import {
+  BookmarkIcon,
   ClockIcon,
   CogIcon,
   EllipsisHorizontalIcon,
   ExclamationTriangleIcon,
   EyeSlashIcon,
   FilmIcon,
+  HeartIcon,
   SparklesIcon,
   TvIcon,
   UsersIcon,
@@ -33,8 +37,6 @@ import { useIntl } from 'react-intl';
 interface MobileMenuProps {
   pendingRequestsCount: number;
   openIssuesCount: number;
-  revalidateIssueCount: () => void;
-  revalidateRequestsCount: () => void;
 }
 
 interface MenuLink {
@@ -52,12 +54,17 @@ interface MenuLink {
 const MobileMenu = ({
   pendingRequestsCount,
   openIssuesCount,
-  revalidateIssueCount,
-  revalidateRequestsCount,
 }: MobileMenuProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const intl = useIntl();
+  const { enabled: discovery } = useDiscovery();
   const [isOpen, setIsOpen] = useState(false);
+  const [viewportRevision, setViewportRevision] = useState(0);
+  useEffect(
+    () =>
+      installMobileBarRecovery(() => setViewportRevision((value) => value + 1)),
+    []
+  );
   const { hasPermission } = useUser();
   const router = useRouter();
   useClickOutside(ref, () => {
@@ -143,7 +150,31 @@ const MobileMenu = ({
     },
   ];
 
-  const filteredLinks = menuLinks.filter(
+  const discoveryLinks: MenuLink[] = discovery
+    ? [
+        menuLinks[0],
+        {
+          href: '/for-you',
+          content: intl.locale.startsWith('es') ? 'Para ti' : 'For you',
+          svgIcon: <HeartIcon />,
+          svgIconSelected: <HeartIcon />,
+          activeRegExp: /^\/for-you/,
+        },
+        menuLinks.find((l) => l.href === '/users')!,
+        {
+          href: '/lists',
+          content: intl.locale.startsWith('es') ? 'Mis listas' : 'My lists',
+          svgIcon: <BookmarkIcon />,
+          svgIconSelected: <BookmarkIcon />,
+          activeRegExp: /^\/lists/,
+        },
+        menuLinks[3],
+        menuLinks[1],
+        menuLinks[2],
+        ...menuLinks.slice(4).filter((l) => l.href !== '/users'),
+      ]
+    : menuLinks;
+  const filteredLinks = discoveryLinks.filter(
     (link) =>
       !link.requiredPermission ||
       hasPermission(link.requiredPermission, {
@@ -151,23 +182,8 @@ const MobileMenu = ({
       })
   );
 
-  useEffect(() => {
-    if (openIssuesCount) {
-      revalidateIssueCount();
-    }
-
-    if (pendingRequestsCount) {
-      revalidateRequestsCount();
-    }
-  }, [
-    revalidateIssueCount,
-    revalidateRequestsCount,
-    pendingRequestsCount,
-    openIssuesCount,
-  ]);
-
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div key={viewportRevision} className="fixed bottom-0 left-0 right-0 z-50">
       <Transition
         show={isOpen}
         as="div"
@@ -235,6 +251,9 @@ const MobileMenu = ({
                 <Link
                   key={`mobile-menu-link-${link.href}`}
                   href={link.href}
+                  aria-label={
+                    typeof link.content === 'string' ? link.content : undefined
+                  }
                   className={`relative flex flex-col items-center space-y-1 ${
                     isActive ? 'text-indigo-500' : ''
                   }`}
@@ -273,6 +292,8 @@ const MobileMenu = ({
                 isOpen ? 'text-indigo-500' : ''
               }`}
               onClick={() => toggle()}
+              aria-label={intl.locale.startsWith('es') ? 'Más' : 'More'}
+              aria-expanded={isOpen}
             >
               {isOpen ? (
                 <XMarkIcon className="h-6 w-6" />

@@ -9,6 +9,7 @@ import Media from '@server/entity/Media';
 import { Watchlist } from '@server/entity/Watchlist';
 import logger from '@server/logger';
 import { mapMovieDetails } from '@server/models/Movie';
+import { posterCard } from '@server/models/PosterCard';
 import { mapMovieResult } from '@server/models/Search';
 import { Router } from 'express';
 
@@ -49,7 +50,11 @@ movieRoutes.get('/:id', async (req, res, next) => {
       data.overview = tvEnglish.overview;
     }
 
-    return res.status(200).json(data);
+    if (req.query.view === 'card')
+      res.setHeader('Cache-Control', 'private, no-store');
+    return res
+      .status(200)
+      .json(req.query.view === 'card' ? posterCard(data) : data);
   } catch (e) {
     logger.debug('Something went wrong retrieving movie', {
       label: 'API',

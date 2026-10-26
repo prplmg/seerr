@@ -17,9 +17,14 @@ const messages = defineMessages('components.UserProfile.ProfileHeader', {
 interface ProfileHeaderProps {
   user: User;
   isSettingsPage?: boolean;
+  letterboxdUsername?: string;
 }
 
-const ProfileHeader = ({ user, isSettingsPage }: ProfileHeaderProps) => {
+const ProfileHeader = ({
+  user,
+  isSettingsPage,
+  letterboxdUsername,
+}: ProfileHeaderProps) => {
   const intl = useIntl();
   const { user: loggedInUser, hasPermission } = useUser();
 
@@ -56,7 +61,7 @@ const ProfileHeader = ({ user, isSettingsPage }: ProfileHeaderProps) => {
             />
           </div>
         </div>
-        <div className="pt-1.5">
+        <div className="min-w-0 pt-1.5">
           <h1 className="mb-1 flex flex-col sm:flex-row sm:items-center">
             <Link
               href={
@@ -79,6 +84,16 @@ const ProfileHeader = ({ user, isSettingsPage }: ProfileHeaderProps) => {
               </>
             ))}
           </p>
+          {letterboxdUsername && (
+            <a
+              href={`https://letterboxd.com/${encodeURIComponent(letterboxdUsername)}/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 block break-words text-sm text-green-400 hover:underline"
+            >
+              Letterboxd · @{letterboxdUsername} ↗
+            </a>
+          )}
         </div>
       </div>
       <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse lg:flex-row lg:justify-end lg:space-x-3 lg:space-y-0 lg:space-x-reverse">

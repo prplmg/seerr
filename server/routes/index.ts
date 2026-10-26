@@ -1,5 +1,8 @@
 import socialRoutes from './social';
+import discoveryListRoutes from './discoveryLists';
 import reviewRoutes from './reviews';
+import letterboxdWorkerRoutes from './letterboxdWorker';
+import letterboxdWatchlistRoutes from './letterboxdWatchlist';
 import curatedRoutes from './curated';
 import watchPartyRoutes from './watchParty';
 import GithubAPI from '@server/api/github';
@@ -50,6 +53,9 @@ import user from './user';
 const router = Router();
 
 router.use(checkUser);
+router.use('/discovery-lists', isAuthenticated(), discoveryListRoutes);
+router.use('/letterboxd-worker', letterboxdWorkerRoutes);
+router.use('/letterboxd-watchlist', isAuthenticated(), letterboxdWatchlistRoutes);
 router.use('/reviews', isAuthenticated(), reviewRoutes);
 router.use('/curated', isAuthenticated(), curatedRoutes);
 router.use('/social', isAuthenticated(), socialRoutes);

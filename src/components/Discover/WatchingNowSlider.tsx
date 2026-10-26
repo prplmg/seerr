@@ -6,6 +6,7 @@ import {
   useWatchingNow,
   WatchingPeople,
 } from '@app/components/WatchParty';
+import { activeWatching } from '@app/components/WatchParty/activeWatching';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import ViewingMenu from '@app/components/WatchParty/ViewingMenu';
 import type { WatchingTitle } from '@server/interfaces/api/watchParty';
@@ -89,7 +90,12 @@ export function WatchingCard({ item }: { item: WatchingTitle }) {
 export default function WatchingNowSlider() {
   const t = usePartyText();
   const { data, error } = useWatchingNow();
-  if (!data?.enabled || error || !data.results.length) return null;
+  const active =
+    data?.results.flatMap((item) => {
+      const current = activeWatching(item);
+      return current ? [current] : [];
+    }) || [];
+  if (!data?.enabled || error || !active.length) return null;
   return (
     <section aria-label={t('Watching now', 'Viendo ahora')}>
       <div className="slider-header">
@@ -107,7 +113,7 @@ export default function WatchingNowSlider() {
       <Slider
         sliderKey="watching-now"
         isLoading={false}
-        items={data.results.map((item) => (
+        items={active.map((item) => (
           <WatchingCard key={`${item.mediaType}:${item.tmdbId}`} item={item} />
         ))}
         placeholder={<RequestCard.Placeholder />}

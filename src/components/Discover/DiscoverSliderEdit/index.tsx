@@ -143,6 +143,20 @@ const DiscoverSliderEdit = ({
         return t('Recently Watched', 'Visto recientemente');
       case DiscoverSliderType.RECOMMENDATIONS:
         return t('Curated Lists', 'Listas seleccionadas');
+      case DiscoverSliderType.NEW_EPISODES:
+        return t('New episodes for you', 'Nuevos episodios para ti');
+      case DiscoverSliderType.AWAITED_MOVIES:
+        return t(
+          'New movies for you',
+          'Nuevas películas para ti'
+        );
+      case DiscoverSliderType.EXPLORE_LISTS:
+        return t('Lists to explore', 'Listas para explorar');
+      case DiscoverSliderType.WATCHED_FROM_LISTS:
+        return t(
+          'Lists matching your recent watches',
+          'Listas que coinciden con tus vistas recientes'
+        );
       case DiscoverSliderType.PLEX_WATCHLIST:
         return intl.formatMessage(sliderTitles.plexwatchlist);
       case DiscoverSliderType.TRENDING:
@@ -208,23 +222,6 @@ const DiscoverSliderEdit = ({
         />
       )}
       <div className="flex w-full flex-col rounded-t-lg border-l border-r border-t border-gray-800 bg-gray-900 p-4 text-gray-400 md:flex-row md:items-center md:space-x-2">
-        {slider.type === DiscoverSliderType.RECENT_REVIEWS && (
-          <label className="flex items-center gap-2 text-white">
-            {t(
-              'Days to show (7 = one week)',
-              'Días a mostrar (7 = una semana)'
-            )}
-            <input
-              aria-label={t('Days to show', 'Días a mostrar')}
-              type="number"
-              min={1}
-              max={365}
-              value={slider.data || '28'}
-              className="w-20 rounded bg-gray-800 p-2"
-              onChange={(e) => onDataChange(e.target.value)}
-            />
-          </label>
-        )}
         <div
           className={`${slider.data ? 'mb-4' : 'mb-0'} flex space-x-2 md:mb-0`}
         >
@@ -348,6 +345,31 @@ const DiscoverSliderEdit = ({
           </div>
         </div>
       </div>
+      {slider.type === DiscoverSliderType.RECENT_REVIEWS && (
+        <label className="flex flex-wrap items-center gap-3 bg-gray-900 px-4 pb-6 text-white">
+          <span className="min-w-0 flex-1 text-sm">
+            {t(
+              'Days to show (7 = one week)',
+              'Días a mostrar (7 = una semana)'
+            )}
+          </span>
+          <input
+            aria-label={t('Days to show', 'Días a mostrar')}
+            type="number"
+            inputMode="numeric"
+            onPointerDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            min={1}
+            max={365}
+            value={slider.data ?? '28'}
+            className="w-20 flex-none rounded border border-gray-600 bg-gray-800 p-2 text-base text-white"
+            onChange={(e) => onDataChange(e.target.value)}
+            onBlur={(e) => {
+              if (!e.target.value) onDataChange('28');
+            }}
+          />
+        </label>
+      )}
       {isEditing ? (
         <div className="p-4">
           <CreateSlider

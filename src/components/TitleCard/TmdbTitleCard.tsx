@@ -1,11 +1,11 @@
 import TitleCard from '@app/components/TitleCard';
 import { Permission, useUser } from '@app/hooks/useUser';
-import type { MovieDetails } from '@server/models/Movie';
-import type { TvDetails } from '@server/models/Tv';
+import type { MoviePosterCard, TvPosterCard } from '@server/models/PosterCard';
 import { useInView } from 'react-intersection-observer';
 import useSWR from 'swr';
 
 export interface TmdbTitleCardProps {
+  detailHref?: string;
   id: number;
   tmdbId: number;
   tvdbId?: number;
@@ -15,11 +15,14 @@ export interface TmdbTitleCardProps {
   mutateParent?: () => void;
 }
 
-const isMovie = (movie: MovieDetails | TvDetails): movie is MovieDetails => {
-  return (movie as MovieDetails).title !== undefined;
+const isMovie = (
+  movie: MoviePosterCard | TvPosterCard
+): movie is MoviePosterCard => {
+  return 'title' in movie;
 };
 
 const TmdbTitleCard = ({
+  detailHref,
   id,
   tmdbId,
   tvdbId,
@@ -35,8 +38,8 @@ const TmdbTitleCard = ({
   });
   const url =
     type === 'movie' ? `/api/v1/movie/${tmdbId}` : `/api/v1/tv/${tmdbId}`;
-  const { data: title, error } = useSWR<MovieDetails | TvDetails>(
-    inView ? `${url}` : null
+  const { data: title, error } = useSWR<MoviePosterCard | TvPosterCard>(
+    inView ? `${url}?view=card` : null
   );
 
   if (!title && !error) {
@@ -60,6 +63,7 @@ const TmdbTitleCard = ({
 
   return isMovie(title) ? (
     <TitleCard
+      detailHref={detailHref}
       key={title.id}
       id={title.id}
       isAddedToWatchlist={
@@ -77,6 +81,7 @@ const TmdbTitleCard = ({
     />
   ) : (
     <TitleCard
+      detailHref={detailHref}
       key={title.id}
       id={title.id}
       isAddedToWatchlist={

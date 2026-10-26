@@ -3,12 +3,14 @@ import { MediaStatus, MediaType } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { User } from '@server/entity/User';
+import { mappedPlaybackProfiles } from '@server/lib/accountMappings';
 import { preferredPartyEpisode } from '@server/lib/partyEpisodePreference';
 import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import type { AttributionAction } from '@server/lib/viewingAttribution';
 import {
   attributedViewers,
+  canAssignViewer,
   isPlaybackViewer,
   readAttributions,
   saveAttribution,
@@ -39,12 +41,23 @@ type Config = {
   browserRelayUrl: string;
   secret: string;
 };
-const read = (name: string) =>
-  JSON.parse(
-    fs
-      .readFileSync(path.join(appDataPath(), name), 'utf8')
-      .replace(/^\uFEFF/, '')
-  );
+const read = (name: string) => {
+  let value;
+  try {
+    value = JSON.parse(
+      fs
+        .readFileSync(path.join(appDataPath(), name), 'utf8')
+        .replace(/^\uFEFF/, '')
+    );
+  } catch (error) {
+    if (name !== 'playback-profiles.json' || error.code !== 'ENOENT')
+      throw error;
+    value = { version: 1, users: {} };
+  }
+  return name === 'playback-profiles.json'
+    ? mappedPlaybackProfiles(value)
+    : value;
+};
 function social(): Social {
   const p = read('social.json');
   if (typeof p.enabled !== 'boolean' || !Array.isArray(p.hiddenWatchers))
@@ -260,11 +273,39 @@ function canClaim(userId: number, plexId: string, mapped: Map<string, number>) {
   if (defaultId) ids.add(defaultId);
   return ids.size > 1 && ids.has(userId);
 }
+router.get(
+  '/attribution/users',
+  isAuthenticated(Permission.ADMIN),
+  async (_req, res) => {
+    try {
+      const policy = social();
+      if (!policy.enabled) return res.sendStatus(403);
+      const users = await getRepository(User).find();
+      return res.json({
+        results: users
+          .filter((u) => !policy.hiddenWatchers.includes(u.id))
+          .map((u) => ({ id: u.id, displayName: u.displayName })),
+      });
+    } catch {
+      return res.sendStatus(503);
+    }
+  }
+);
 router.post(
   '/attribution',
   rateLimit({ windowMs: 60000, max: 30 }),
   async (req, res) => {
-    const { sessionId, action } = req.body;
+    const { sessionId, action, userId } = req.body;
+    if (
+      userId !== undefined &&
+      !canAssignViewer(
+        req.user!.hasPermission(Permission.ADMIN),
+        action,
+        userId
+      )
+    )
+      return res.sendStatus(403);
+    const targetId = userId ?? req.user!.id;
     if (
       typeof sessionId !== 'string' ||
       !/^[a-f0-9]{64}$/.test(sessionId) ||
@@ -279,6 +320,8 @@ router.post(
         liveActivity(policy),
         getRepository(User).find(),
       ]);
+      if (!users.some((u) => u.id === targetId)) return res.sendStatus(404);
+      if (policy.hiddenWatchers.includes(targetId)) return res.sendStatus(403);
       const row = activity.find(
         (r) =>
           sessionIdentity(r) === sessionId &&
@@ -317,7 +360,7 @@ router.post(
       saveAttribution(
         sessionId,
         action as AttributionAction,
-        req.user!.id,
+        targetId,
         defaultId,
         Number(row.watched_status) === 1
       );
@@ -663,6 +706,9 @@ router.post(
           tmdbId,
           mediaType,
           ratingKey,
+          seasonNumber:
+            metadata.type === 'episode' ? metadata.parentIndex : null,
+          episodeNumber: metadata.type === 'episode' ? metadata.index : null,
           duration: Number(metadata.duration || 0) / 1000,
           serverId: getSettings().plex.machineId,
         });
@@ -851,6 +897,8 @@ router.post(
         tmdbId,
         mediaType,
         ratingKey,
+        seasonNumber: metadata.type === 'episode' ? metadata.parentIndex : null,
+        episodeNumber: metadata.type === 'episode' ? metadata.index : null,
         duration: Number(metadata.duration || 0) / 1000,
         serverId: getSettings().plex.machineId,
       });

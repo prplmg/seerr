@@ -3,6 +3,7 @@ import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import ProgressCircle from '@app/components/Common/ProgressCircle';
 import RequestCard from '@app/components/RequestCard';
+import LetterboxdWatchlist from '@app/components/Reviews/LetterboxdWatchlist';
 import Slider from '@app/components/Slider';
 import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
 import ProfileHeader from '@app/components/UserProfile/ProfileHeader';
@@ -136,19 +137,10 @@ const UserProfile = () => {
           />
         </div>
       )}
-      <ProfileHeader user={user} />
-      {letterboxd?.account && (
-        <div className="relative z-10 mb-6 text-green-400">
-          <a
-            href={`https://letterboxd.com/${encodeURIComponent(letterboxd.account.username)}/`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Letterboxd · @{letterboxd.account.username} ↗
-          </a>
-        </div>
-      )}
+      <ProfileHeader
+        user={user}
+        letterboxdUsername={letterboxd?.account?.username}
+      />
       {SHOW_REQUEST_ALLOWANCE &&
         quota &&
         (user.id === currentUser?.id ||
@@ -370,6 +362,7 @@ const UserProfile = () => {
           />
         </>
       )}
+      {user && <LetterboxdWatchlist key={user.id} userId={user.id} />}
       {watchlistError && (
         <p role="status" className="my-4 text-yellow-300">
           {intl.formatMessage(messages.watchlistError)}

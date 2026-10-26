@@ -2,8 +2,9 @@ import Button from '@app/components/Common/Button';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { Permission, useUser } from '@app/hooks/useUser';
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
+import { importAll } from './importAll';
 type Entry = {
   key: string;
   title: string;
@@ -26,17 +27,34 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
     } | null;
   }>(`/api/v1/reviews/account/${userId}`);
   const [username, setUsername] = useState(''),
-    [csv, setCsv] = useState(''),
+    [upload, setUpload] = useState<{
+      csv?: string;
+      zip?: string;
+      filename?: string;
+    }>({}),
     [offset, setOffset] = useState(0),
     [preview, setPreview] = useState<{
       results: Entry[];
       total: number;
       nextOffset: number | null;
+      counts: { watched: number; ratings: number; reviews: number };
     } | null>(null),
     [matches, setMatches] = useState<Record<string, number>>({}),
+    [mediaTypes, setMediaTypes] = useState<Record<string, 'movie' | 'tv'>>({}),
     [confirmed, setConfirmed] = useState(false),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState('');
+  const [importProgress, setImportProgress] = useState<number | null>(null);
+  const [skipped, setSkipped] = useState<Entry[]>([]);
+  const nextImportOffset = useRef(0),
+    stopImport = useRef(false),
+    importing = useRef(false);
+  useEffect(
+    () => () => {
+      stopImport.current = true;
+    },
+    []
+  );
   async function action(work: () => Promise<unknown>) {
     setBusy(true);
     setMessage('');
@@ -54,24 +72,89 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
       setBusy(false);
     }
   }
-  async function loadPreview(value: string, start = 0) {
+  async function loadPreview(value: typeof upload, start = 0) {
     const r = await axios.post(`/api/v1/reviews/import/${userId}`, {
-      csv: value,
+      ...value,
       offset: start,
       mode: 'preview',
     });
     setPreview(r.data);
     setOffset(start);
     setConfirmed(false);
-    setMatches({});
+    if (start === 0) {
+      setMatches({});
+      setMediaTypes({});
+    }
+  }
+  async function importFile() {
+    if (importing.current || !preview) return;
+    importing.current = true;
+    stopImport.current = false;
+    setBusy(true);
+    setMessage('');
+    setImportProgress(nextImportOffset.current);
+    try {
+      const complete = await importAll<Entry>({
+        start: nextImportOffset.current,
+        stopped: () => stopImport.current,
+        send: async (offset) =>
+          (
+            await axios.post(`/api/v1/reviews/import/${userId}`, {
+              ...upload,
+              offset,
+              mode: 'commit',
+              confirmPublic: true,
+              mediaTypes,
+              matches: Object.fromEntries(
+                Object.entries(matches).filter(([, v]) => v > 0)
+              ),
+            })
+          ).data,
+        progress: (done, batch) => {
+          nextImportOffset.current = done;
+          setImportProgress(done);
+          setSkipped((old) => [
+            ...new Map(
+              [...old, ...batch.results.filter((r) => !r.tmdbId)].map((r) => [
+                r.key,
+                r,
+              ])
+            ).values(),
+          ]);
+        },
+      });
+      setMessage(
+        complete
+          ? t(
+              'Import complete. Matched entries are saved; any unmatched entries are listed below.',
+              'Importación completa. Las entradas identificadas están guardadas; las no identificadas aparecen abajo.'
+            )
+          : t(
+              'Import paused. Resume to continue from the last completed batch.',
+              'Importación pausada. Reanuda para continuar desde el último lote completado.'
+            )
+      );
+      if (complete) setPreview(null);
+      await mutate().catch(() => undefined);
+    } catch {
+      setMessage(
+        t(
+          'Import stopped. Completed batches are saved. Click Resume import to retry the remaining entries. If you close this page, upload the same file again; existing entries will not be duplicated.',
+          'La importación se detuvo. Los lotes completados están guardados. Pulsa Reanudar importación para reintentar las entradas restantes. Si cierras esta página, vuelve a subir el mismo archivo; las entradas existentes no se duplicarán.'
+        )
+      );
+    } finally {
+      importing.current = false;
+      setBusy(false);
+    }
   }
   return (
     <section className="my-8 space-y-4 rounded-xl border border-gray-700 bg-gray-800 p-4 text-white">
       <h3 className="text-overseerr text-xl font-bold">Letterboxd</h3>
       <p className="text-gray-300">
         {t(
-          'Import ratings and reviews, then check the public RSS feed every 15 minutes. This does not write to Letterboxd.',
-          'Importa calificaciones y reseñas; después se consulta el RSS público cada 15 minutos. Esto no escribe en Letterboxd.'
+          'Import watched titles, ratings and reviews, then check the public RSS feed every 15 minutes. This does not write to Letterboxd.',
+          'Importa títulos vistos, calificaciones y reseñas; después se consulta el RSS público cada 15 minutos. Esto no escribe en Letterboxd.'
         )}
       </p>
       {isAdmin ? (
@@ -169,8 +252,8 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
               if (
                 window.confirm(
                   t(
-                    'Unlink Letterboxd and delete its imported ratings and reviews? Your local reviews will stay.',
-                    '¿Desvincular Letterboxd y eliminar sus calificaciones y reseñas importadas? Tus reseñas locales se conservarán.'
+                    'Unlink Letterboxd and delete its imported watched titles, ratings and reviews? Local reviews and other watch-history sources will stay.',
+                    '¿Desvincular Letterboxd y eliminar sus títulos vistos, calificaciones y reseñas importadas? Las reseñas locales y las otras fuentes del historial se conservarán.'
                   )
                 )
               )
@@ -188,21 +271,41 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
           </Button>
           <label className="block">
             {t(
-              'Upload reviews.csv or ratings.csv from your export (up to 2 MB). Unzip the export first.',
-              'Sube reviews.csv o ratings.csv de tu exportación (hasta 2 MB). Descomprime la exportación primero.'
+              'Upload your complete Letterboxd ZIP (up to 10 MB), or reviews.csv, ratings.csv, diary.csv or watched.csv (up to 2 MB each). No need to unzip.',
+              'Sube el ZIP completo de Letterboxd (hasta 10 MB), o reviews.csv, ratings.csv, diary.csv o watched.csv (hasta 2 MB cada uno). No es necesario descomprimirlo.'
             )}
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,.zip,text/csv,application/zip"
               disabled={busy}
               className="mt-2 block max-w-full"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file)
                   void action(async () => {
-                    if (file.size > 2 * 1024 * 1024) throw Error('large');
-                    const value = await file.text();
-                    setCsv(value);
+                    setPreview(null);
+                    setConfirmed(false);
+                    const zipped = file.name.toLowerCase().endsWith('.zip');
+                    if (file.size > (zipped ? 10 : 2) * 1024 * 1024)
+                      throw Error('large');
+                    const value: typeof upload = zipped
+                      ? {
+                          zip: await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () =>
+                              resolve(String(reader.result).split(',')[1]);
+                            reader.onerror = () => reject(Error('Read failed'));
+                            reader.readAsDataURL(file);
+                          }),
+                        }
+                      : {
+                          csv: await file.text(),
+                          filename: file.name.toLowerCase(),
+                        };
+                    setUpload(value);
+                    nextImportOffset.current = 0;
+                    setImportProgress(null);
+                    setSkipped([]);
                     await loadPreview(value);
                   });
               }}
@@ -210,6 +313,15 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
           </label>
           {preview && (
             <div className="space-y-3">
+              <p className="text-sm text-gray-300">
+                {t(
+                  'Source records (overlaps are merged):',
+                  'Registros de origen (se combinan las coincidencias):'
+                )}{' '}
+                {preview.counts.watched} {t('watched', 'vistos')} ·{' '}
+                {preview.counts.ratings} {t('ratings', 'calificaciones')} ·{' '}
+                {preview.counts.reviews} {t('reviews', 'reseñas')}
+              </p>
               <p>
                 {t('Preview entries', 'Vista previa de entradas')} {offset + 1}–
                 {offset + preview.results.length} / {preview.total}
@@ -233,22 +345,42 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
                       {r.tmdbId
                         ? `TMDB: ${r.tmdbId}`
                         : t(
-                            'Unmatched — enter the movie’s TMDB ID, or leave blank to skip.',
-                            'Sin identificar: escribe el ID de TMDB de la película o déjalo vacío para omitirla.'
+                            'Unmatched — select the type and enter its TMDB ID, or leave blank to skip.',
+                            'Sin identificar: selecciona el tipo y escribe su ID de TMDB, o déjalo vacío para omitirlo.'
                           )}
                       {!r.tmdbId && (
-                        <input
-                          type="number"
-                          min={1}
-                          className="ml-2 w-28 rounded bg-gray-900 p-1"
-                          value={matches[r.key] || ''}
-                          onChange={(e) =>
-                            setMatches({
-                              ...matches,
-                              [r.key]: Number(e.target.value),
-                            })
-                          }
-                        />
+                        <>
+                          <select
+                            disabled={busy}
+                            className="ml-2 rounded bg-gray-900 p-1"
+                            aria-label={t('Media type', 'Tipo de contenido')}
+                            value={mediaTypes[r.key] || 'movie'}
+                            onChange={(e) =>
+                              setMediaTypes({
+                                ...mediaTypes,
+                                [r.key]: e.target.value as 'movie' | 'tv',
+                              })
+                            }
+                          >
+                            <option value="movie">
+                              {t('Movie', 'Película')}
+                            </option>
+                            <option value="tv">{t('Series', 'Serie')}</option>
+                          </select>
+                          <input
+                            disabled={busy}
+                            type="number"
+                            min={1}
+                            className="ml-2 w-28 rounded bg-gray-900 p-1"
+                            value={matches[r.key] || ''}
+                            onChange={(e) =>
+                              setMatches({
+                                ...matches,
+                                [r.key]: Number(e.target.value),
+                              })
+                            }
+                          />
+                        </>
                       )}
                     </label>
                   </div>
@@ -257,52 +389,83 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
               <label className="flex items-start gap-2">
                 <input
                   type="checkbox"
+                  disabled={busy}
                   checked={confirmed}
                   onChange={(e) => setConfirmed(e.target.checked)}
                 />
                 {t(
-                  'Publish these imported entries to catalogue members. I checked that they contain no private or deleted content.',
-                  'Publicar estas entradas importadas para los miembros del catálogo. Revisé que no contengan contenido privado ni eliminado.'
+                  'Publish all matched entries in this file to catalogue members. I checked that the file contains no private or deleted content.',
+                  'Publicar todas las entradas identificadas de este archivo para los miembros del catálogo. Revisé que el archivo no contenga contenido privado ni eliminado.'
                 )}
               </label>
               <Button
                 disabled={busy || !confirmed}
-                onClick={() =>
-                  void action(async () => {
-                    await axios.post(`/api/v1/reviews/import/${userId}`, {
-                      csv,
-                      offset,
-                      mode: 'commit',
-                      matches: Object.fromEntries(
-                        Object.entries(matches).filter(([, v]) => v > 0)
-                      ),
-                      confirmPublic: true,
-                    });
-                    setMessage(
-                      t(
-                        'Imported matched entries.',
-                        'Entradas identificadas importadas.'
-                      )
-                    );
-                    if (preview.nextOffset !== null)
-                      await loadPreview(csv, preview.nextOffset);
-                    else setPreview(null);
-                  })
-                }
+                onClick={() => void importFile()}
               >
-                {t('Import this batch', 'Importar este lote')}
+                {importProgress === null
+                  ? t('Import entire file', 'Importar archivo completo')
+                  : t('Resume import', 'Reanudar importación')}
               </Button>
-              {preview.nextOffset !== null && (
+              {preview.nextOffset !== null && importProgress === null && (
                 <Button
                   disabled={busy}
                   onClick={() =>
-                    void action(() => loadPreview(csv, preview.nextOffset!))
+                    void action(() => loadPreview(upload, preview.nextOffset!))
                   }
                 >
-                  {t('Skip to next batch', 'Omitir e ir al siguiente lote')}
+                  {t('Preview next batch', 'Ver siguiente lote')}
                 </Button>
               )}
             </div>
+          )}
+          {importProgress !== null && (
+            <div role="status" className="space-y-2">
+              {t('Processed records:', 'Registros procesados:')}{' '}
+              {importProgress}
+              {preview ? ` / ${preview.total}` : ''}
+              {preview && (
+                <progress
+                  className="block w-full"
+                  max={preview.total || 1}
+                  value={importProgress}
+                />
+              )}
+              {busy && (
+                <>
+                  <p>
+                    {t(
+                      'Keep this page open until the import finishes.',
+                      'Mantén esta página abierta hasta que termine la importación.'
+                    )}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      stopImport.current = true;
+                    }}
+                  >
+                    {t('Pause after this batch', 'Pausar después de este lote')}
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+          {!!skipped.length && (
+            <details className="text-yellow-300">
+              <summary>
+                {skipped.length}{' '}
+                {t(
+                  'unmatched records skipped',
+                  'registros sin identificar omitidos'
+                )}
+              </summary>
+              <ul className="max-h-64 overflow-y-auto">
+                {skipped.map((r) => (
+                  <li key={r.key}>
+                    {r.title} ({r.year})
+                  </li>
+                ))}
+              </ul>
+            </details>
           )}
         </>
       )}

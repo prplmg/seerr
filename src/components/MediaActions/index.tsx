@@ -23,41 +23,43 @@ const MediaActions = ({
   const intl = useIntl();
   const settings = useSettings();
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {links.map((link) => (
-        <Button
-          key={link.url}
-          as="a"
-          buttonType="ghost"
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={link.text}
-          aria-label={link.text}
-        >
-          {settings.currentSettings.mediaServerType === MediaServerType.PLEX ? (
+    <>
+      <div className="flex min-w-0 gap-1">
+        {!links.length && (
+          <Button
+            disabled
+            aria-label="Plex unavailable"
+            title="Plex unavailable"
+          >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
               <path fill="#E5A00D" d="M5 2h7l7 10-7 10H5l7-10z" />
             </svg>
-          ) : (
-            link.svg
-          )}
-          {link.text.includes('4K') && <span>4K</span>}
-        </Button>
-      ))}
-      {trailerUrl && (
-        <Button
-          as="a"
-          buttonType="ghost"
-          href={trailerUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <FilmIcon aria-hidden="true" />
-          <span>{intl.formatMessage(messages.trailer)}</span>
-        </Button>
-      )}
-      {movieId && (
+          </Button>
+        )}
+        {links.map((link) => (
+          <Button
+            key={link.url}
+            as="a"
+            buttonType="ghost"
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={link.text}
+            aria-label={link.text}
+          >
+            {settings.currentSettings.mediaServerType ===
+            MediaServerType.PLEX ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path fill="#E5A00D" d="M5 2h7l7 10-7 10H5l7-10z" />
+              </svg>
+            ) : (
+              link.svg
+            )}
+            {link.text.includes('4K') && <span>4K</span>}
+          </Button>
+        ))}
+      </div>
+      {movieId ? (
         <Button
           as="a"
           buttonType="ghost"
@@ -73,8 +75,44 @@ const MediaActions = ({
             <circle cx="24" cy="12" r="7" fill="#40BCF4" />
           </svg>
         </Button>
+      ) : (
+        <Button
+          disabled
+          aria-label="Letterboxd unavailable"
+          title="Letterboxd unavailable"
+        >
+          <svg viewBox="0 0 32 24" className="h-5 w-5" aria-hidden="true">
+            <circle cx="8" cy="12" r="7" fill="#FF8000" />
+            <circle cx="16" cy="12" r="7" fill="#00E054" />
+            <circle cx="24" cy="12" r="7" fill="#40BCF4" />
+          </svg>
+        </Button>
       )}
-    </div>
+      {trailerUrl ? (
+        <Button
+          as="a"
+          buttonType="ghost"
+          href={trailerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={intl.formatMessage(messages.trailer)}
+          aria-label={intl.formatMessage(messages.trailer)}
+        >
+          <FilmIcon aria-hidden="true" />
+          <span className="hidden sm:inline">
+            {intl.formatMessage(messages.trailer)}
+          </span>
+        </Button>
+      ) : (
+        <Button
+          disabled
+          title={intl.formatMessage(messages.trailer)}
+          aria-label={intl.formatMessage(messages.trailer)}
+        >
+          <FilmIcon aria-hidden="true" />
+        </Button>
+      )}
+    </>
   );
 };
 export default MediaActions;

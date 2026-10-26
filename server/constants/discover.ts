@@ -26,6 +26,10 @@ export enum DiscoverSliderType {
   RECENTLY_WATCHED,
   RECOMMENDATIONS,
   RECENT_REVIEWS,
+  NEW_EPISODES,
+  AWAITED_MOVIES,
+  EXPLORE_LISTS,
+  WATCHED_FROM_LISTS,
 }
 
 const legacyDefaultSliders: Partial<DiscoverSlider>[] = [
@@ -119,6 +123,22 @@ const independentSliders = [
   {
     type: DiscoverSliderType.RECOMMENDATIONS,
     after: DiscoverSliderType.STUDIOS,
+  },
+  {
+    type: DiscoverSliderType.NEW_EPISODES,
+    after: DiscoverSliderType.RECOMMENDATIONS,
+  },
+  {
+    type: DiscoverSliderType.AWAITED_MOVIES,
+    after: DiscoverSliderType.NEW_EPISODES,
+  },
+  {
+    type: DiscoverSliderType.EXPLORE_LISTS,
+    after: DiscoverSliderType.AWAITED_MOVIES,
+  },
+  {
+    type: DiscoverSliderType.WATCHED_FROM_LISTS,
+    after: DiscoverSliderType.EXPLORE_LISTS,
   },
 ];
 

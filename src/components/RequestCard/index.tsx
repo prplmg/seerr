@@ -3,10 +3,12 @@ import Badge from '@app/components/Common/Badge';
 import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
 import Tooltip from '@app/components/Common/Tooltip';
+import { FollowReleases } from '@app/components/Discover/ReleaseUpdates';
 import RequestModal from '@app/components/RequestModal';
 import StatusBadge from '@app/components/StatusBadge';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import useDeepLinks from '@app/hooks/useDeepLinks';
+import useRequestSnapshot from '@app/hooks/useRequestSnapshot';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
@@ -217,11 +219,16 @@ const RequestCardError = ({ requestData }: RequestCardErrorProps) => {
 };
 
 interface RequestCardProps {
+  simple?: boolean;
   request: NonFunctionProperties<MediaRequest>;
   onTitleData?: (requestId: number, title: MovieDetails | TvDetails) => void;
 }
 
-const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
+const RequestCard = ({
+  request,
+  onTitleData,
+  simple = false,
+}: RequestCardProps) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
   });
@@ -248,9 +255,11 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
     error: requestError,
     mutate: revalidate,
   } = useSWR<NonFunctionProperties<MediaRequest>>(
-    `/api/v1/request/${request.id}`,
+    inView ? `/api/v1/request/${request.id}` : null,
     {
       fallbackData: request,
+      // The parent list supplies the initial record; retain polling and mutations.
+      revalidateOnMount: false,
       refreshInterval: refreshIntervalHelper(
         {
           downloadStatus: request.media.downloadStatus,
@@ -260,6 +269,8 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
       ),
     }
   );
+
+  useRequestSnapshot(inView, request, revalidate);
 
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
     mediaId: requestData?.media?.id,
@@ -352,7 +363,7 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
         }}
       />
       <div
-        className="relative flex w-72 overflow-hidden rounded-xl bg-gray-800 bg-cover bg-center p-4 text-gray-400 shadow ring-1 ring-gray-700 sm:w-96"
+        className={`relative flex ${simple ? 'w-full' : 'w-72 sm:w-96'} overflow-hidden rounded-xl bg-gray-800 bg-cover bg-center p-4 text-gray-400 shadow ring-1 ring-gray-700`}
         data-testid="request-card"
       >
         {title.backdropPath && (
@@ -393,10 +404,11 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
           >
             {isMovie(title) ? title.title : title.name}
           </Link>
-          {hasPermission(
-            [Permission.MANAGE_REQUESTS, Permission.REQUEST_VIEW],
-            { type: 'or' }
-          ) && (
+          {(simple ||
+            hasPermission(
+              [Permission.MANAGE_REQUESTS, Permission.REQUEST_VIEW],
+              { type: 'or' }
+            )) && (
             <div className="card-field">
               <Link
                 href={`/users/${requestData.requestedBy.id}`}
@@ -496,58 +508,55 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
               />
             )}
           </div>
-          <div className="flex flex-1 items-end space-x-2">
-            {requestData.status === MediaRequestStatus.FAILED &&
-              hasPermission(Permission.MANAGE_REQUESTS) && (
-                <Button
-                  buttonType="primary"
-                  buttonSize="sm"
-                  disabled={isRetrying}
-                  onClick={() => retryRequest()}
-                >
-                  <ArrowPathIcon
-                    className={isRetrying ? 'animate-spin' : ''}
-                    style={{ marginRight: '0', animationDirection: 'reverse' }}
-                  />
-                  <span className="ml-1.5 hidden sm:block">
-                    {intl.formatMessage(globalMessages.retry)}
-                  </span>
-                </Button>
-              )}
-            {requestData.status === MediaRequestStatus.PENDING &&
-              hasPermission(Permission.MANAGE_REQUESTS) && (
-                <>
-                  {requestData.type === 'tv' &&
-                    hasPermission(Permission.ADMIN) && (
-                      <label className="mr-2 flex items-center gap-2 text-sm text-gray-100">
-                        <input
-                          type="checkbox"
-                          checked={skipInitialSearch}
-                          onChange={(e) =>
-                            setSkipInitialSearch(e.target.checked)
-                          }
-                        />
-                        {t('Add without searching', 'Agregar sin buscar')}
-                      </label>
-                    )}
-                  <div>
-                    <Button
-                      buttonType="success"
-                      buttonSize="sm"
-                      className="hidden sm:block"
-                      onClick={() => modifyRequest('approve')}
-                      disabled={updatingType !== null}
-                    >
-                      {updatingType === 'approve' ? <Spinner /> : <CheckIcon />}
-                      <span>{intl.formatMessage(globalMessages.approve)}</span>
-                    </Button>
-                    <Tooltip
-                      content={intl.formatMessage(messages.approverequest)}
-                    >
+          <FollowReleases
+            compact
+            id={requestData.media.tmdbId}
+            type={request.type}
+            metadata={title}
+          />
+          {!simple && (
+            <div className="flex flex-1 items-end space-x-2">
+              {requestData.status === MediaRequestStatus.FAILED &&
+                hasPermission(Permission.MANAGE_REQUESTS) && (
+                  <Button
+                    buttonType="primary"
+                    buttonSize="sm"
+                    disabled={isRetrying}
+                    onClick={() => retryRequest()}
+                  >
+                    <ArrowPathIcon
+                      className={isRetrying ? 'animate-spin' : ''}
+                      style={{
+                        marginRight: '0',
+                        animationDirection: 'reverse',
+                      }}
+                    />
+                    <span className="ml-1.5 hidden sm:block">
+                      {intl.formatMessage(globalMessages.retry)}
+                    </span>
+                  </Button>
+                )}
+              {requestData.status === MediaRequestStatus.PENDING &&
+                hasPermission(Permission.MANAGE_REQUESTS) && (
+                  <>
+                    {requestData.type === 'tv' &&
+                      hasPermission(Permission.ADMIN) && (
+                        <label className="mr-2 flex items-center gap-2 text-sm text-gray-100">
+                          <input
+                            type="checkbox"
+                            checked={skipInitialSearch}
+                            onChange={(e) =>
+                              setSkipInitialSearch(e.target.checked)
+                            }
+                          />
+                          {t('Add without searching', 'Agregar sin buscar')}
+                        </label>
+                      )}
+                    <div>
                       <Button
                         buttonType="success"
                         buttonSize="sm"
-                        className="sm:hidden"
+                        className="hidden sm:block"
                         onClick={() => modifyRequest('approve')}
                         disabled={updatingType !== null}
                       >
@@ -556,27 +565,33 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
                         ) : (
                           <CheckIcon />
                         )}
+                        <span>
+                          {intl.formatMessage(globalMessages.approve)}
+                        </span>
                       </Button>
-                    </Tooltip>
-                  </div>
-                  <div>
-                    <Button
-                      buttonType="danger"
-                      buttonSize="sm"
-                      className="hidden sm:block"
-                      onClick={() => modifyRequest('decline')}
-                      disabled={updatingType !== null}
-                    >
-                      {updatingType === 'decline' ? <Spinner /> : <XMarkIcon />}
-                      <span>{intl.formatMessage(globalMessages.decline)}</span>
-                    </Button>
-                    <Tooltip
-                      content={intl.formatMessage(messages.declinerequest)}
-                    >
+                      <Tooltip
+                        content={intl.formatMessage(messages.approverequest)}
+                      >
+                        <Button
+                          buttonType="success"
+                          buttonSize="sm"
+                          className="sm:hidden"
+                          onClick={() => modifyRequest('approve')}
+                          disabled={updatingType !== null}
+                        >
+                          {updatingType === 'approve' ? (
+                            <Spinner />
+                          ) : (
+                            <CheckIcon />
+                          )}
+                        </Button>
+                      </Tooltip>
+                    </div>
+                    <div>
                       <Button
                         buttonType="danger"
                         buttonSize="sm"
-                        className="sm:hidden"
+                        className="hidden sm:block"
                         onClick={() => modifyRequest('decline')}
                         disabled={updatingType !== null}
                       >
@@ -585,68 +600,90 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
                         ) : (
                           <XMarkIcon />
                         )}
+                        <span>
+                          {intl.formatMessage(globalMessages.decline)}
+                        </span>
+                      </Button>
+                      <Tooltip
+                        content={intl.formatMessage(messages.declinerequest)}
+                      >
+                        <Button
+                          buttonType="danger"
+                          buttonSize="sm"
+                          className="sm:hidden"
+                          onClick={() => modifyRequest('decline')}
+                          disabled={updatingType !== null}
+                        >
+                          {updatingType === 'decline' ? (
+                            <Spinner />
+                          ) : (
+                            <XMarkIcon />
+                          )}
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </>
+                )}
+              {requestData.status === MediaRequestStatus.PENDING &&
+                !hasPermission(Permission.MANAGE_REQUESTS) &&
+                requestData.requestedBy.id === user?.id &&
+                (requestData.type === 'tv' ||
+                  hasPermission(Permission.REQUEST_ADVANCED)) && (
+                  <div>
+                    {!hasPermission(Permission.MANAGE_REQUESTS) && (
+                      <Button
+                        buttonType="primary"
+                        buttonSize="sm"
+                        className="hidden sm:block"
+                        onClick={() => setShowEditModal(true)}
+                        disabled={updatingType !== null}
+                      >
+                        <PencilIcon />
+                        <span>{intl.formatMessage(globalMessages.edit)}</span>
+                      </Button>
+                    )}
+                    <Tooltip content={intl.formatMessage(messages.editrequest)}>
+                      <Button
+                        buttonType="primary"
+                        buttonSize="sm"
+                        className="sm:hidden"
+                        onClick={() => setShowEditModal(true)}
+                        disabled={updatingType !== null}
+                      >
+                        <PencilIcon />
                       </Button>
                     </Tooltip>
                   </div>
-                </>
-              )}
-            {requestData.status === MediaRequestStatus.PENDING &&
-              !hasPermission(Permission.MANAGE_REQUESTS) &&
-              requestData.requestedBy.id === user?.id &&
-              (requestData.type === 'tv' ||
-                hasPermission(Permission.REQUEST_ADVANCED)) && (
-                <div>
-                  {!hasPermission(Permission.MANAGE_REQUESTS) && (
-                    <Button
-                      buttonType="primary"
-                      buttonSize="sm"
-                      className="hidden sm:block"
-                      onClick={() => setShowEditModal(true)}
-                      disabled={updatingType !== null}
-                    >
-                      <PencilIcon />
-                      <span>{intl.formatMessage(globalMessages.edit)}</span>
-                    </Button>
-                  )}
-                  <Tooltip content={intl.formatMessage(messages.editrequest)}>
-                    <Button
-                      buttonType="primary"
-                      buttonSize="sm"
-                      className="sm:hidden"
-                      onClick={() => setShowEditModal(true)}
-                      disabled={updatingType !== null}
-                    >
-                      <PencilIcon />
-                    </Button>
-                  </Tooltip>
-                </div>
-              )}
-            {requestData.status === MediaRequestStatus.PENDING &&
-              !hasPermission(Permission.MANAGE_REQUESTS) &&
-              requestData.requestedBy.id === user?.id && (
-                <div>
-                  <Button
-                    buttonType="danger"
-                    buttonSize="sm"
-                    className="hidden sm:block"
-                    onClick={() => deleteRequest()}
-                  >
-                    <XMarkIcon />
-                    <span>{intl.formatMessage(globalMessages.cancel)}</span>
-                  </Button>
-                  <Tooltip content={intl.formatMessage(messages.cancelrequest)}>
+                )}
+              {requestData.status === MediaRequestStatus.PENDING &&
+                !hasPermission(Permission.MANAGE_REQUESTS) &&
+                requestData.requestedBy.id === user?.id && (
+                  <div>
                     <Button
                       buttonType="danger"
                       buttonSize="sm"
-                      className="sm:hidden"
+                      className="hidden sm:block"
                       onClick={() => deleteRequest()}
                     >
                       <XMarkIcon />
+                      <span>{intl.formatMessage(globalMessages.cancel)}</span>
                     </Button>
-                  </Tooltip>
-                </div>
-              )}
-          </div>
+                    <Tooltip
+                      content={intl.formatMessage(messages.cancelrequest)}
+                    >
+                      <Button
+                        buttonType="danger"
+                        buttonSize="sm"
+                        className="sm:hidden"
+                        onClick={() => deleteRequest()}
+                      >
+                        <XMarkIcon />
+                      </Button>
+                    </Tooltip>
+                  </div>
+                )}
+            </div>
+          )}
         </div>
         <Link
           href={

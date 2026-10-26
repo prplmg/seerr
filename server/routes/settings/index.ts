@@ -13,7 +13,7 @@ import type {
   LogsResultsResponse,
   SettingsAboutResponse,
 } from '@server/interfaces/api/settingsInterfaces';
-import { scheduledJobs } from '@server/job/schedule';
+import { scheduledJobs, runReviewRssJob } from '@server/job/schedule';
 import type { AvailableCacheIds } from '@server/lib/cache';
 import cacheManager from '@server/lib/cache';
 import ImageProxy from '@server/lib/imageproxy';
@@ -40,11 +40,15 @@ import path from 'path';
 import semver from 'semver';
 import { URL } from 'url';
 import metadataRoutes from './metadata';
+import accountMappingRoutes from './accountMappings';
+import letterboxdBrowserRoutes from './letterboxdBrowser';
 import notificationRoutes from './notifications';
 import radarrRoutes from './radarr';
 import sonarrRoutes from './sonarr';
 
 const settingsRoutes = Router();
+settingsRoutes.use('/account-mappings', accountMappingRoutes);
+settingsRoutes.use('/letterboxd-browser', letterboxdBrowserRoutes);
 
 settingsRoutes.use('/notifications', notificationRoutes);
 settingsRoutes.use('/radarr', radarrRoutes);
@@ -675,7 +679,9 @@ settingsRoutes.post<{ jobId: string }>('/jobs/:jobId/run', (req, res, next) => {
     return next({ status: 404, message: 'Job not found.' });
   }
 
-  scheduledJob.job.invoke();
+  logger.info('Manual job run requested', { label: 'Jobs', job: scheduledJob.id });
+  if (scheduledJob.id === 'letterboxd-review-rss') void runReviewRssJob(true);
+  else scheduledJob.job.invoke();
 
   return res.status(200).json({
     id: scheduledJob.id,

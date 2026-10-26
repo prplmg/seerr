@@ -13,6 +13,7 @@ export type WatchingParty = {
   position: number;
   duration: number;
   paused: boolean;
+  ended?: boolean;
   ratingKey: string;
   switchStatus?: 'loading' | 'ready' | 'failed';
   canReturn?: boolean;

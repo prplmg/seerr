@@ -2,11 +2,9 @@ import RTAudFresh from '@app/assets/rt_aud_fresh.svg';
 import RTAudRotten from '@app/assets/rt_aud_rotten.svg';
 import RTFresh from '@app/assets/rt_fresh.svg';
 import RTRotten from '@app/assets/rt_rotten.svg';
-import ImdbLogo from '@app/assets/services/imdb.svg';
 import Spinner from '@app/assets/spinner.svg';
 import BlocklistModal from '@app/components/BlocklistModal';
 import Button from '@app/components/Common/Button';
-import { MovieReviews } from '@app/components/Reviews';
 import CachedImage from '@app/components/Common/CachedImage';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -14,15 +12,19 @@ import type { PlayButtonLink } from '@app/components/Common/PlayButton';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
 import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
+import { FollowReleases } from '@app/components/Discover/ReleaseUpdates';
 import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
 import IssueModal from '@app/components/IssueModal';
 import ManageSlideOver from '@app/components/ManageSlideOver';
 import MediaActions from '@app/components/MediaActions';
-import PlexBookmark from '@app/components/PlexBookmark';
+import DetailUtilityActions from '@app/components/MediaActions/DetailUtilityActions';
 import MediaSlider from '@app/components/MediaSlider';
 import PersonCard from '@app/components/PersonCard';
+import PlexBookmark from '@app/components/PlexBookmark';
 import RequestButton from '@app/components/RequestButton';
+import { MovieReviews } from '@app/components/Reviews';
+import CommunityRating from '@app/components/Reviews/CommunityRating';
 import Slider from '@app/components/Slider';
 import SocialPeople from '@app/components/SocialPeople';
 import WatchTogether, {
@@ -485,7 +487,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
         onComplete={onClickHideItemBtn}
         isUpdating={isBlocklistUpdating}
       />
-      <div className="media-header">
+      <div className="media-header media-detail-header">
         <div className="media-poster">
           <CachedImage
             type="tmdb"
@@ -578,62 +580,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
           </span>
         </div>
         <div className="media-actions">
-          {showHideButton &&
-            data?.mediaInfo?.status !== MediaStatus.PROCESSING &&
-            data?.mediaInfo?.status !== MediaStatus.AVAILABLE &&
-            data?.mediaInfo?.status !== MediaStatus.PARTIALLY_AVAILABLE &&
-            data?.mediaInfo?.status !== MediaStatus.PENDING &&
-            data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED && (
-              <Tooltip
-                content={intl.formatMessage(globalMessages.addToBlocklist)}
-              >
-                <Button
-                  buttonType={'ghost'}
-                  className="z-40 mr-2"
-                  buttonSize={'md'}
-                  onClick={() => setShowBlocklistModal(true)}
-                >
-                  <EyeSlashIcon />
-                </Button>
-              </Tooltip>
-            )}
-          {SHOW_WATCHLIST &&
-            data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
-            user?.userType !== UserType.PLEX && (
-              <>
-                {toggleWatchlist ? (
-                  <Tooltip
-                    content={intl.formatMessage(messages.addtowatchlist)}
-                  >
-                    <Button
-                      buttonType={'ghost'}
-                      className="z-40 mr-2"
-                      buttonSize={'md'}
-                      onClick={onClickWatchlistBtn}
-                    >
-                      {isUpdating ? (
-                        <Spinner />
-                      ) : (
-                        <StarIcon className={'text-amber-300'} />
-                      )}
-                    </Button>
-                  </Tooltip>
-                ) : (
-                  <Tooltip
-                    content={intl.formatMessage(messages.removefromwatchlist)}
-                  >
-                    <Button
-                      className="z-40 mr-2"
-                      buttonSize={'md'}
-                      onClick={onClickDeleteWatchlistBtn}
-                    >
-                      {isUpdating ? <Spinner /> : <MinusCircleIcon />}
-                    </Button>
-                  </Tooltip>
-                )}
-              </>
-            )}
-          <div className="z-20 flex flex-wrap items-center gap-2">
+          <div className="media-primary-actions">
             <PlexBookmark id={data.id} type="movie" />
             <MediaActions
               links={mediaLinks}
@@ -641,78 +588,148 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               movieId={data.id}
             />
           </div>
-          <RequestButton
-            mediaType="movie"
-            media={data.mediaInfo}
-            tmdbId={data.id}
-            onUpdate={() => revalidate()}
-          />
-          {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
-            (settings.currentSettings.movie4kEnabled &&
-              hasPermission(
-                [Permission.REQUEST_4K, Permission.REQUEST_4K_MOVIE],
-                {
-                  type: 'or',
-                }
-              ) &&
-              data.mediaInfo?.status4k === MediaStatus.AVAILABLE)) &&
-            hasPermission(
-              [Permission.CREATE_ISSUES, Permission.MANAGE_ISSUES],
-              {
-                type: 'or',
-              }
-            ) && (
-              <Tooltip content={intl.formatMessage(messages.reportissue)}>
-                <Button
-                  buttonType="warning"
-                  onClick={() => setShowIssueModal(true)}
-                  className="ml-2 first:ml-0"
-                >
-                  <ExclamationTriangleIcon />
-                </Button>
-              </Tooltip>
-            )}
-          {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
-            data.mediaInfo?.status4k === MediaStatus.AVAILABLE) && (
-            <WatchTogether
+          <div className="media-secondary-actions">
+            <RequestButton
+              mediaType="movie"
+              media={data.mediaInfo}
+              tmdbId={data.id}
+              onUpdate={() => revalidate()}
+            />
+            <FollowReleases
               id={data.id}
               type="movie"
-              title={data.title}
-              poster={data.posterPath}
+              metadata={data}
             />
-          )}
-          {hasPermission(Permission.MANAGE_REQUESTS) &&
-            data.mediaInfo &&
-            (data.mediaInfo.jellyfinMediaId ||
-              data.mediaInfo.jellyfinMediaId4k ||
-              data.mediaInfo.status !== MediaStatus.UNKNOWN ||
-              data.mediaInfo.status4k !== MediaStatus.UNKNOWN) && (
-              <Tooltip content={intl.formatMessage(messages.managemovie)}>
-                <Button
-                  buttonType="ghost"
-                  onClick={() => setShowManager(true)}
-                  className="relative ml-2 first:ml-0"
-                >
-                  <CogIcon className="!mr-0" />
-                  {hasPermission(
-                    [Permission.MANAGE_ISSUES, Permission.VIEW_ISSUES],
+          </div>
+          <div className="media-tertiary-actions">
+            {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
+              data.mediaInfo?.status4k === MediaStatus.AVAILABLE) && (
+              <WatchTogether
+                id={data.id}
+                type="movie"
+                title={data.title}
+                poster={data.posterPath}
+              />
+            )}
+            <DetailUtilityActions>
+              {showHideButton &&
+                data?.mediaInfo?.status !== MediaStatus.PROCESSING &&
+                data?.mediaInfo?.status !== MediaStatus.AVAILABLE &&
+                data?.mediaInfo?.status !== MediaStatus.PARTIALLY_AVAILABLE &&
+                data?.mediaInfo?.status !== MediaStatus.PENDING &&
+                data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED && (
+                  <Tooltip
+                    content={intl.formatMessage(globalMessages.addToBlocklist)}
+                  >
+                    <Button
+                      buttonType={'ghost'}
+                      className="z-40 mr-2"
+                      buttonSize={'md'}
+                      onClick={() => setShowBlocklistModal(true)}
+                    >
+                      <EyeSlashIcon />
+                    </Button>
+                  </Tooltip>
+                )}
+              {SHOW_WATCHLIST &&
+                data?.mediaInfo?.status !== MediaStatus.BLOCKLISTED &&
+                user?.userType !== UserType.PLEX && (
+                  <>
+                    {toggleWatchlist ? (
+                      <Tooltip
+                        content={intl.formatMessage(messages.addtowatchlist)}
+                      >
+                        <Button
+                          buttonType={'ghost'}
+                          className="z-40 mr-2"
+                          buttonSize={'md'}
+                          onClick={onClickWatchlistBtn}
+                        >
+                          {isUpdating ? (
+                            <Spinner />
+                          ) : (
+                            <StarIcon className={'text-amber-300'} />
+                          )}
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip
+                        content={intl.formatMessage(
+                          messages.removefromwatchlist
+                        )}
+                      >
+                        <Button
+                          className="z-40 mr-2"
+                          buttonSize={'md'}
+                          onClick={onClickDeleteWatchlistBtn}
+                        >
+                          {isUpdating ? <Spinner /> : <MinusCircleIcon />}
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </>
+                )}
+              {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
+                (settings.currentSettings.movie4kEnabled &&
+                  hasPermission(
+                    [Permission.REQUEST_4K, Permission.REQUEST_4K_MOVIE],
                     {
                       type: 'or',
                     }
                   ) &&
-                    (
-                      data.mediaInfo?.issues.filter(
-                        (issue) => issue.status === IssueStatus.OPEN
-                      ) ?? []
-                    ).length > 0 && (
-                      <>
-                        <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
-                        <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
-                      </>
-                    )}
-                </Button>
-              </Tooltip>
-            )}
+                  data.mediaInfo?.status4k === MediaStatus.AVAILABLE)) &&
+                hasPermission(
+                  [Permission.CREATE_ISSUES, Permission.MANAGE_ISSUES],
+                  {
+                    type: 'or',
+                  }
+                ) && (
+                  <Tooltip content={intl.formatMessage(messages.reportissue)}>
+                    <Button
+                      buttonType="warning"
+                      aria-label={intl.formatMessage(messages.reportissue)}
+                      onClick={() => setShowIssueModal(true)}
+                      className="ml-2 first:ml-0"
+                    >
+                      <ExclamationTriangleIcon />
+                    </Button>
+                  </Tooltip>
+                )}
+              {hasPermission(Permission.MANAGE_REQUESTS) &&
+                data.mediaInfo &&
+                (data.mediaInfo.jellyfinMediaId ||
+                  data.mediaInfo.jellyfinMediaId4k ||
+                  data.mediaInfo.status !== MediaStatus.UNKNOWN ||
+                  data.mediaInfo.status4k !== MediaStatus.UNKNOWN) && (
+                  <Tooltip content={intl.formatMessage(messages.managemovie)}>
+                    <Button
+                      buttonType="ghost"
+                      onClick={() => setShowManager(true)}
+                      aria-label={intl.formatMessage(messages.managemovie)}
+                      className="relative ml-2 first:ml-0"
+                    >
+                      <CogIcon className="!mr-0" />
+                      {hasPermission(
+                        [Permission.MANAGE_ISSUES, Permission.VIEW_ISSUES],
+                        {
+                          type: 'or',
+                        }
+                      ) &&
+                        (
+                          data.mediaInfo?.issues.filter(
+                            (issue) => issue.status === IssueStatus.OPEN
+                          ) ?? []
+                        ).length > 0 && (
+                          <>
+                            <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" />
+                            <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-red-600" />
+                          </>
+                        )}
+                    </Button>
+                  </Tooltip>
+                )}
+            </DetailUtilityActions>
+          </div>
         </div>
       </div>
       <div className="media-overview">
@@ -797,106 +814,76 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
             </div>
           )}
           <div className="media-facts">
-            {(!!letterboxdData?.rating ||
-              (ratingData?.rt?.criticsRating &&
-                typeof ratingData?.rt?.criticsScore === 'number') ||
-              (ratingData?.rt?.audienceRating &&
-                !!ratingData?.rt?.audienceScore) ||
-              ratingData?.imdb?.criticsScore) && (
-              <div className="media-ratings">
-                {ratingData?.rt?.criticsRating &&
-                  typeof ratingData?.rt?.criticsScore === 'number' && (
-                    <Tooltip
-                      content={intl.formatMessage(messages.rtcriticsscore)}
-                    >
-                      <a
-                        href={ratingData.rt.url}
-                        className="media-rating"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {ratingData.rt.criticsRating === 'Rotten' ? (
-                          <RTRotten className="w-6" />
-                        ) : (
-                          <RTFresh className="w-6" />
-                        )}
-                        <span>{ratingData.rt.criticsScore}%</span>
-                      </a>
-                    </Tooltip>
-                  )}
-                {ratingData?.rt?.audienceRating &&
-                  !!ratingData?.rt?.audienceScore && (
-                    <Tooltip
-                      content={intl.formatMessage(messages.rtaudiencescore)}
-                    >
-                      <a
-                        href={ratingData.rt.url}
-                        className="media-rating"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {ratingData.rt.audienceRating === 'Spilled' ? (
-                          <RTAudRotten className="w-6" />
-                        ) : (
-                          <RTAudFresh className="w-6" />
-                        )}
-                        <span>{ratingData.rt.audienceScore}%</span>
-                      </a>
-                    </Tooltip>
-                  )}
-                {ratingData?.imdb?.criticsScore && (
+            <div className="media-ratings">
+              {ratingData?.rt?.criticsRating &&
+                typeof ratingData?.rt?.criticsScore === 'number' && (
                   <Tooltip
-                    content={intl.formatMessage(messages.imdbuserscore, {
-                      formattedCount: intl.formatNumber(
-                        ratingData.imdb.criticsScoreCount,
-                        {
-                          notation: 'compact',
-                          compactDisplay: 'short',
-                          maximumFractionDigits: 1,
-                        }
-                      ),
-                    })}
+                    content={intl.formatMessage(messages.rtcriticsscore)}
                   >
                     <a
-                      href={ratingData.imdb.url}
+                      href={ratingData.rt.url}
                       className="media-rating"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <ImdbLogo className="mr-1 w-6" />
-                      <span>{ratingData.imdb.criticsScore}</span>
+                      {ratingData.rt.criticsRating === 'Rotten' ? (
+                        <RTRotten className="w-6" />
+                      ) : (
+                        <RTFresh className="w-6" />
+                      )}
+                      <span>{ratingData.rt.criticsScore}%</span>
                     </a>
                   </Tooltip>
                 )}
-                {letterboxdData?.rating && (
+              {ratingData?.rt?.audienceRating &&
+                !!ratingData?.rt?.audienceScore && (
                   <Tooltip
-                    content={intl.formatMessage(messages.letterboxdscore, {
+                    content={intl.formatMessage(messages.rtaudiencescore)}
+                  >
+                    <a
+                      href={ratingData.rt.url}
+                      className="media-rating"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {ratingData.rt.audienceRating === 'Spilled' ? (
+                        <RTAudRotten className="w-6" />
+                      ) : (
+                        <RTAudFresh className="w-6" />
+                      )}
+                      <span>{ratingData.rt.audienceScore}%</span>
+                    </a>
+                  </Tooltip>
+                )}
+              <CommunityRating id={data.id} mediaType="movie" />
+              {letterboxdData?.rating && (
+                <Tooltip
+                  content={intl.formatMessage(messages.letterboxdscore, {
+                    score: intl.formatNumber(letterboxdData.rating.score),
+                  })}
+                >
+                  <a
+                    href={letterboxdData.rating.url}
+                    aria-label={intl.formatMessage(messages.letterboxdscore, {
                       score: intl.formatNumber(letterboxdData.rating.score),
                     })}
+                    className="media-rating"
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    <a
-                      href={letterboxdData.rating.url}
-                      aria-label={intl.formatMessage(messages.letterboxdscore, {
-                        score: intl.formatNumber(letterboxdData.rating.score),
+                    <span aria-hidden="true" className="mr-1 text-green-400">
+                      ★
+                    </span>
+                    <span>
+                      {intl.formatNumber(letterboxdData.rating.score, {
+                        maximumFractionDigits: 2,
                       })}
-                      className="media-rating"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <span aria-hidden="true" className="mr-1 text-green-400">
-                        ★
-                      </span>
-                      <span>
-                        {intl.formatNumber(letterboxdData.rating.score, {
-                          maximumFractionDigits: 2,
-                        })}
-                        /5
-                      </span>
-                    </a>
-                  </Tooltip>
-                )}
-              </div>
-            )}
+                      /5
+                    </span>
+                  </a>
+                </Tooltip>
+              )}
+            </div>
             {data.originalTitle &&
               data.originalLanguage !== locale.slice(0, 2) && (
                 <div className="media-fact">

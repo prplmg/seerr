@@ -357,6 +357,15 @@ interface JobSettings {
 }
 
 export type JobId =
+  | 'letterboxd-publication-sync'
+  | 'letterboxd-browser-sync'
+  | 'letterboxd-browser-health'
+  | 'catalogue-history-refresh'
+  | 'letterboxd-playback-refresh'
+  | 'profile-watchlist-refresh'
+  | 'curated-metadata-refresh'
+  | 'account-avatar-sync'
+  | 'letterboxd-review-rss'
   | 'plex-recently-added-scan'
   | 'plex-full-scan'
   | 'plex-watchlist-sync'
@@ -570,6 +579,19 @@ class Settings {
         },
       },
       jobs: {
+        'letterboxd-publication-sync': { schedule: '0 0 9,21 * * *' },
+        'letterboxd-browser-sync': { schedule: '0 0 */12 * * *' },
+        'letterboxd-browser-health': { schedule: '0 */5 * * * *' },
+        'catalogue-history-refresh': { schedule: '0 */2 * * * *' },
+        'letterboxd-playback-refresh': { schedule: '*/30 * * * * *' },
+        'profile-watchlist-refresh': { schedule: '0 */15 * * * *' },
+        'curated-metadata-refresh': { schedule: '0 5 */6 * * *' },
+        'account-avatar-sync': {
+          schedule: '0 0 12 * * *',
+        },
+        'letterboxd-review-rss': {
+          schedule: '0 */15 * * * *',
+        },
         'plex-recently-added-scan': {
           schedule: '0 */5 * * * *',
         },

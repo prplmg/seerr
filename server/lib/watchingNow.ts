@@ -33,6 +33,7 @@ export type PartySnapshot = {
   position: number;
   duration: number;
   paused: boolean;
+  ended?: boolean;
   switchStatus?: 'loading' | 'ready' | 'failed';
   external?: PartyExternalVideo;
   canReturn?: boolean;
@@ -130,9 +131,18 @@ export function mergeWatchingNow(
       id: party.id,
       members,
       mine: party.userIds.includes(viewerId),
-      position: party.position,
+      position:
+        party.duration > 0
+          ? Math.min(party.position, party.duration)
+          : party.position,
       duration: party.duration,
-      paused: party.paused,
+      paused:
+        party.paused ||
+        party.ended === true ||
+        (party.duration > 0 && party.position >= party.duration),
+      ended:
+        party.ended === true ||
+        (party.duration > 0 && party.position >= party.duration),
       ratingKey: party.ratingKey,
       switchStatus: party.switchStatus,
       canReturn: party.canReturn,
@@ -142,7 +152,9 @@ export function mergeWatchingNow(
   }
   for (const title of titles.values()) {
     const grouped = new Set(
-      title.parties.flatMap((p) => p.members.map((m) => m.id))
+      title.parties
+        .filter((p) => !p.ended)
+        .flatMap((p) => p.members.map((m) => m.id))
     );
     title.viewers = title.viewers.filter((p) => !grouped.has(p.id));
     title.parties.sort(

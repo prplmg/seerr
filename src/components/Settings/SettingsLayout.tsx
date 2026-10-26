@@ -33,6 +33,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
   const t = usePartyText();
   const { hasPermission } = useUser();
   const settingsRoutes: SettingsRoute[] = [
+    ...(hasPermission(Permission.ADMIN) ? [{text:intl.locale.startsWith('es')?'Asignación de cuentas':'Account mappings',route:'/settings/account-mappings',regex:/^\/settings\/account-mappings/}] : []),
     {
       text: intl.formatMessage(messages.menuGeneralSettings),
       route: '/settings/main',

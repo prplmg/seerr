@@ -159,7 +159,8 @@ app
       server.enable('trust proxy');
     }
     server.use(cookieParser());
-    server.use('/api/v1/reviews/import', express.json({ limit: '6mb' }));
+    server.use('/api/v1/reviews/import', express.json({ limit: '15mb' }));
+    server.use('/api/v1/letterboxd-worker/exchange', express.json({ limit: '15mb' }));
     server.use(express.json());
     server.use(express.urlencoded({ extended: true }));
     server.use((req, _res, next) => {
@@ -181,8 +182,7 @@ app
       }
     });
     if (settings.network.csrfProtection) {
-      server.use(
-        csurf({
+      const csrfMiddleware = csurf({
           cookie: {
             httpOnly: true,
             sameSite: true,
@@ -190,9 +190,14 @@ app
             key: '_csrf',
             path: '/',
           },
-        })
-      );
+        });
+      // Worker exchange accepts only its scoped bearer credential, never cookie auth.
       server.use((req, res, next) => {
+        if (req.method === 'POST' && req.path === '/api/v1/letterboxd-worker/exchange') return next();
+        return csrfMiddleware(req, res, next);
+      });
+      server.use((req, res, next) => {
+        if (!req.csrfToken) return next();
         res.cookie('XSRF-TOKEN', req.csrfToken(), {
           sameSite: true,
           secure: !dev,

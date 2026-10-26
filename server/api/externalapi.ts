@@ -1,5 +1,8 @@
+import { isBackgroundWork } from '@server/lib/backgroundContext';
+import { backgroundWork } from '@server/lib/backgroundWork';
+import logger from '@server/logger';
 import { proxyRequestInterceptor } from '@server/utils/customProxyAgent';
-import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 import rateLimit from 'axios-rate-limit';
 import type NodeCache from 'node-cache';
@@ -41,6 +44,70 @@ class ExternalAPI {
       },
     });
     this.axios.interceptors.request.use(proxyRequestInterceptor);
+    // Keep authenticated/proxy-aware I/O and cache ownership here, but decode
+    // potentially large scan/download responses away from HTTP request handling.
+    // This context also covers manually invoked scheduler jobs.
+    this.axios.interceptors.request.use((config) => {
+      const transforms = Array.isArray(config.transformResponse)
+        ? config.transformResponse
+        : [config.transformResponse];
+      const defaults = Array.isArray(axios.defaults.transformResponse)
+        ? axios.defaults.transformResponse
+        : [axios.defaults.transformResponse];
+      if (
+        isBackgroundWork() &&
+        !config.responseType &&
+        !config.parseReviver &&
+        config.transitional?.forcedJSONParsing !== false &&
+        config.transitional?.silentJSONParsing !== false &&
+        transforms.length === defaults.length &&
+        transforms.every((fn, i) => fn === defaults[i])
+      ) {
+        config.responseType = 'text';
+        config.transformResponse = [(text: string) => text];
+        (
+          config as typeof config & { backgroundJson?: boolean }
+        ).backgroundJson = true;
+      }
+      return config;
+    });
+    const decodeBackground = async (response: AxiosResponse) => {
+      if (
+        (
+          response.config as typeof response.config & {
+            backgroundJson?: boolean;
+          }
+        ).backgroundJson &&
+        typeof response.data === 'string' &&
+        response.data.trim()
+      ) {
+        // Small payloads cost less to decode than an IPC round trip. Keep the
+        // worker for the large scan responses that can stall the request loop.
+        if (response.data.length < 128 * 1024) {
+          try {
+            response.data = JSON.parse(response.data);
+          } catch {
+            /* Axios default: retain text. */
+          }
+        } else
+          response.data = await backgroundWork.run({
+            kind: 'json',
+            text: response.data,
+            silent: true,
+          });
+      }
+      return response;
+    };
+    this.axios.interceptors.response.use(decodeBackground, async (error) => {
+      if (error.response) {
+        try {
+          await decodeBackground(error.response);
+        } catch {
+          /* Preserve HTTP failure. */
+        }
+      }
+      throw error;
+    });
 
     if (options.rateLimit) {
       this.axios = rateLimit(this.axios, {
@@ -120,9 +187,17 @@ class ExternalAPI {
         keyTtl - (ttl ?? DEFAULT_TTL) * 1000 <
         Date.now() - DEFAULT_ROLLING_BUFFER
       ) {
-        this.axios.get<T>(endpoint, config).then((response) => {
-          this.cache?.set(cacheKey, response.data, ttl ?? DEFAULT_TTL);
-        });
+        this.axios
+          .get<T>(endpoint, config)
+          .then((response) => {
+            this.cache?.set(cacheKey, response.data, ttl ?? DEFAULT_TTL);
+          })
+          .catch(() => {
+            logger.warn(
+              'Background API cache refresh failed; retaining cached value',
+              { label: 'API' }
+            );
+          });
       }
       return cachedItem;
     }

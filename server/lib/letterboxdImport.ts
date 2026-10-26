@@ -6,6 +6,10 @@ export type ImportedReview = {
   title: string;
   year: string;
   tmdbId?: number;
+  mediaType?: 'movie' | 'tv';
+  watched?: boolean;
+  entryKind?: 'summary' | 'diary';
+  explicitFields?: { rating: boolean; review: boolean };
   rating: number | null;
   text: string;
   spoiler: boolean;
@@ -13,7 +17,7 @@ export type ImportedReview = {
   watchedDate: string | null;
   externalUrl: string;
 };
-export function parseCsv(csv: string): Record<string, string>[] {
+export function parseCsvRows(csv: string): string[][] {
   if (Buffer.byteLength(csv) > 2 * 1024 * 1024) throw Error('CSV too large');
   const rows: string[][] = [];
   let row: string[] = [],
@@ -41,8 +45,13 @@ export function parseCsv(csv: string): Record<string, string>[] {
   if (quoted) throw Error('Unclosed CSV field');
   row.push(field);
   if (row.some(Boolean)) rows.push(row);
+  if (rows.length > 10010) throw Error('Too many entries');
+  return rows;
+}
+export function parseCsv(csv: string, requiredHeaders = ['Name', 'Letterboxd URI']): Record<string, string>[] {
+  const rows = parseCsvRows(csv);
   const headers = rows.shift();
-  if (!headers?.includes('Name') || !headers.includes('Letterboxd URI'))
+  if (!headers || requiredHeaders.some(header => !headers.includes(header)) || new Set(headers).size !== headers.length)
     throw Error('Not a Letterboxd export');
   if (rows.length > 10000) throw Error('Too many entries');
   return rows.map((r) => {
@@ -62,7 +71,11 @@ export function plainReview(html: string): string {
   return html
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<br\s*\/?\s*>|<\/p>/gi, '\n')
+    // HTML paragraphs are blank-line boundaries; <br> is only a line break.
+    // Consume inter-tag formatting whitespace so indented feeds add no extras.
+    .replace(/<\/p>\s*<p\b[^>]*>/gi, '\n\n')
+    .replace(/<br\s*\/?\s*>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
     .replace(/<[^>]*>/g, '')
     .replace(/&#(x[0-9a-f]+|\d+);/gi, (_, code) => {
       const n =
@@ -120,18 +133,55 @@ function date(value: string): string {
   return d.toISOString();
 }
 export function importKey(url: string, watchedDate: string | null) {
+  const identity = letterboxdEntryIdentity(url);
   return createHash('sha256')
-    .update(`${url}|${watchedDate || ''}`)
+    .update(identity || `${url}|${watchedDate || ''}`)
     .digest('hex');
 }
-export function csvReviews(csv: string, username: string): ImportedReview[] {
+// A member entry permalink identifies a viewing; a film page does not.
+// Preserve numbered rewatch suffixes and never use a watch date as an entry ID.
+export function letterboxdEntryIdentity(value: string): string | null {
+  const url = new URL(value);
+  if (
+    url.protocol !== 'https:' ||
+    url.hostname !== 'letterboxd.com' ||
+    url.username ||
+    url.password ||
+    url.port
+  )
+    return null;
+  const match = url.pathname.match(
+    /^\/([a-zA-Z0-9_]+)\/film\/([a-z0-9-]+|film:[1-9][0-9]*)(?:\/([1-9][0-9]*))?\/?$/
+  );
+  return match
+    ? `https://letterboxd.com/${match[1].toLowerCase()}/film/${match[2]}/${match[3] ? match[3] + '/' : ''}`
+    : null;
+}
+export function csvReviews(
+  csv: string,
+  username: string,
+  kind = 'auto'
+): ImportedReview[] {
   return parseCsv(csv)
-    .filter((r) => r.Review?.trim() || r.Rating?.trim())
+    .filter(
+      (r) =>
+        kind === 'watched.csv' ||
+        kind === 'diary.csv' ||
+        r['Watched Date'] ||
+        r.Review?.trim() ||
+        r.Rating?.trim()
+    )
     .map((r) => {
       if (r.Private === 'Yes' || r.Deleted === 'Yes')
         throw Error('Private/deleted exports are not supported');
       const externalUrl = letterboxdUrl(r['Letterboxd URI'], username),
         watchedDate = r['Watched Date'] || null;
+      if (
+        watchedDate &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(watchedDate) ||
+          date(watchedDate).slice(0, 10) !== watchedDate)
+      )
+        throw Error('Invalid watched date');
       return {
         key: importKey(externalUrl, watchedDate),
         title: r.Name,
@@ -143,6 +193,11 @@ export function csvReviews(csv: string, username: string): ImportedReview[] {
         ),
         publishedAt: date(r.Date || watchedDate || ''),
         watchedDate,
+        watched: true,
+        entryKind:
+          watchedDate || r.Review?.trim()
+            ? ('diary' as const)
+            : ('summary' as const),
         externalUrl,
       };
     });
@@ -167,30 +222,60 @@ export async function rssReviews(
     if (!item['letterboxd:filmTitle']) return [];
     const externalUrl = letterboxdUrl(item.link, username);
     const watchedDate = item['letterboxd:watchedDate'] || null;
-    const description = String(item.description || '')
+    let description = String(item.description || '')
       .replace(/<p>\s*<img[\s\S]*?<\/p>/i, '')
       .replace(/<p>\s*(?:Watched|Rewatched) on [^<\n]+\.<\/p>/i, '');
+    // RSS prepends this UI warning to spoiler reviews. Remove only the exact
+    // leading warning paragraph, before text comparison/reconciliation; retain
+    // the spoiler flag independently and never strip matching prose elsewhere.
+    const leadingParagraph = /^\s*<p\b[^>]*>([\s\S]*?)<\/p>/i.exec(description);
+    const spoilerWarning =
+      !!leadingParagraph &&
+      leadingParagraph[1]
+        .replace(/<\/?(?:em|strong|b|i)\b[^>]*>/gi, '')
+        .trim() === 'This review may contain spoilers.';
+    if (spoilerWarning)
+      description = description.slice(leadingParagraph![0].length);
     const text = plainReview(description),
       rating = ratingValue(
         Number(item['letterboxd:memberRating']) === 0
           ? null
           : item['letterboxd:memberRating']
       );
-    if (!text && rating === null) return [];
-    const tmdbId = Number(item['tmdb:movieId']);
+    const explicitFields = {
+      rating: Object.prototype.hasOwnProperty.call(
+        item,
+        'letterboxd:memberRating'
+      ),
+      review: Object.prototype.hasOwnProperty.call(item, 'description'),
+    };
+    if (
+      !text &&
+      rating === null &&
+      !watchedDate &&
+      !explicitFields.rating &&
+      !explicitFields.review
+    )
+      return [];
+    const tmdbId = Number(item['tmdb:movieId'] || item['tmdb:tvId']);
     return [
       {
         key: importKey(externalUrl, watchedDate),
+        explicitFields,
         title: String(item['letterboxd:filmTitle']),
         year: String(item['letterboxd:filmYear'] || ''),
         tmdbId: Number.isSafeInteger(tmdbId) && tmdbId > 0 ? tmdbId : undefined,
+        mediaType: item['tmdb:tvId'] && !item['tmdb:movieId'] ? 'tv' : 'movie',
         rating,
         text,
         spoiler:
+          spoilerWarning ||
           /spoiler/i.test(text) ||
           String(item['letterboxd:spoilers']) === 'true',
         publishedAt: date(item.pubDate),
         watchedDate,
+        watched: true,
+        entryKind: 'diary',
         externalUrl,
       },
     ];

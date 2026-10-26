@@ -37,6 +37,7 @@ interface SearchOptions {
 
 interface SingleSearchOptions extends SearchOptions {
   year?: number;
+  throwOnError?: boolean;
 }
 
 export const SortOptionsIterable = [
@@ -178,6 +179,7 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
     includeAdult = false,
     language = this.locale,
     year,
+    throwOnError = false,
   }: SingleSearchOptions): Promise<TmdbSearchMovieResponse> => {
     try {
       const data = await this.get<TmdbSearchMovieResponse>('/search/movie', {
@@ -191,7 +193,8 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
       });
 
       return data;
-    } catch {
+    } catch (error) {
+      if (throwOnError) throw error;
       return {
         page: 1,
         results: [],
@@ -273,6 +276,12 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
       );
     }
   };
+
+  // List editing only needs identity and a poster, not credits/videos/providers.
+  public getListMovie = (movieId: number) =>
+    this.get<
+      Pick<TmdbMovieDetails, 'id' | 'title' | 'release_date' | 'poster_path'>
+    >(`/movie/${movieId}`, { params: { language: this.locale } }, 43200);
 
   public getMovie = async ({
     movieId,

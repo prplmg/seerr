@@ -1,4 +1,5 @@
 import PlexTvAPI from '@server/api/plextv';
+import { readAccountMappings } from '@server/lib/accountMappings';
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
 import { appDataPath } from '@server/utils/appDataVolume';
@@ -32,7 +33,9 @@ export async function plexWatchlistToken(userId: number): Promise<string> {
     if (preferences.version === 1)
       plexId = preferences.users?.[String(userId)]?.plexUserId;
   }
-  if (!plexId) {
+  const override = readAccountMappings().users.find(row => row.userId === userId);
+  if (override) plexId = override.watchlistPlexId ?? undefined;
+  if (!plexId && !override) {
     const policy = JSON.parse(
       fs
         .readFileSync(path.join(appDataPath(), 'social.json'), 'utf8')
@@ -81,15 +84,17 @@ export async function plexWatchlistToken(userId: number): Promise<string> {
   return token;
 }
 
-export async function plexProfileWatchlist(userId: number, page: number) {
+export async function plexProfileWatchlist(userId: number, page: number, pageSize = 20) {
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 20) throw Error('Invalid watchlist page size');
   const token = await plexWatchlistToken(userId);
   const list = await new PlexTvAPI(token).getWatchlist({
-    offset: (page - 1) * 20,
+    offset: (page - 1) * pageSize,
+    size: pageSize,
     strict: true,
   });
   return {
     page,
-    totalPages: Math.ceil(list.totalSize / 20),
+    totalPages: Math.ceil(list.totalSize / pageSize),
     totalResults: list.totalSize,
     results: list.items.map((item) => ({
       id: item.tmdbId,

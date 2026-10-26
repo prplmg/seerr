@@ -1,4 +1,3 @@
-import SocialPeople from '@app/components/SocialPeople';
 import Spinner from '@app/assets/spinner.svg';
 import BlocklistModal from '@app/components/BlocklistModal';
 import Button from '@app/components/Common/Button';
@@ -6,12 +5,15 @@ import CachedImage from '@app/components/Common/CachedImage';
 import StatusBadgeMini from '@app/components/Common/StatusBadgeMini';
 import Tooltip from '@app/components/Common/Tooltip';
 import RequestModal from '@app/components/RequestModal';
+import SocialPeople from '@app/components/SocialPeople';
 import ErrorCard from '@app/components/TitleCard/ErrorCard';
 import Placeholder from '@app/components/TitleCard/Placeholder';
+import { useDiscoveryPreviewReadOnly } from '@app/hooks/useDiscovery';
 import { useIsTouch } from '@app/hooks/useIsTouch';
 import useToasts from '@app/hooks/useToasts';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
+import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import defineMessages from '@app/utils/defineMessages';
 import { withProperties } from '@app/utils/typeHelpers';
 import { Transition } from '@headlessui/react';
@@ -26,13 +28,13 @@ import { MediaStatus } from '@server/constants/media';
 import type { Watchlist } from '@server/entity/Watchlist';
 import type { MediaType } from '@server/models/Search';
 import axios from 'axios';
-import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import Link from 'next/link';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { mutate } from 'swr';
 
 interface TitleCardProps {
+  detailHref?: string;
   id: number;
   image?: string;
   summary?: string;
@@ -58,6 +60,7 @@ const messages = defineMessages('components.TitleCard', {
 });
 
 const TitleCard = ({
+  detailHref,
   id,
   image,
   summary,
@@ -71,6 +74,7 @@ const TitleCard = ({
   mutateParent,
 }: TitleCardProps) => {
   const isTouch = useIsTouch();
+  const previewReadOnly = useDiscoveryPreviewReadOnly();
   const intl = useIntl();
   const { user, hasPermission } = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -302,19 +306,23 @@ const TitleCard = ({
 
   const closeModal = useCallback(() => setShowRequestModal(false), []);
 
-  const showRequestButton = hasPermission(
-    [
-      Permission.REQUEST,
-      mediaType === 'movie' || mediaType === 'collection'
-        ? Permission.REQUEST_MOVIE
-        : Permission.REQUEST_TV,
-    ],
-    { type: 'or' }
-  );
+  const showRequestButton =
+    !previewReadOnly &&
+    hasPermission(
+      [
+        Permission.REQUEST,
+        mediaType === 'movie' || mediaType === 'collection'
+          ? Permission.REQUEST_MOVIE
+          : Permission.REQUEST_TV,
+      ],
+      { type: 'or' }
+    );
 
-  const showHideButton = hasPermission([Permission.MANAGE_BLOCKLIST], {
-    type: 'or',
-  });
+  const showHideButton =
+    !previewReadOnly &&
+    hasPermission([Permission.MANAGE_BLOCKLIST], {
+      type: 'or',
+    });
 
   return (
     <div
@@ -324,7 +332,7 @@ const TitleCard = ({
     >
       <RequestModal
         tmdbId={id}
-        show={showRequestModal}
+        show={!previewReadOnly && showRequestModal}
         type={
           mediaType === 'movie'
             ? 'movie'
@@ -345,7 +353,7 @@ const TitleCard = ({
               ? 'collection'
               : 'tv'
         }
-        show={showBlocklistModal}
+        show={!previewReadOnly && showBlocklistModal}
         onCancel={closeBlocklistModal}
         onComplete={onClickHideItemBtn}
         isUpdating={isUpdating}
@@ -403,44 +411,49 @@ const TitleCard = ({
                     : intl.formatMessage(globalMessages.tvshow)}
               </div>
             </div>
-            <div className="mr-auto ml-1 mt-px self-start"><SocialPeople id={id} type={mediaType} card /></div>
-            {showDetail && currentStatus !== MediaStatus.BLOCKLISTED && (
-              <div className="flex flex-col gap-1">
-                {SHOW_WATCHLIST && user?.userType !== UserType.PLEX &&
-                  (toggleWatchlist ? (
-                    <Button
-                      buttonType={'ghost'}
-                      className="z-40"
-                      buttonSize={'sm'}
-                      onClick={onClickWatchlistBtn}
-                    >
-                      <StarIcon className={'h-3 text-amber-300'} />
-                    </Button>
-                  ) : (
-                    <Button
-                      className="z-40"
-                      buttonSize={'sm'}
-                      onClick={onClickDeleteWatchlistBtn}
-                    >
-                      <MinusCircleIcon className={'h-3'} />
-                    </Button>
-                  ))}
-                {showHideButton &&
-                  currentStatus !== MediaStatus.PROCESSING &&
-                  currentStatus !== MediaStatus.AVAILABLE &&
-                  currentStatus !== MediaStatus.PARTIALLY_AVAILABLE &&
-                  currentStatus !== MediaStatus.PENDING && (
-                    <Button
-                      buttonType={'ghost'}
-                      className="z-40"
-                      buttonSize={'sm'}
-                      onClick={() => setShowBlocklistModal(true)}
-                    >
-                      <EyeSlashIcon className={'h-3'} />
-                    </Button>
-                  )}
-              </div>
-            )}
+            <div className="mx-0.5 mt-px flex min-w-0 flex-1 justify-start self-start">
+              <SocialPeople id={id} type={mediaType} card />
+            </div>
+            {!previewReadOnly &&
+              showDetail &&
+              currentStatus !== MediaStatus.BLOCKLISTED && (
+                <div className="flex flex-col gap-1">
+                  {SHOW_WATCHLIST &&
+                    user?.userType !== UserType.PLEX &&
+                    (toggleWatchlist ? (
+                      <Button
+                        buttonType={'ghost'}
+                        className="z-40"
+                        buttonSize={'sm'}
+                        onClick={onClickWatchlistBtn}
+                      >
+                        <StarIcon className={'h-3 text-amber-300'} />
+                      </Button>
+                    ) : (
+                      <Button
+                        className="z-40"
+                        buttonSize={'sm'}
+                        onClick={onClickDeleteWatchlistBtn}
+                      >
+                        <MinusCircleIcon className={'h-3'} />
+                      </Button>
+                    ))}
+                  {showHideButton &&
+                    currentStatus !== MediaStatus.PROCESSING &&
+                    currentStatus !== MediaStatus.AVAILABLE &&
+                    currentStatus !== MediaStatus.PARTIALLY_AVAILABLE &&
+                    currentStatus !== MediaStatus.PENDING && (
+                      <Button
+                        buttonType={'ghost'}
+                        className="z-40"
+                        buttonSize={'sm'}
+                        onClick={() => setShowBlocklistModal(true)}
+                      >
+                        <EyeSlashIcon className={'h-3'} />
+                      </Button>
+                    )}
+                </div>
+              )}
             {showDetail &&
               showHideButton &&
               currentStatus == MediaStatus.BLOCKLISTED && (
@@ -460,7 +473,7 @@ const TitleCard = ({
                 </Tooltip>
               )}
             {currentStatus && currentStatus !== MediaStatus.UNKNOWN && (
-              <div className="flex flex-col items-center gap-1">
+              <div className="flex flex-col items-center gap-0">
                 <div className="pointer-events-none z-40 flex">
                   <StatusBadgeMini
                     status={currentStatus}
@@ -468,7 +481,13 @@ const TitleCard = ({
                     shrink
                   />
                 </div>
-                <SocialPeople id={id} type={mediaType} kind="requesters" card vertical />
+                <SocialPeople
+                  id={id}
+                  type={mediaType}
+                  kind="requesters"
+                  card
+                  vertical
+                />
               </div>
             )}
           </div>
@@ -500,11 +519,12 @@ const TitleCard = ({
             <div className="absolute inset-0 overflow-hidden rounded-xl">
               <Link
                 href={
-                  mediaType === 'movie'
+                  detailHref ||
+                  (mediaType === 'movie'
                     ? `/movie/${id}`
                     : mediaType === 'collection'
                       ? `/collection/${id}`
-                      : `/tv/${id}`
+                      : `/tv/${id}`)
                 }
                 className="absolute inset-0 h-full w-full cursor-pointer overflow-hidden text-left"
                 style={{

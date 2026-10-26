@@ -1,8 +1,23 @@
 import { MediaServerType } from '@server/constants/server';
 import blocklistedTagsProcessor from '@server/job/blocklistedTagsProcessor';
+import { syncMappedAvatars } from '@server/lib/accountAvatarSync';
 import availabilitySync from '@server/lib/availabilitySync';
+import { avatarMigrationActive } from '@server/lib/catalogueMigration';
+import { refreshDiscoveryReleases } from '@server/lib/discoveryReleases';
+import {
+  refreshCuratedMetadata,
+  scheduledProfileWatchlistRefresh,
+} from '@server/lib/catalogueRefreshJobs';
 import downloadTracker from '@server/lib/downloadtracker';
 import ImageProxy from '@server/lib/imageproxy';
+import {
+  monitorLetterboxdBrowsers,
+  scheduleBrowserScans,
+  scheduleBrowserExports,
+} from '@server/lib/letterboxdBrowser';
+import { prepareLetterboxdPlaybackPublications } from '@server/lib/letterboxdPlaybackContinuation';
+import { publicationSchedule } from '@server/lib/letterboxdPublicationSchedule';
+import { prepareLetterboxdPublications } from '@server/lib/letterboxdPublicationContinuation';
 import refreshToken from '@server/lib/refreshToken';
 import { pollReviews } from '@server/lib/reviews';
 import {
@@ -16,7 +31,9 @@ import type { JobId } from '@server/lib/settings';
 import { getSettings } from '@server/lib/settings';
 import watchlistSync from '@server/lib/watchlistsync';
 import logger from '@server/logger';
+import { refreshCatalogueHistory, refreshRecentMoviePlayback } from '@server/routes/social';
 import schedule from 'node-schedule';
+import { runScheduledWork } from '@server/lib/backgroundContext';
 
 interface ScheduledJob {
   id: JobId;
@@ -30,15 +47,189 @@ interface ScheduledJob {
 }
 
 export const scheduledJobs: ScheduledJob[] = [];
+let reviewRssRunning = false;
+let avatarRunning = false;
+
+export async function runReviewRssJob(force = false): Promise<void> {
+  if (reviewRssRunning) {
+    logger.info('Review RSS refresh skipped: already running', { label: 'Letterboxd' });
+    return;
+  }
+  reviewRssRunning = true;
+  logger.info('Review RSS refresh started', { label: 'Letterboxd', trigger: force ? 'manual' : 'scheduled' });
+  try {
+    await runScheduledWork(() => pollReviews(force));
+    logger.info('Review RSS refresh finished', { label: 'Letterboxd' });
+  } catch {
+    logger.warn('Review RSS poll failed', { label: 'Letterboxd' });
+  } finally {
+    reviewRssRunning = false;
+  }
+}
 
 export const startJobs = (): void => {
-  if (!schedule.scheduledJobs['letterboxd-review-rss'])
-    schedule.scheduleJob('letterboxd-review-rss', '*/15 * * * *', () => {
-      void pollReviews().catch(() =>
-        logger.warn('Review RSS poll failed', { label: 'Letterboxd' })
-      );
-    });
   const jobs = getSettings().jobs;
+  for (const definition of [
+    {
+      id: 'letterboxd-publication-sync' as const,
+      name: 'Letterboxd Publication Sync',
+      fallback: '0 0 9,21 * * *',
+      run: async () => {
+        scheduleBrowserExports();
+        const report = await prepareLetterboxdPublications();
+        const playback = await prepareLetterboxdPlaybackPublications();
+        // Never log entry IDs, accounts, review contents, or raw errors.
+        logger.info('Letterboxd publication planning completed', {
+          label: 'Letterboxd',
+          queuedCount: report.queued,
+          issueCount: report.issues.length,
+          playbackQueuedCount: playback.queued,
+          playbackObservationCount: playback.pendingObservations.length,
+          playbackIssueCount: playback.issues.length,
+        });
+      },
+    },
+    {
+      id: 'letterboxd-browser-sync' as const,
+      name: 'Letterboxd Browser Watchlists',
+      fallback: '0 0 */12 * * *',
+      run: async () => {
+        scheduleBrowserScans();
+        const { resumeDiscoveryImports } = await import('../lib/discoveryImportInbox');
+        await resumeDiscoveryImports();
+        const { refreshDiscoveryLists } = await import('../lib/discoveryListImport');
+        await refreshDiscoveryLists();
+      },
+    },
+    {
+      id: 'letterboxd-browser-health' as const,
+      name: 'Letterboxd Browser Health and Alerts',
+      fallback: '0 */5 * * * *',
+      run: monitorLetterboxdBrowsers,
+    },
+    {
+      id: 'letterboxd-playback-refresh' as const,
+      name: 'Letterboxd Completed Playback Publishing',
+      fallback: '*/30 * * * * *',
+      run: async () => {
+        await refreshRecentMoviePlayback();
+        await prepareLetterboxdPlaybackPublications();
+      },
+    },
+    {
+      id: 'catalogue-history-refresh' as const,
+      name: 'Catalogue Watch History Refresh',
+      fallback: '0 */2 * * * *',
+      run: async () => {
+        try { await refreshCatalogueHistory(); }
+        finally { await refreshDiscoveryReleases(); }
+      },
+    },
+    {
+      id: 'profile-watchlist-refresh' as const,
+      name: 'Shared Plex Profile Watchlists',
+      fallback: '0 */15 * * * *',
+      run: scheduledProfileWatchlistRefresh,
+    },
+    {
+      id: 'curated-metadata-refresh' as const,
+      name: 'Curated List Metadata Refresh',
+      fallback: '0 5 */6 * * *',
+      run: refreshCuratedMetadata,
+    },
+  ]) {
+    if (scheduledJobs.some((job) => job.id === definition.id)) continue;
+    let running = false;
+    const publishing =
+      definition.id === 'letterboxd-publication-sync'
+        ? publicationSchedule(jobs[definition.id]?.schedule)
+        : null;
+    const cronSchedule =
+      publishing?.cron ?? jobs[definition.id]?.schedule ?? definition.fallback;
+    scheduledJobs.push({
+      id: definition.id,
+      name: definition.name,
+      type: 'process',
+      interval: definition.id === 'letterboxd-playback-refresh' ? 'seconds' : 'minutes',
+      cronSchedule,
+      job: schedule.scheduleJob(
+        definition.id,
+        publishing
+          ? { rule: cronSchedule, tz: publishing.timeZone }
+          : cronSchedule,
+        async () => {
+          if (running) return;
+          running = true;
+          logger[definition.id === 'letterboxd-playback-refresh' ? 'debug' : 'info']('Catalogue refresh started', { label: 'Jobs', job: definition.id });
+          try {
+            await runScheduledWork(() => definition.run());
+            logger[definition.id === 'letterboxd-playback-refresh' ? 'debug' : 'info']('Catalogue refresh completed', {
+              label: 'Jobs',
+              job: definition.id,
+            });
+          } catch {
+            logger.warn('Catalogue refresh failed', {
+              label: 'Jobs',
+              job: definition.id,
+            });
+          } finally {
+            running = false;
+          }
+        }
+      ),
+      running: () => running,
+    });
+  }
+  if (!scheduledJobs.some((job) => job.id === 'account-avatar-sync')) {
+    const cronSchedule =
+      jobs['account-avatar-sync']?.schedule ?? '0 0 12 * * *';
+    scheduledJobs.push({
+      id: 'account-avatar-sync',
+      name: 'Plex Profile Avatar Sync',
+      type: 'process',
+      interval: 'hours',
+      cronSchedule,
+      job: schedule.scheduleJob(
+        'account-avatar-sync',
+        cronSchedule,
+        async () => {
+          if (avatarRunning) return;
+          avatarRunning = true;
+          try {
+            const result = await syncMappedAvatars(!avatarMigrationActive());
+            logger.info('Avatar synchronization completed', {
+              label: 'Account mappings',
+              ...result,
+            });
+          } catch {
+            logger.warn('Avatar synchronization failed; review mappings', {
+              label: 'Account mappings',
+            });
+          } finally {
+            avatarRunning = false;
+          }
+        }
+      ),
+      running: () => avatarRunning,
+    });
+  }
+  if (!scheduledJobs.some((job) => job.id === 'letterboxd-review-rss')) {
+    const cronSchedule =
+      jobs['letterboxd-review-rss']?.schedule ?? '0 */15 * * * *';
+    scheduledJobs.push({
+      id: 'letterboxd-review-rss',
+      name: 'Letterboxd Review RSS Sync',
+      type: 'process',
+      interval: 'minutes',
+      cronSchedule,
+      job: schedule.scheduleJob(
+        'letterboxd-review-rss',
+        cronSchedule,
+        () => runReviewRssJob()
+      ),
+      running: () => reviewRssRunning,
+    });
+  }
   const mediaServerType = getSettings().main.mediaServerType;
 
   if (mediaServerType === MediaServerType.PLEX) {
@@ -55,7 +246,7 @@ export const startJobs = (): void => {
           logger.info('Starting scheduled job: Plex Recently Added Scan', {
             label: 'Jobs',
           });
-          plexRecentScanner.run();
+          runScheduledWork(() => plexRecentScanner.run());
         }
       ),
       running: () => plexRecentScanner.status().running,
@@ -73,7 +264,7 @@ export const startJobs = (): void => {
         logger.info('Starting scheduled job: Plex Full Library Scan', {
           label: 'Jobs',
         });
-        plexFullScanner.run();
+        runScheduledWork(() => plexFullScanner.run());
       }),
       running: () => plexFullScanner.status().running,
       cancelFn: () => plexFullScanner.cancel(),
@@ -104,7 +295,7 @@ export const startJobs = (): void => {
         logger.info('Starting scheduled job: Plex Watchlist Sync', {
           label: 'Jobs',
         });
-        watchlistSync.syncWatchlist().catch((e) => {
+        runScheduledWork(() => watchlistSync.syncWatchlist()).catch((e) => {
           logger.error('Failed to sync watchlists', {
             label: 'Plex Watchlist Sync',
             errorMessage: e.message,
@@ -129,7 +320,7 @@ export const startJobs = (): void => {
           logger.info('Starting scheduled job: Jellyfin Recently Added Scan', {
             label: 'Jobs',
           });
-          jellyfinRecentScanner.run();
+          runScheduledWork(() => jellyfinRecentScanner.run());
         }
       ),
       running: () => jellyfinRecentScanner.status().running,
@@ -147,7 +338,7 @@ export const startJobs = (): void => {
         logger.info('Starting scheduled job: Jellyfin Full Scan', {
           label: 'Jobs',
         });
-        jellyfinFullScanner.run();
+        runScheduledWork(() => jellyfinFullScanner.run());
       }),
       running: () => jellyfinFullScanner.status().running,
       cancelFn: () => jellyfinFullScanner.cancel(),
@@ -163,7 +354,7 @@ export const startJobs = (): void => {
     cronSchedule: jobs['radarr-scan'].schedule,
     job: schedule.scheduleJob(jobs['radarr-scan'].schedule, () => {
       logger.info('Starting scheduled job: Radarr Scan', { label: 'Jobs' });
-      radarrScanner.run();
+      runScheduledWork(() => radarrScanner.run());
     }),
     running: () => radarrScanner.status().running,
     cancelFn: () => radarrScanner.cancel(),
@@ -178,7 +369,7 @@ export const startJobs = (): void => {
     cronSchedule: jobs['sonarr-scan'].schedule,
     job: schedule.scheduleJob(jobs['sonarr-scan'].schedule, () => {
       logger.info('Starting scheduled job: Sonarr Scan', { label: 'Jobs' });
-      sonarrScanner.run();
+      runScheduledWork(() => sonarrScanner.run());
     }),
     running: () => sonarrScanner.status().running,
     cancelFn: () => sonarrScanner.cancel(),
@@ -212,8 +403,11 @@ export const startJobs = (): void => {
       logger.debug('Starting scheduled job: Download Sync', {
         label: 'Jobs',
       });
-      downloadTracker.updateDownloads();
+      void runScheduledWork(() => downloadTracker.updateDownloads()).catch(() => {
+        logger.warn('Download refresh failed', { label: 'Jobs' });
+      });
     }),
+    running: () => downloadTracker.isRunning(),
   });
 
   // Reset download sync everyday at 01:00 am

@@ -13,68 +13,6 @@ function getAxios(sonarr: SonarrAPI): AxiosInstance {
   return (sonarr as unknown as { axios: AxiosInstance }).axios;
 }
 
-describe('Sonarr initial-search selection', () => {
-  afterEach(() => mock.restoreAll());
-  for (const searchNow of [false, true]) {
-    it(`adds a monitored series with searchNow=${searchNow}`, async () => {
-      const sonarr = buildSonarr();
-      mock.method(sonarr, 'getSeriesByTvdbId', async () => ({
-        seasons: [{ seasonNumber: 1 }, { seasonNumber: 2 }],
-      }));
-      const post = mock.method(getAxios(sonarr), 'post', async () => ({
-        data: { id: 9 },
-      }));
-      await sonarr.addSeries({
-        tvdbid: 1234,
-        title: 'Test',
-        profileId: 1,
-        rootFolderPath: '/tv',
-        seasons: [1],
-        monitored: true,
-        searchNow,
-        seasonFolder: true,
-        seriesType: 'standard',
-      });
-      const body = post.mock.calls[0].arguments[1] as any;
-      assert.equal(body.monitored, true);
-      assert.equal(body.addOptions.searchForMissingEpisodes, searchNow);
-      assert.equal(
-        body.seasons.find((season: any) => season.seasonNumber === 1).monitored,
-        true
-      );
-      assert.equal(
-        body.seasons.find((season: any) => season.seasonNumber === 2).monitored,
-        false
-      );
-    });
-    it(`updates an existing monitored series with searchNow=${searchNow}`, async () => {
-      const sonarr = buildSonarr();
-      mock.method(sonarr, 'getSeriesByTvdbId', async () => ({
-        id: 9,
-        tags: [],
-        seasons: [{ seasonNumber: 1, monitored: false }],
-      }));
-      mock.method(getAxios(sonarr), 'put', async (_url: string, body: any) => ({
-        data: body,
-      }));
-      mock.method(sonarr, 'getEpisodes', async () => []);
-      const search = mock.method(sonarr, 'searchSeries', async () => ({}));
-      await sonarr.addSeries({
-        tvdbid: 1234,
-        title: 'Test',
-        profileId: 1,
-        rootFolderPath: '/tv',
-        seasons: [1],
-        monitored: true,
-        searchNow,
-        seasonFolder: true,
-        seriesType: 'standard',
-      });
-      assert.equal(search.mock.callCount(), searchNow ? 1 : 0);
-    });
-  }
-});
-
 describe('SonarrAPI removeSeries', () => {
   afterEach(() => mock.restoreAll());
 

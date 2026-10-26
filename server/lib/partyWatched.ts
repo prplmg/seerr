@@ -2,7 +2,14 @@ import { appDataPath } from '@server/utils/appDataVolume';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-type Row = { userId: number; tmdbId: number; mediaType: string; stamp: number };
+type Row = {
+  userId: number;
+  tmdbId: number;
+  mediaType: string;
+  stamp: number;
+  seasonNumber?: number;
+  episodeNumber?: number;
+};
 let cached: Row[] = [];
 let until = 0;
 let pending: Promise<Row[]> | undefined;

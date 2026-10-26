@@ -4,6 +4,7 @@ import CachedImage from '@app/components/Common/CachedImage';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import SlideOver from '@app/components/Common/SlideOver';
 import Tooltip from '@app/components/Common/Tooltip';
+import { AdminReleaseSubscriptions } from '@app/components/Discover/ReleaseUpdates';
 import DownloadBlock from '@app/components/DownloadBlock';
 import IssueBlock from '@app/components/IssueBlock';
 import RequestBlock from '@app/components/RequestBlock';
@@ -257,6 +258,9 @@ const ManageSlideOver = ({
       subText={isMovie(data) ? data.title : data.name}
     >
       <div className="space-y-6">
+        {show && hasPermission(Permission.ADMIN) && (
+          <AdminReleaseSubscriptions type={mediaType} id={data.id} />
+        )}
         {((data?.mediaInfo?.downloadStatus ?? []).length > 0 ||
           (data?.mediaInfo?.downloadStatus4k ?? []).length > 0) && (
           <div>

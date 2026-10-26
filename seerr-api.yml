@@ -47,6 +47,13 @@ servers:
         default: http://localhost:5055
 
 components:
+  parameters:
+    DiscoveryPreviewUser:
+      in: header
+      name: X-Discovery-Preview-User
+      description: Administrator-only read-only preview for an existing user, independent of their UI flag. Never changes the authenticated session; mutations reject this header.
+      schema:
+        type: string
   schemas:
     Blocklist:
       type: object
@@ -2156,6 +2163,404 @@ components:
       name: X-Api-Key
 
 paths:
+  /discovery-lists/releases:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Recent episodes and newly available awaited movies from requests and follows
+      parameters:
+        - in: query
+          name: section
+          schema:
+            type: string
+            enum: [episodes, movies]
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Private release rows
+        '404':
+          description: Preview disabled
+  /discovery-lists/follow/{type}/{id}:
+    parameters:
+      - in: path
+        name: type
+        required: true
+        schema:
+          type: string
+          enum: [movie, tv]
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    get:
+      summary: Read effective release follow and request lock (following, locked)
+      responses:
+        '200':
+          description: Follow state
+    put:
+      summary: Follow releases without making a download request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [following]
+              properties:
+                following:
+                  type: boolean
+      responses:
+        '200':
+          description: Follow state saved
+        '400':
+          description: Invalid follow or capacity exceeded
+        '409':
+          description: Requested titles cannot be unfollowed
+  /discovery-lists/admin/follow/{type}/{id}:
+    parameters:
+      - in: path
+        name: type
+        required: true
+        schema:
+          type: string
+          enum: [movie, tv]
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    get:
+      summary: Administrator reads explicit release subscriptions for all users
+      responses:
+        '200':
+          description: User subscription states
+        '403':
+          description: Administrator required
+    put:
+      summary: Administrator sets one user's release subscription without changing feature access
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [userId, following]
+              properties:
+                userId:
+                  type: integer
+                  minimum: 1
+                following:
+                  type: boolean
+      responses:
+        '200':
+          description: Subscription saved
+        '400':
+          description: Invalid subscription
+        '403':
+          description: Administrator required
+        '404':
+          description: User not found
+        '409':
+          description: Requested titles cannot be unfollowed
+  /discovery-lists/layout:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Read the current user's For you layout
+      responses:
+        '200':
+          description: Ordered section visibility
+    put:
+      summary: Save only the authenticated user's For you layout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              maxItems: 13
+              items:
+                type: object
+                required: [id, enabled]
+                additionalProperties: false
+                properties:
+                  id:
+                    type: string
+                  enabled:
+                    type: boolean
+      responses:
+        '200':
+          description: Saved layout
+        '400':
+          description: Invalid layout
+        '403':
+          description: Preview is read-only
+  /discovery-lists/features:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Current user's default-off discovery preview flag
+      responses:
+        '200':
+          description: Feature availability
+  /discovery-lists/imports/{id}:
+    get:
+      summary: Private status of a requested browser list import
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Import status
+        '404':
+          description: Unknown or other user's import
+  /discovery-lists:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Visible lists and private bookmarks for the current user
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: string
+            enum: [all, saved, created, liked, discover]
+      responses:
+        '200':
+          description: List summaries
+        '404':
+          description: Preview disabled
+  /discovery-lists/created/search:
+    get:
+      summary: Search movies for a catalogue-owned list
+      parameters:
+        - in: query
+          name: query
+          allowReserved: true
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 300 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, maximum: 50 }
+      responses:
+        '200':
+          description: Movie candidates and pagination
+        '429':
+          description: Too many concurrent searches
+  /discovery-lists/created:
+    post:
+      summary: Create a shared catalogue list without publishing to Letterboxd
+      requestBody: &catalogueListBody
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [title, description, movieIds]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 200 }
+                description: { type: string, maxLength: 5000 }
+                visibility: { type: string, enum: [public, private] }
+                movieIds:
+                  type: array
+                  minItems: 1
+                  maxItems: 200
+                  uniqueItems: true
+                  items: { type: integer, minimum: 1 }
+                revision: { type: integer, minimum: 1 }
+      responses:
+        '201':
+          description: Created list identifier
+        '400':
+          description: Invalid list
+  /discovery-lists/created/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Load the current user's catalogue list for editing
+      responses:
+        '200':
+          description: List metadata, revision and ordered movies
+        '404':
+          description: Not an editable list owned by this user
+    put:
+      summary: Update an owned catalogue list using its last-read revision
+      requestBody: *catalogueListBody
+      responses:
+        '200':
+          description: Saved list identifier
+        '404':
+          description: Not an editable list owned by this user
+        '409':
+          description: List changed since it was opened
+    delete:
+      summary: Delete an owned catalogue list and remove its bookmarks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [revision]
+              additionalProperties: false
+              properties:
+                revision: { type: integer, minimum: 1 }
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not an owned catalogue list
+        '409':
+          description: List changed since it was opened
+  /discovery-lists/import:
+    post:
+      summary: Import and privately save a publicly verified Letterboxd list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Imported list identifier
+        '202':
+          description: Read-only browser import queued; response contains jobId for private status checks
+        '422':
+          description: Public list could not be verified
+        '429':
+          description: Import rate limit
+  /discovery-lists/feed:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Personalized discovery using visibility-filtered catalogue data
+      parameters:
+        - in: query
+          name: section
+          schema:
+            type: string
+            enum:
+              [
+                unrated,
+                requested,
+                unfinished,
+                available,
+                recommendations,
+                friendsLoved,
+                activity,
+                continueLists,
+                almostFinished,
+                together,
+                short,
+              ]
+        - in: query
+          name: with
+          allowEmptyValue: true
+          schema:
+            type: string
+            maxLength: 100
+        - in: query
+          name: runtime
+          schema:
+            type: integer
+            minimum: 30
+            maximum: 240
+        - in: query
+          name: list
+          schema:
+            type: string
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Without section, homepage previews and shared metadata. With section, paginated results and history availability only; the first page also includes users for together or list filter options for available. List filters apply only to available.
+  /discovery-lists/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Visible list with catalogue pagination
+      parameters:
+        - in: query
+          name: revision
+          schema:
+            type: integer
+            minimum: 0
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: available
+          schema:
+            type: string
+            enum: ['true', 'false']
+        - in: query
+          name: unwatched
+          schema:
+            type: string
+            enum: ['true', 'false']
+      responses:
+        '200':
+          description: Metadata and at most twenty catalogue entries
+        '404':
+          description: Unavailable, private, or disabled
+  /discovery-lists/{id}/save:
+    put:
+      summary: Set a private catalogue bookmark, without writing to Letterboxd
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [saved]
+              properties:
+                saved:
+                  type: boolean
+      responses:
+        '200':
+          description: Saved state
+        '404':
+          description: List unavailable or feature disabled
   /curated:
     get:
       summary: Daily selection of curated categories
@@ -2203,10 +2608,383 @@ paths:
           description: Authentication required
         '404':
           description: Category not found
+  /settings/account-mappings:
+    get:
+      summary: Inspect account mappings (admin only)
+      responses:
+        '200': { description: Effective mappings and Plex profile choices }
+        '403': { description: Admin required }
+        '503': { description: Mapping sources unavailable }
+    put:
+      summary: Update independent account mappings (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [revision, document]
+              properties:
+                revision: { type: string }
+                document: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Saved }
+        '400': { description: Invalid mapping }
+        '403': { description: Admin required }
+        '409': { description: Stale mapping revision or migration pending }
+  /letterboxd-worker/lists:
+    post:
+      security: []
+      summary: Read-only anonymous list browser exchange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, instance, supported]
+              properties:
+                version: { type: integer, enum: [1] }
+                instance: { type: string, format: uuid }
+                supported: { type: boolean, enum: [true] }
+                inPrivateAllowed: { type: boolean, default: false }
+                report: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: List scan or idle }
+        '403': { description: Invalid worker credential }
+        '409': { description: Invalid list delivery }
+  /letterboxd-worker/exchange:
+    post:
+      security: []
+      summary: Account-bound read-only browser job exchange (dedicated worker credential)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, instance]
+              properties:
+                version: { type: integer, enum: [1] }
+                instance: { type: string, format: uuid }
+                exportCapable: { type: boolean, default: false }
+                report: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Pending read-only scan or idle }
+        '403': { description: Invalid worker credential }
+        '409': { description: Binding or report not accepted }
+  /letterboxd-worker/observations:
+    post:
+      security: []
+      summary: Read-only pilot baseline exchange (dedicated worker bearer credential)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, instance]
+              properties:
+                version: { type: integer, enum: [1] }
+                instance: { type: string, format: uuid }
+                supported:
+                  description: Omitted or empty permits reports only. Advertise only after installing the read adapter.
+                  type: array
+                  maxItems: 1
+                  uniqueItems: true
+                  items: { type: string, enum: [review_observe] }
+                report:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    [
+                      id,
+                      claimToken,
+                      userId,
+                      account,
+                      film,
+                      status,
+                      identityVerified,
+                      complete,
+                    ]
+                  properties:
+                    id: { type: string, format: uuid }
+                    claimToken: { type: string, format: uuid }
+                    userId: { type: integer, minimum: 1 }
+                    account:
+                      {
+                        type: string,
+                        minLength: 1,
+                        maxLength: 40,
+                        pattern: '^[a-zA-Z0-9_]+$',
+                      }
+                    film:
+                      {
+                        type: string,
+                        maxLength: 200,
+                        pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+                      }
+                    entryId: { type: string, format: uri, maxLength: 500 }
+                    createNew:
+                      {
+                        type: boolean,
+                        enum: [true],
+                        description: Read a blank new-review form; never edits an existing entry.,
+                      }
+                    status:
+                      { type: string, enum: [verified, unknown, ambiguous] }
+                    identityVerified: { type: boolean }
+                    complete: { type: boolean }
+                    observation:
+                      type: object
+                      additionalProperties: false
+                      required: [rating, text, spoiler, observedAt]
+                      properties:
+                        rating:
+                          {
+                            type: number,
+                            nullable: true,
+                            minimum: 0.5,
+                            maximum: 5,
+                            multipleOf: 0.5,
+                          }
+                        text: { type: string, maxLength: 50000 }
+                        spoiler: { type: boolean }
+                        watched:
+                          type: boolean
+                          description: Explicit authenticated film watched state; omitted means unknown.
+                        diaryEntriesComplete:
+                          type: boolean
+                          description: All dated diary entries for this account and film enumerated across all pages; never inferred from review absence. Must accompany diaryEntryIds.
+                        diaryEntryIds:
+                          type: array
+                          maxItems: 1000
+                          uniqueItems: true
+                          description: Canonical account/film entry URLs for dated diaries only; must accompany diaryEntriesComplete. Empty proves absence only when complete is true.
+                          items: { type: string, format: uri, maxLength: 500 }
+                        diaryEntryDates:
+                          type: object
+                          maxProperties: 1000
+                          description: Optional mapping of every diaryEntryIds URL to its explicit watched date (YYYY-MM-DD). Keys must exactly match the enumerated IDs. Never infer dates from review publication time.
+                          additionalProperties:
+                            type: string
+                            pattern: '^\d{4}-\d{2}-\d{2}$'
+                        observedAt:
+                          {
+                            type: number,
+                            description: Unix milliseconds measured at completion,
+                          }
+                        entryId: { type: string, format: uri, maxLength: 500 }
+      responses:
+        '200':
+          description: Read-only review_observe job or idle; claims include scoped film, optional entryId, claimToken and claimedAt in Unix milliseconds.
+        '400': { description: Invalid capabilities or request }
+        '403': { description: Invalid dedicated worker credential }
+        '409':
+          description: Binding, identity, completeness or report rejected
+  /letterboxd-worker/writes:
+    post:
+      security: []
+      summary: Exchange pilot-only verified Letterboxd writes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, instance]
+              properties:
+                version: { type: integer, enum: [1] }
+                instance: { type: string, format: uuid }
+                supported:
+                  description: Installed write adapters; omitted or empty permits reports only, never claims. Watchlist writes are excluded.
+                  type: array
+                  default: []
+                  maxItems: 5
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum: [rating, review, watched, diary, diary-content]
+                report:
+                  type: object
+                  additionalProperties: false
+                  required: [id, outcome]
+                  properties:
+                    id: { type: string, format: uuid }
+                    outcome:
+                      { type: string, enum: [verified, conflict, unknown] }
+                    identity: { type: string, nullable: true }
+                    entryId: { type: string, format: uri, maxLength: 500 }
+                    values:
+                      {
+                        type: object,
+                        nullable: true,
+                        additionalProperties: true,
+                      }
+      responses:
+        '200': { description: Pilot job or idle }
+        '403': { description: Invalid worker credential }
+        '409': { description: Binding or report rejected }
+  /letterboxd-watchlist/mine/film/{slug}/status:
+    get:
+      summary: Own Letterboxd watchlist membership and write availability
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string, pattern: '^[a-z0-9-]{1,200}$' }
+      responses:
+        '200': { description: Own membership and pilot availability }
+        '503': { description: State unavailable }
+  /letterboxd-watchlist/mine/film/{slug}:
+    put:
+      summary: Reserved Letterboxd watchlist write endpoint (disabled)
+      deprecated: true
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string, pattern: '^[a-z0-9-]{1,200}$' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [member, operationId]
+              properties:
+                member: { type: boolean }
+                operationId: { type: string, format: uuid }
+      responses:
+        '403': { description: Letterboxd watchlist publishing is disabled }
+        '400': { description: Invalid operation }
+        '404': { description: Film identity unresolved }
+        '409': { description: Writes disabled or conflicting state }
+  /letterboxd-worker/pending:
+    get:
+      summary: Inspect queued browser work without changing browser liveness
+      security: []
+      parameters:
+        - in: query
+          name: instance
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Queued read-only job or no work }
+        '403': { description: Invalid dedicated worker credential }
+        '503': { description: State unavailable }
+  /letterboxd-watchlist/{userId}:
+    get:
+      summary: Read a member's last verified Letterboxd watchlist
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, maximum: 250, default: 1 }
+      responses:
+        '200':
+          {
+            description: Watchlist titles and Letterboxd slugs; no worker configuration,
+          }
+        '403': { description: Sign-in required }
+        '503': { description: Watchlist unavailable }
+  /letterboxd-watchlist/{userId}/film/{slug}:
+    get:
+      summary: Resolve an existing watchlist item to an exact catalogue identity
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer, minimum: 1 }
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string, pattern: '^[a-z0-9-]{1,200}$' }
+      responses:
+        '200': { description: Exact TMDB identity or unresolved status }
+        '404': { description: Item is not in an enabled member watchlist }
+        '503': { description: Matching temporarily unavailable }
+  /settings/letterboxd-browser:
+    get:
+      summary: Browser synchronization status (admin only)
+      responses:
+        '200': { description: Bound profiles and sanitized status }
+        '403': { description: Admin required }
+    put:
+      summary: Enable a verified pilot browser binding (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [userId, instance, enabled]
+              properties:
+                userId: { type: integer, minimum: 1 }
+                instance: { type: string, format: uuid }
+                enabled: { type: boolean }
+      responses:
+        '200': { description: Binding saved }
+        '400': { description: Invalid binding }
+        '403': { description: Admin required }
+  /settings/letterboxd-browser/token:
+    post:
+      summary: Rotate limited browser transport credential (admin only)
+      responses:
+        '200':
+          {
+            description: New credential shown once; previous credential invalidated,
+          }
+        '403': { description: Admin required }
+  /settings/letterboxd-browser/writes:
+    put:
+      summary: Set the per-user two-way write pilot gate (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [userId, enabled]
+              properties:
+                userId: { type: integer, minimum: 1 }
+                enabled: { type: boolean }
+      responses:
+        '200': { description: Setting saved }
+        '400': { description: Invalid setting or ineligible pilot account }
+        '403': { description: Admin required }
+        '409': { description: Account or browser not verified }
+  /settings/account-mappings/check:
+    post:
+      summary: Verify saved avatar mappings without changes (admin only)
+      responses:
+        '200': { description: Checked and would-change counts; dry run only }
+        '403': { description: Admin required }
+        '409': { description: Check already running }
+        '503': { description: Verification unavailable; no avatars modified }
   /reviews:
     get:
-      summary: List movie reviews
+      summary: List ratings and reviews
       parameters:
+        - in: query
+          name: seasonNumber
+          schema: { type: integer, minimum: 0 }
+        - in: query
+          name: episodeNumber
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: mediaType
+          schema: { type: string, enum: [movie, tv], default: movie }
         - in: query
           name: movieId
           schema: { type: integer, minimum: 1 }
@@ -2218,6 +2996,57 @@ paths:
           schema: { type: integer, minimum: 1, maximum: 10000 }
       responses:
         '200': { description: Reviews }
+  /reviews/average/{movieId}:
+    get:
+      summary: Average members' latest film or whole-series ratings
+      description: One vote per member across local and linked Letterboxd ratings. Excludes episode ratings and superseded historical ratings.
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: mediaType
+          schema: { type: string, enum: [movie, tv], default: movie }
+      responses:
+        '200':
+          description: Community rating on the five-star scale
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  average:
+                    { type: number, nullable: true, minimum: 0.5, maximum: 5 }
+                  count: { type: integer, minimum: 0 }
+        '400': { description: Invalid media ID or type }
+        '503': { description: Ratings unavailable }
+  /reviews/episodes/{tvId}:
+    get:
+      summary: Aggregate catalogue ratings for individual episodes
+      parameters:
+        - in: path
+          name: tvId
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Episode rating averages }
+        '503': { description: Ratings unavailable }
+  /social/episodes/{id}/{season}:
+    get:
+      summary: Read unambiguously matched Plex episode links for a season
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, minimum: 1 }
+        - in: path
+          name: season
+          required: true
+          schema: { type: integer, minimum: 0 }
+      responses:
+        '200': { description: Verified episode links }
+        '503': { description: Plex metadata unavailable }
   /reviews/entry/{id}:
     get:
       summary: Read one review for a direct link
@@ -2228,8 +3057,51 @@ paths:
           schema: { type: string, maxLength: 180 }
       responses:
         '200': { description: Review }
+  /reviews/watched/{movieId}:
+    parameters:
+      - in: path
+        name: movieId
+        required: true
+        schema: { type: integer, minimum: 1 }
+      - in: query
+        name: mediaType
+        schema: { type: string, enum: [movie, tv], default: movie }
+    get:
+      summary: Read the authenticated user's stored watched state
+      responses:
+        '200':
+          description: Watched state (not a dated viewing)
+    put:
+      summary: Idempotently mark a title watched without creating a diary entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [watched]
+              properties:
+                watched: { type: boolean, enum: [true] }
+      responses:
+        '200':
+          description: Watched state saved; eligible movie accounts publish watched state only
+        '400':
+          description: Invalid title or body; removing watched state is not supported
   /reviews/mine/{movieId}:
     parameters:
+      - in: query
+        name: entryId
+        description: Exact local entry identity; append a UUID to the scoped legacy identity to create another entry idempotently.
+        schema: { type: string, maxLength: 180 }
+      - in: query
+        name: seasonNumber
+        schema: { type: integer, minimum: 0 }
+      - in: query
+        name: episodeNumber
+        schema: { type: integer, minimum: 1 }
+      - in: query
+        name: mediaType
+        schema: { type: string, enum: [movie, tv], default: movie }
       - in: path
         name: movieId
         required: true
@@ -2237,7 +3109,46 @@ paths:
     get:
       summary: Read your local movie review
       responses:
-        '200': { description: Local review }
+        '200':
+          description: Local review and personal publishing eligibility (no settings are changed)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [review, publishing]
+                properties:
+                  review:
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                    properties:
+                      syncToLetterboxd: { type: boolean, default: false }
+                  entries:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+                  latestViewing:
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                  publishing:
+                    type: object
+                    required: [enabled, schedule]
+                    properties:
+                      enabled:
+                        {
+                          type: boolean,
+                          description: True only for movies when the linked prplmg pilot account and per-user publishing are enabled. New review UI may default its checkbox on only when true; saves must send explicit consent.,
+                        }
+                      schedule:
+                        type: object
+                        required: [cron, timeZone, times]
+                        properties:
+                          cron: { type: string }
+                          timeZone: { type: string }
+                          times:
+                            type: array
+                            nullable: true
+                            items: { type: string }
     put:
       summary: Save your local movie review
       requestBody:
@@ -2259,8 +3170,20 @@ paths:
                   }
                 text: { type: string, maxLength: 20000 }
                 spoiler: { type: boolean }
+                viewingId:
+                  type: string
+                  nullable: true
+                  maxLength: 180
+                  description: Latest verified viewing ID, null for undated, or omitted to retain the existing association. Publication dates never imply viewing dates.
+                syncToLetterboxd:
+                  type: boolean
+                  description: Explicit per-review consent. Omitted on new reviews defaults false; omitted on edits preserves the stored preference. True requires publishing eligibility. False cancels only undispatched queued rating/review writes, never in-flight or uncertain evidence.
       responses:
         '200': { description: Saved }
+        '400':
+          {
+            description: Invalid fields or publishing not enabled for explicit opt-in,
+          }
     delete:
       summary: Delete your local movie review
       responses:
@@ -2319,15 +3242,24 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [csv, mode]
+              required: [mode]
               properties:
                 csv: { type: string, maxLength: 2097152 }
+                zip: { type: string, maxLength: 14680064 }
+                filename:
+                  {
+                    type: string,
+                    enum: [reviews.csv, ratings.csv, watched.csv, diary.csv],
+                  }
                 mode: { type: string, enum: [preview, commit] }
                 offset: { type: integer, minimum: 0, maximum: 10000 }
                 confirmPublic: { type: boolean }
                 matches:
                   type: object
                   additionalProperties: { type: integer, minimum: 1 }
+                mediaTypes:
+                  type: object
+                  additionalProperties: { type: string, enum: [movie, tv] }
       responses:
         '200': { description: Import batch and next offset }
   /watch-party/admin/usage:
@@ -2384,6 +3316,15 @@ paths:
       responses:
         '200':
           description: Filtered live activity
+  /watch-party/attribution/users:
+    get:
+      summary: Admin-only list of eligible co-viewers
+      tags: [Watch Party]
+      responses:
+        '200':
+          description: Visible user IDs and display names
+        '403':
+          description: Administrator permission required
   /watch-party/attribution:
     post:
       summary: Attribute the authenticated user to a live viewing session
@@ -2397,6 +3338,10 @@ paths:
               additionalProperties: false
               required: [sessionId, action]
               properties:
+                userId:
+                  type: integer
+                  minimum: 1
+                  description: Admin-only target for additive join attribution
                 sessionId:
                   type: string
                   pattern: '^[a-f0-9]{64}$'
@@ -7221,6 +8166,12 @@ paths:
       tags:
         - movies
       parameters:
+        - in: query
+          name: view
+          description: Omit for full details; card returns only poster-card fields and mediaInfo.
+          schema:
+            type: string
+            enum: [card]
         - in: path
           name: movieId
           required: true
@@ -7238,7 +8189,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MovieDetails'
+                anyOf:
+                  - $ref: '#/components/schemas/MovieDetails'
+                  - type: object
+                    required: [id, title]
+                    properties:
+                      id:
+                        type: number
+                      title:
+                        type: string
+                    additionalProperties: true
   /movie/{movieId}/recommendations:
     get:
       summary: Get recommended movies
@@ -7371,6 +8331,30 @@ paths:
                   audienceRating:
                     type: string
                     enum: ['Spilled', 'Upright']
+  /tv/{tvId}/letterboxd:
+    get:
+      summary: Get cached Letterboxd rating for a supported series
+      tags: [tv]
+      parameters:
+        - in: path
+          name: tvId
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Letterboxd rating, or null when unsupported or unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rating:
+                    type: object
+                    nullable: true
+                    properties:
+                      score: { type: number, minimum: 0, maximum: 5 }
+                      url: { type: string, format: uri }
+        '400': { description: Invalid series ID }
   /movie/{movieId}/letterboxd:
     get:
       summary: Get cached Letterboxd movie rating
@@ -7466,6 +8450,12 @@ paths:
       tags:
         - tv
       parameters:
+        - in: query
+          name: view
+          description: Omit for full details; card returns only poster-card fields and mediaInfo.
+          schema:
+            type: string
+            enum: [card]
         - in: path
           name: tvId
           required: true
@@ -7483,7 +8473,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TvDetails'
+                anyOf:
+                  - $ref: '#/components/schemas/TvDetails'
+                  - type: object
+                    required: [id, name]
+                    properties:
+                      id:
+                        type: number
+                      name:
+                        type: string
+                    additionalProperties: true
   /tv/{tvId}/season/{seasonNumber}:
     get:
       summary: Get season details and episode list

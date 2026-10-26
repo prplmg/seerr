@@ -1,8 +1,15 @@
 import CachedImage from '@app/components/Common/CachedImage';
 import PageTitle from '@app/components/Common/PageTitle';
+import {
+  ListCard,
+  SaveList,
+  type List,
+} from '@app/components/Discover/ListLibrary';
 import Slider from '@app/components/Slider';
 import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
 import { usePartyText } from '@app/components/WatchParty/messages';
+import useDiscovery from '@app/hooks/useDiscovery';
+import { useUser } from '@app/hooks/useUser';
 import { ArrowRightCircleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -34,6 +41,17 @@ function CategoryCard({
   fullWidth?: boolean;
 }) {
   const text = useText();
+  const { enabled, read, previewUserId } = useDiscovery();
+  const { user } = useUser();
+  const { data: summaries } = useSWR<{ results: List[] }>(
+    enabled
+      ? ['/api/v1/discovery-lists?filter=discover', user?.id, previewUserId]
+      : null,
+    read
+  );
+  const summary = summaries?.results.find(
+    (l) => l.id === `curated-${category.id}`
+  );
   const { ref, inView } = useInView({ triggerOnce: true });
   const [coverIndex, setCoverIndex] = useState(0);
   const [failedBackdrop, setFailedBackdrop] = useState(false);
@@ -55,6 +73,24 @@ function CategoryCard({
       setFailedBackdrop(false);
     }
   }, [cover, error, data, image]);
+  if (enabled && summary)
+    return (
+      <div
+        className={
+          fullWidth
+            ? 'h-full w-full min-w-0'
+            : 'h-full w-[min(24rem,calc(100vw-3rem))] min-w-0'
+        }
+      >
+        <ListCard
+          list={{
+            ...summary,
+            title: text(category.title),
+            description: text(category.description),
+          }}
+        />
+      </div>
+    );
   return (
     <Link
       ref={ref}
@@ -96,25 +132,32 @@ export default function CuratedSlider() {
     '/api/v1/curated',
     { refreshInterval: 60000, revalidateOnFocus: true }
   );
+  const heading = (
+    <h2>
+      <Link href="/discover/curated" className="slider-title">
+        <span>{t('Curated Lists', 'Listas seleccionadas')}</span>
+        <ArrowRightCircleIcon />
+      </Link>
+    </h2>
+  );
   return (
-    <section aria-label={t('Curated Lists', 'Listas seleccionadas')}>
-      <div className="slider-header">
-        <h2>
-          <Link href="/discover/curated" className="slider-title">
-            <span>{t('Curated Lists', 'Listas seleccionadas')}</span>
-            <ArrowRightCircleIcon />
-          </Link>
-        </h2>
-      </div>
+    <section
+      className="mt-6"
+      aria-label={t('Curated Lists', 'Listas seleccionadas')}
+    >
       {error ? (
-        <p role="status" className="text-gray-300">
-          {t(
-            'Curated Lists are temporarily unavailable.',
-            'Las listas seleccionadas no están disponibles temporalmente.'
-          )}
-        </p>
+        <>
+          {heading}
+          <p role="status" className="text-gray-300">
+            {t(
+              'Curated Lists are temporarily unavailable.',
+              'Las listas seleccionadas no están disponibles temporalmente.'
+            )}
+          </p>
+        </>
       ) : (
         <Slider
+          header={heading}
           stretchItems
           sliderKey={`curated-${data?.day ?? 'loading'}`}
           isLoading={!data}
@@ -204,6 +247,7 @@ export function CuratedPage() {
         {t('Back to catalogue', 'Volver al catálogo')}
       </Link>
       <h1 className="mt-4 text-3xl font-bold text-white">{text(data.title)}</h1>
+      {id && <SaveList id={`curated-${id}`} />}
       <p className="mb-6 mt-3 max-w-3xl text-gray-300">
         {text(data.description)}
       </p>
