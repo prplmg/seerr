@@ -3,7 +3,6 @@ import { getRepository } from '@server/datasource';
 import { LetterboxdAccount, MovieReview } from '@server/entity/MovieReview';
 import { User } from '@server/entity/User';
 import { communityRating } from '@server/lib/communityRating';
-import { manualWatchedId, watchedOnlyRecord } from '@server/lib/manualWatched';
 import { episodeReviewScope } from '@server/lib/episodeReviewScope';
 import { archiveReviews } from '@server/lib/letterboxdArchive';
 import { wasVerifiedDeleted } from '@server/lib/letterboxdDeletedEntries';
@@ -18,13 +17,14 @@ import {
   type ImportedReview,
 } from '@server/lib/letterboxdImport';
 import { publicationSchedule } from '@server/lib/letterboxdPublicationSchedule';
-import { manualDiaryViewing } from '@server/lib/reviewDiaryPublication';
 import { readSyncReceipts } from '@server/lib/letterboxdSyncReceipts';
 import {
   readWriteState,
   updateWriteState,
 } from '@server/lib/letterboxdWriteQueue';
+import { manualWatchedId, watchedOnlyRecord } from '@server/lib/manualWatched';
 import { Permission, hasPermission } from '@server/lib/permissions';
+import { manualDiaryViewing } from '@server/lib/reviewDiaryPublication';
 import {
   latestReviewViewing,
   scopedReviewId,
@@ -54,6 +54,8 @@ const positive = (v: unknown) =>
   Number.isSafeInteger(Number(v)) && Number(v) > 0;
 const admin = (req: Express.Request) =>
   hasPermission(Permission.ADMIN, req.user!.permissions);
+const managesLetterboxd = (req: Express.Request, userId: number) =>
+  positive(userId) && (admin(req) || req.user?.id === userId);
 const reviewType = (req: Request) =>
   req.query.mediaType === 'tv' ? 'tv' : 'movie';
 const localId = (req: Request) => {
@@ -85,7 +87,11 @@ router.get('/entry/:id', async (req, res) => {
   return res.json({
     review: {
       ...review,
-      syncingToLetterboxd: reviewSyncInProgress(review, readWriteState(), req.user?.id),
+      syncingToLetterboxd: reviewSyncInProgress(
+        review,
+        readWriteState(),
+        req.user?.id
+      ),
       ...verifiedRatingSource(review, readFilmEvidence()),
       ...linkedReviewSource(
         review,
@@ -213,17 +219,19 @@ router.get('/mine/:movieId', async (req, res) => {
     userId: req.user!.id,
   });
   const scope = episodeReviewScope(req.query);
-  const entries = (await getRepository(MovieReview).find({
-    where: {
-      userId: req.user!.id,
-      tmdbId: Number(req.params.movieId),
-      mediaType: reviewType(req),
-      source: 'local',
-      seasonNumber: scope?.seasonNumber ?? IsNull(),
-      episodeNumber: scope?.episodeNumber ?? IsNull(),
-    },
-    order: { publishedAt: 'DESC', id: 'ASC' },
-  })).filter((entry) => entry.rating !== null || entry.text.trim().length > 0);
+  const entries = (
+    await getRepository(MovieReview).find({
+      where: {
+        userId: req.user!.id,
+        tmdbId: Number(req.params.movieId),
+        mediaType: reviewType(req),
+        source: 'local',
+        seasonNumber: scope?.seasonNumber ?? IsNull(),
+        episodeNumber: scope?.episodeNumber ?? IsNull(),
+      },
+      order: { publishedAt: 'DESC', id: 'ASC' },
+    })
+  ).filter((entry) => entry.rating !== null || entry.text.trim().length > 0);
   return res.json({
     review: req.query.entryId
       ? entries.find((r) => r.id === localId(req)) || null
@@ -252,26 +260,64 @@ router.get('/mine/:movieId', async (req, res) => {
 router.get('/watched/:movieId', async (req, res, next) => {
   if (!positive(req.params.movieId)) return res.sendStatus(400);
   try {
-    const rows = await getRepository(MovieReview).findBy({userId:req.user!.id, tmdbId:Number(req.params.movieId), mediaType:reviewType(req), seasonNumber:IsNull(), episodeNumber:IsNull()});
-    return res.json({watched:rows.some(r => r.watched || !!r.watchedDate)});
-  } catch (e) { next(e); }
-});
-router.put('/watched/:movieId', rateLimit({windowMs:60000,max:20}), async (req,res,next) => {
-  if (!positive(req.params.movieId) || req.body.watched !== true || episodeReviewScope(req.query)) return res.sendStatus(400);
-  try {
-    const tmdbId = Number(req.params.movieId), mediaType = reviewType(req), userId = req.user!.id;
-    if (mediaType === 'movie') await new TheMovieDb().getMovie({movieId:tmdbId});
-    else await new TheMovieDb().getTvShow({tvId:tmdbId});
-    await withReviewLock(userId, async () => {
-      const repo = getRepository(MovieReview);
-      if (await repo.findOneBy({id:manualWatchedId(userId,mediaType,tmdbId)})) return;
-      const account = await getRepository(LetterboxdAccount).findOneBy({userId});
-      const enabled = reviewPublishingEnabled(userId,mediaType,account,readWriteState().settings[userId]);
-      await repo.save(repo.create(watchedOnlyRecord(userId,mediaType,tmdbId,enabled)));
+    const rows = await getRepository(MovieReview).findBy({
+      userId: req.user!.id,
+      tmdbId: Number(req.params.movieId),
+      mediaType: reviewType(req),
+      seasonNumber: IsNull(),
+      episodeNumber: IsNull(),
     });
-    return res.json({watched:true});
-  } catch (e) { next(e); }
+    return res.json({
+      watched: rows.some((r) => r.watched || !!r.watchedDate),
+    });
+  } catch (e) {
+    next(e);
+  }
 });
+router.put(
+  '/watched/:movieId',
+  rateLimit({ windowMs: 60000, max: 20 }),
+  async (req, res, next) => {
+    if (
+      !positive(req.params.movieId) ||
+      req.body.watched !== true ||
+      episodeReviewScope(req.query)
+    )
+      return res.sendStatus(400);
+    try {
+      const tmdbId = Number(req.params.movieId),
+        mediaType = reviewType(req),
+        userId = req.user!.id;
+      if (mediaType === 'movie')
+        await new TheMovieDb().getMovie({ movieId: tmdbId });
+      else await new TheMovieDb().getTvShow({ tvId: tmdbId });
+      await withReviewLock(userId, async () => {
+        const repo = getRepository(MovieReview);
+        if (
+          await repo.findOneBy({
+            id: manualWatchedId(userId, mediaType, tmdbId),
+          })
+        )
+          return;
+        const account = await getRepository(LetterboxdAccount).findOneBy({
+          userId,
+        });
+        const enabled = reviewPublishingEnabled(
+          userId,
+          mediaType,
+          account,
+          readWriteState().settings[userId]
+        );
+        await repo.save(
+          repo.create(watchedOnlyRecord(userId, mediaType, tmdbId, enabled))
+        );
+      });
+      return res.json({ watched: true });
+    } catch (e) {
+      next(e);
+    }
+  }
+);
 router.put(
   '/mine/:movieId',
   rateLimit({ windowMs: 60000, max: 20 }),
@@ -332,10 +378,18 @@ router.put(
             externalEntryId = null;
             viewingEventId = null;
           } else if (req.body.viewingId === 'new-diary') {
-            if (scope || reviewType(req) !== 'movie') throw Error('Diary entries require a movie');
-            if (old?.watchedDate || old?.externalEntryId || readSyncReceipts().some(
-              (r) => r.userId === req.user!.id && r.originId === id
-            )) throw Error('Use a new rating or review to create another viewing');
+            if (scope || reviewType(req) !== 'movie')
+              throw Error('Diary entries require a movie');
+            if (
+              old?.watchedDate ||
+              old?.externalEntryId ||
+              readSyncReceipts().some(
+                (r) => r.userId === req.user!.id && r.originId === id
+              )
+            )
+              throw Error(
+                'Use a new rating or review to create another viewing'
+              );
             ({ watchedDate, viewingEventId } = manualDiaryViewing(id, now));
             externalEntryId = null;
           } else {
@@ -382,8 +436,15 @@ router.put(
         );
         // Supersede only not-yet-dispatched revisions on every edit.
         updateWriteState((state) =>
-          cancelQueuedReviewWrites(state, req.user!.id, id,
-            syncToLetterboxd && !!watchedDate && watchedDate === old?.watchedDate && viewingEventId === old?.viewingEventId)
+          cancelQueuedReviewWrites(
+            state,
+            req.user!.id,
+            id,
+            syncToLetterboxd &&
+              !!watchedDate &&
+              watchedDate === old?.watchedDate &&
+              viewingEventId === old?.viewingEventId
+          )
         );
         return res.json(
           await repo.save(
@@ -433,7 +494,7 @@ router.get('/account/:userId', async (req, res) => {
   const account = await getRepository(LetterboxdAccount).findOneBy({ userId });
   return res.json({
     account: account
-      ? admin(req)
+      ? managesLetterboxd(req, userId)
         ? account
         : { username: account.username }
       : null,
@@ -452,7 +513,7 @@ router.delete('/account/:userId', async (req, res) => {
 });
 router.put('/account/:userId', async (req, res) => {
   const userId = Number(req.params.userId);
-  if (!admin(req)) return res.sendStatus(403);
+  if (!managesLetterboxd(req, userId)) return res.sendStatus(403);
   if (
     !positive(userId) ||
     !(await getRepository(User).findOneBy({ id: userId })) ||
@@ -484,7 +545,7 @@ router.post(
   rateLimit({ windowMs: 60000, max: 2 }),
   async (req, res) => {
     const userId = Number(req.params.userId);
-    if (!positive(userId) || !admin(req)) return res.sendStatus(403);
+    if (!managesLetterboxd(req, userId)) return res.sendStatus(403);
     await syncReviews(userId);
     return res.json({
       account: await getRepository(LetterboxdAccount).findOneBy({ userId }),
@@ -496,7 +557,7 @@ router.post(
   rateLimit({ windowMs: 60000, max: 30 }),
   async (req, res) => {
     const userId = Number(req.params.userId);
-    if (!positive(userId) || !admin(req)) return res.sendStatus(403);
+    if (!managesLetterboxd(req, userId)) return res.sendStatus(403);
     try {
       return await withReviewLock(userId, async () => {
         const account = await getRepository(LetterboxdAccount).findOneBy({

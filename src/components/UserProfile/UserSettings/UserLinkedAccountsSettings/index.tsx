@@ -182,9 +182,11 @@ const UserLinkedAccountsSettings = () => {
 
   return (
     <>
-      {user && currentHasPermission(Permission.ADMIN) && (
-        <LetterboxdSettings key={user.id} userId={user.id} />
-      )}
+      {user &&
+        (currentUser?.id === user.id ||
+          currentHasPermission(Permission.ADMIN)) && (
+          <LetterboxdSettings key={user.id} userId={user.id} />
+        )}
       <PageTitle
         title={[
           intl.formatMessage(messages.linkedAccounts),

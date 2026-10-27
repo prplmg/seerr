@@ -16,8 +16,9 @@ type Entry = {
 };
 export default function LetterboxdSettings({ userId }: { userId: number }) {
   const t = usePartyText(),
-    { hasPermission } = useUser(),
-    isAdmin = hasPermission(Permission.ADMIN);
+    { hasPermission, user } = useUser(),
+    isAdmin = hasPermission(Permission.ADMIN),
+    canManage = isAdmin || user?.id === userId;
   const { data, mutate } = useSWR<{
     account: {
       username: string;
@@ -157,7 +158,7 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
           'Importa títulos vistos, calificaciones y reseñas; después se consulta el RSS público cada 15 minutos. Esto no escribe en Letterboxd.'
         )}
       </p>
-      {isAdmin ? (
+      {canManage ? (
         <form
           className="flex flex-wrap gap-2"
           onSubmit={(e) => {
@@ -211,6 +212,12 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
               )}
         </p>
       )}
+      <aside className="rounded-lg border border-purple-400/30 bg-gray-900 p-3 text-sm text-gray-300">
+        {t(
+          'For full sync integration, contact Melanie. You’ll need to provide your Letterboxd username and password privately for setup. Do not enter your password here.',
+          'Para la integración de sincronización completa, contacta a Melanie. Tendrás que proporcionar tu usuario y contraseña de Letterboxd en privado para configurarla. No escribas tu contraseña aquí.'
+        )}
+      </aside>
       {data?.account && (
         <>
           <p className="text-sm text-gray-300">
@@ -245,34 +252,47 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
           >
             {t('Check RSS now', 'Consultar RSS ahora')}
           </Button>
-          <Button
-            buttonType="danger"
-            disabled={busy}
-            onClick={() => {
-              if (
-                window.confirm(
-                  t(
-                    'Unlink Letterboxd and delete its imported watched titles, ratings and reviews? Local reviews and other watch-history sources will stay.',
-                    '¿Desvincular Letterboxd y eliminar sus títulos vistos, calificaciones y reseñas importadas? Las reseñas locales y las otras fuentes del historial se conservarán.'
+          {isAdmin && (
+            <Button
+              buttonType="danger"
+              disabled={busy}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    t(
+                      'Unlink Letterboxd and delete its imported watched titles, ratings and reviews? Local reviews and other watch-history sources will stay.',
+                      '¿Desvincular Letterboxd y eliminar sus títulos vistos, calificaciones y reseñas importadas? Las reseñas locales y las otras fuentes del historial se conservarán.'
+                    )
                   )
                 )
-              )
-                void action(async () => {
-                  await axios.delete(`/api/v1/reviews/account/${userId}`);
-                  setPreview(null);
-                  setUsername('');
-                });
-            }}
-          >
-            {t(
-              'Unlink and remove imports',
-              'Desvincular y eliminar importaciones'
-            )}
-          </Button>
+                  void action(async () => {
+                    await axios.delete(`/api/v1/reviews/account/${userId}`);
+                    setPreview(null);
+                    setUsername('');
+                  });
+              }}
+            >
+              {t(
+                'Unlink and remove imports',
+                'Desvincular y eliminar importaciones'
+              )}
+            </Button>
+          )}
           <label className="block">
+            <a
+              href="https://letterboxd.com/user/exportdata/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-overseerr underline"
+            >
+              {t(
+                'Upload your complete Letterboxd ZIP (up to 10 MB)',
+                'Sube el ZIP completo de Letterboxd (hasta 10 MB)'
+              )}
+            </a>
             {t(
-              'Upload your complete Letterboxd ZIP (up to 10 MB), or reviews.csv, ratings.csv, diary.csv or watched.csv (up to 2 MB each). No need to unzip.',
-              'Sube el ZIP completo de Letterboxd (hasta 10 MB), o reviews.csv, ratings.csv, diary.csv o watched.csv (hasta 2 MB cada uno). No es necesario descomprimirlo.'
+              ', or reviews.csv, ratings.csv, diary.csv or watched.csv (up to 2 MB each). No need to unzip.',
+              ', o reviews.csv, ratings.csv, diary.csv o watched.csv (hasta 2 MB cada uno). No es necesario descomprimirlo.'
             )}
             <input
               type="file"
