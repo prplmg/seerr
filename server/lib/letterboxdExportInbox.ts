@@ -30,6 +30,7 @@ export function exportFailure(error: unknown) {
       'EPERM',
       'EACCES',
       'ETIMEDOUT',
+      'ECONNABORTED',
       'ECONNRESET',
       'ECONNREFUSED',
       'EAI_AGAIN',

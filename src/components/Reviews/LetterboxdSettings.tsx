@@ -20,6 +20,7 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
     isAdmin = hasPermission(Permission.ADMIN),
     canManage = isAdmin || user?.id === userId;
   const { data, mutate } = useSWR<{
+    fullyIntegrated: boolean;
     account: {
       username: string;
       enabled: boolean;
@@ -212,12 +213,14 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
               )}
         </p>
       )}
-      <aside className="rounded-lg border border-purple-400/30 bg-gray-900 p-3 text-sm text-gray-300">
-        {t(
-          'For full sync integration, contact Melanie. You’ll need to provide your Letterboxd username and password privately for setup. Do not enter your password here.',
-          'Para la integración de sincronización completa, contacta a Melanie. Tendrás que proporcionar tu usuario y contraseña de Letterboxd en privado para configurarla. No escribas tu contraseña aquí.'
-        )}
-      </aside>
+      {data && !data.fullyIntegrated && (
+        <aside className="rounded-lg border border-purple-400/30 bg-gray-900 p-3 text-sm text-gray-300">
+          {t(
+            'For full sync integration, contact Melanie. You’ll need to provide your Letterboxd username and password privately for setup. Do not enter your password here.',
+            'Para la integración de sincronización completa, contacta a Melanie. Tendrás que proporcionar tu usuario y contraseña de Letterboxd en privado para configurarla. No escribas tu contraseña aquí.'
+          )}
+        </aside>
+      )}
       {data?.account && (
         <>
           <p className="text-sm text-gray-300">

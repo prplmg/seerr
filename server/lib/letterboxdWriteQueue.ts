@@ -19,6 +19,7 @@ export type WriteIntent = {
   expected: Record<string, unknown>;
   desired: Record<string, unknown>;
   created: number;
+  durableDelivery?: boolean;
   verifiedAt?: number;
   recovery?: {
     observationId: string;
@@ -63,7 +64,7 @@ export function setPreparationFailure(
   now = Date.now()
 ) {
   const id = `preparation:${userId}:${account}:${phase}`;
-  const previous = state.preparationFailures?.find(i => i.id === id);
+  const previous = state.preparationFailures?.find((i) => i.id === id);
   state.preparationFailures = (state.preparationFailures || []).filter(
     (i) => i.id !== id
   );
@@ -259,10 +260,33 @@ export function claimWrite(
   state: WriteState,
   userId: number,
   account: string,
-  supported: (WriteKind | 'diary-content')[] = []
+  supported: (WriteKind | 'diary-content')[] = [],
+  durableDelivery = false
 ) {
   const setting = state.settings[userId];
   if (!setting?.enabled || setting.account !== account) return null;
+  // Only new, explicitly negotiated deliveries can be replayed. The worker
+  // persists the immutable ID before execution and deduplicates every replay.
+  const pending = state.intents.filter(
+    (i) =>
+      i.userId === userId &&
+      ['dispatched', 'unknown', 'conflict'].includes(i.state)
+  );
+  if (durableDelivery && pending.length === 1) {
+    const prior = pending[0];
+    if (
+      prior.account === account &&
+      prior.state === 'dispatched' &&
+      prior.durableDelivery &&
+      supported.includes(prior.kind) &&
+      !(
+        prior.kind === 'diary' &&
+        'rating' in prior.desired &&
+        !supported.includes('diary-content')
+      )
+    )
+      return prior;
+  }
   // Uncertain remote writes require reconciliation, not another dispatch.
   if (
     state.intents.some(
@@ -278,10 +302,17 @@ export function claimWrite(
       i.account === account &&
       i.state === 'queued' &&
       i.kind !== 'watchlist' &&
-      supported.includes(i.kind)
-      && !(i.kind === 'diary' && 'rating' in i.desired && !supported.includes('diary-content'))
+      supported.includes(i.kind) &&
+      !(
+        i.kind === 'diary' &&
+        'rating' in i.desired &&
+        !supported.includes('diary-content')
+      )
   );
-  if (job) job.state = 'dispatched';
+  if (job) {
+    job.state = 'dispatched';
+    if (durableDelivery) job.durableDelivery = true;
+  }
   return job || null;
 }
 export function finishWrite(

@@ -5,6 +5,7 @@ import { User } from '@server/entity/User';
 import { communityRating } from '@server/lib/communityRating';
 import { episodeReviewScope } from '@server/lib/episodeReviewScope';
 import { archiveReviews } from '@server/lib/letterboxdArchive';
+import { readBrowserState } from '@server/lib/letterboxdBrowser';
 import { wasVerifiedDeleted } from '@server/lib/letterboxdDeletedEntries';
 import { currentSyncReceipts } from '@server/lib/letterboxdExportPolicy';
 import {
@@ -493,6 +494,15 @@ router.get('/account/:userId', async (req, res) => {
   if (!positive(userId)) return res.sendStatus(400);
   const account = await getRepository(LetterboxdAccount).findOneBy({ userId });
   return res.json({
+    fullyIntegrated:
+      managesLetterboxd(req, userId) &&
+      !!account &&
+      readBrowserState().bindings.some(
+        (b) =>
+          b.userId === userId && b.username === account.username && b.enabled
+      ) &&
+      readWriteState().settings[userId]?.account === account.username &&
+      !!readWriteState().settings[userId]?.enabled,
     account: account
       ? managesLetterboxd(req, userId)
         ? account

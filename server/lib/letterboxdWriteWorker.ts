@@ -1,7 +1,7 @@
 import {
   evidenceFromVerifiedWrite,
-  recordFilmEvidence,
   readFilmEvidence,
+  recordFilmEvidence,
 } from './letterboxdFilmEvidence';
 import {
   claimObservation,
@@ -12,7 +12,12 @@ import {
   type ObservationState,
 } from './letterboxdObservations';
 import type { ReviewFields } from './letterboxdReconcile';
-import { boundPlaybackOrigin, readSyncReceipts, recordSyncReceipt, type SyncReceipt } from './letterboxdSyncReceipts';
+import {
+  boundPlaybackOrigin,
+  readSyncReceipts,
+  recordSyncReceipt,
+  type SyncReceipt,
+} from './letterboxdSyncReceipts';
 import {
   claimWrite,
   finishWrite,
@@ -26,7 +31,13 @@ import {
 } from './letterboxdWriteRecovery';
 import { cancelUnpublishableReviewWrites } from './reviewPublishingPolicy';
 
-const writeKinds = ['rating', 'review', 'watched', 'diary', 'diary-content'] as const;
+const writeKinds = [
+  'rating',
+  'review',
+  'watched',
+  'diary',
+  'diary-content',
+] as const;
 type SupportedKind = (typeof writeKinds)[number];
 export function parseSupportedWriteKinds(value: unknown): SupportedKind[] {
   if (value === undefined) return [];
@@ -58,8 +69,11 @@ export function exchangeObservationState(
   supported: unknown = []
 ) {
   const capabilities = parseSupportedObservations(supported);
-  if (!Number.isSafeInteger(binding.userId) || binding.userId < 1 ||
-      !/^[a-z0-9_]{1,40}$/i.test(binding.username))
+  if (
+    !Number.isSafeInteger(binding.userId) ||
+    binding.userId < 1 ||
+    !/^[a-z0-9_]{1,40}$/i.test(binding.username)
+  )
     throw Error('Invalid account binding');
   if (report) {
     if (report.userId !== binding.userId || report.account !== binding.username)
@@ -153,7 +167,11 @@ export async function exchangeObservations(
   // Reuse the verified acknowledgement projection after read-only recovery.
   // The intent is already verified, so this cannot dispatch or repeat a write.
   for (const recoveredWrite of recovered) {
-    await exchangeWrites(instance,{...recoveredWrite,outcome:'verified',identity:binding.username});
+    await exchangeWrites(instance, {
+      ...recoveredWrite,
+      outcome: 'verified',
+      identity: binding.username,
+    });
   }
   return {
     ...result,
@@ -202,11 +220,15 @@ export function exchangeWriteState(
   },
   report: Parameters<typeof finishWrite>[3] | undefined,
   saveReceipt: (receipt: SyncReceipt) => void = recordSyncReceipt,
-  supported: unknown = []
+  supported: unknown = [],
+  durableDelivery = false
 ) {
   const kinds = parseSupportedWriteKinds(supported);
-  if (!Number.isSafeInteger(binding.userId) || binding.userId < 1 ||
-      !/^[a-z0-9_]{1,40}$/i.test(binding.username))
+  if (
+    !Number.isSafeInteger(binding.userId) ||
+    binding.userId < 1 ||
+    !/^[a-z0-9_]{1,40}$/i.test(binding.username)
+  )
     throw Error('Invalid account binding');
   if (report) {
     const changed = finishWrite(
@@ -234,11 +256,15 @@ export function exchangeWriteState(
                 watchedDate: job.desired.watchedDate as string,
                 rewatch: job.desired.rewatch as boolean,
               },
-              ...('rating' in job.desired ? { baseline: {
-                rating: job.desired.rating as number | null,
-                text: job.desired.text as string,
-                spoiler: job.desired.spoiler as boolean,
-              } } : {}),
+              ...('rating' in job.desired
+                ? {
+                    baseline: {
+                      rating: job.desired.rating as number | null,
+                      text: job.desired.text as string,
+                      spoiler: job.desired.spoiler as boolean,
+                    },
+                  }
+                : {}),
             }),
         verifiedAt: Date.now(),
         echoObserved: false,
@@ -252,7 +278,13 @@ export function exchangeWriteState(
     ['queued', 'running'].includes(binding.job?.state || '')
   )
     return { action: 'idle' };
-  const job = claimWrite(state, binding.userId, binding.username, kinds);
+  const job = claimWrite(
+    state,
+    binding.userId,
+    binding.username,
+    kinds,
+    durableDelivery
+  );
   if (job && ['review', 'diary'].includes(job.kind) && !job.originEntityId)
     throw Error('Missing local entry identity');
   return job
@@ -262,7 +294,8 @@ export function exchangeWriteState(
 export async function exchangeWrites(
   instance: string,
   report?: Parameters<typeof finishWrite>[3],
-  supported: unknown = []
+  supported: unknown = [],
+  durableDelivery = false
 ) {
   const { getRepository } = await import('@server/datasource');
   const { LetterboxdAccount, MovieReview } =
@@ -304,16 +337,36 @@ export async function exchangeWrites(
       }
     let boundDiaryOriginId: string | undefined;
     if (report?.outcome === 'verified') {
-      const intent = readWriteState().intents.find(i => i.id === report.id);
+      const intent = readWriteState().intents.find((i) => i.id === report.id);
       if (intent?.kind === 'review' && intent.originEntityId) {
-        const local = await getRepository(MovieReview).findOneBy({id: intent.originEntityId, userId: binding.userId});
-        boundDiaryOriginId = boundPlaybackOrigin(readSyncReceipts(), binding.userId, binding.username, intent.entryId, local);
+        const local = await getRepository(MovieReview).findOneBy({
+          id: intent.originEntityId,
+          userId: binding.userId,
+        });
+        boundDiaryOriginId = boundPlaybackOrigin(
+          readSyncReceipts(),
+          binding.userId,
+          binding.username,
+          intent.entryId,
+          local
+        );
       }
     }
     const exchange = updateWriteState((state) => {
       if (!report)
         cancelUnpublishableReviewWrites(state, binding.userId, reviews);
-      return exchangeWriteState(state, binding, report, receipt => recordSyncReceipt({...receipt, ...(boundDiaryOriginId ? {boundDiaryOriginId} : {})}), supported);
+      return exchangeWriteState(
+        state,
+        binding,
+        report,
+        (receipt) =>
+          recordSyncReceipt({
+            ...receipt,
+            ...(boundDiaryOriginId ? { boundDiaryOriginId } : {}),
+          }),
+        supported,
+        durableDelivery
+      );
     });
     // Replayed acknowledgements also repair a crash between queue persistence
     // and the catalogue projection. No additional browser mutation is involved.
@@ -323,7 +376,16 @@ export async function exchangeWrites(
       );
       let evidence =
         intent?.verifiedAt &&
-        evidenceFromVerifiedWrite(intent, intent.verifiedAt, readFilmEvidence().find(e=>e.userId===intent.userId&&e.account===intent.account&&e.film===intent.film));
+        evidenceFromVerifiedWrite(
+          intent,
+          intent.verifiedAt,
+          readFilmEvidence().find(
+            (e) =>
+              e.userId === intent.userId &&
+              e.account === intent.account &&
+              e.film === intent.film
+          )
+        );
       if (evidence && intent?.originEntityId) {
         const { LetterboxdExportBaseline } =
           await import('@server/entity/LetterboxdExport');
@@ -417,7 +479,9 @@ export async function exchangeWrites(
   // write-state transaction has committed and released it. Polls also recover
   // a process crash between that commit and continuation.
   if (report?.outcome === 'verified') {
-    const verified = readWriteState().intents.find(i => i.id === report.id && i.state === 'verified');
+    const verified = readWriteState().intents.find(
+      (i) => i.id === report.id && i.state === 'verified'
+    );
     if (verified?.verifiedAt) {
       const { refreshReviewsAfterPublication } = await import('./reviews');
       refreshReviewsAfterPublication(binding.userId, verified.verifiedAt);

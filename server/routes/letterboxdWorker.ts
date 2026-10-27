@@ -13,6 +13,7 @@ import {
   parseSupportedObservations,
   parseSupportedWriteKinds,
 } from '@server/lib/letterboxdWriteWorker';
+import logger from '@server/logger';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 const router = Router();
@@ -93,10 +94,38 @@ router.post('/writes', async (req, res) => {
     } catch {
       return res.sendStatus(400);
     }
-    return res.json(
-      await exchangeWrites(req.body.instance, req.body.report, supported)
+    const delivery = await exchangeWrites(
+      req.body.instance,
+      req.body.report,
+      supported,
+      req.body.durableDelivery === 1
     );
-  } catch {
+    if (delivery.action === 'media_write' && 'id' in delivery)
+      logger.info('Letterboxd write delivery offered', {
+        label: 'Letterboxd',
+        instance: req.body.instance,
+        intentId: delivery.id,
+        durableDelivery: req.body.durableDelivery === 1,
+      });
+    if (req.body.report && /^[a-f0-9-]{36}$/.test(req.body.report.id || ''))
+      logger.info('Letterboxd write result acknowledged', {
+        label: 'Letterboxd',
+        instance: req.body.instance,
+        intentId: req.body.report.id,
+        outcome: req.body.report.outcome,
+      });
+    return res.json(delivery);
+  } catch (error) {
+    logger.error('Letterboxd write exchange failed', {
+      label: 'Letterboxd',
+      error:
+        error instanceof Error ? error.message.slice(0, 500) : 'Unknown error',
+      instance:
+        typeof req.body.instance === 'string' &&
+        /^[a-f0-9-]{36}$/.test(req.body.instance)
+          ? req.body.instance
+          : undefined,
+    });
     return res
       .status(409)
       .json({ message: 'Write report or binding rejected' });
