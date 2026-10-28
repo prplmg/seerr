@@ -1,3 +1,5 @@
+> Deployed 2026-10-27. Historical preparation notes below; see [verified live release](live-2026-10-27.md), including completed Zelza activation.
+
 # Letterboxd self-service — 2026-10-27 (not deployed)
 
 Users can access Letterboxd import in their own Linked Accounts settings, link

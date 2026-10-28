@@ -1,0 +1,81 @@
+{
+  "receipt": {
+    "buildId": "aWB1WGuuR7Wy9GX9tSDIu",
+    "health": true,
+    "migrations": true,
+    "publishing": [
+      "prplmg",
+      "jairoheredia",
+      "margotnochill",
+      "evegrissel",
+      "beast199666"
+    ],
+    "seriesLetterboxdAvailable": false,
+    "backup": "C:/ProgramData/Seerr/catalogue-20261028000636651-90188-release"
+  },
+  "sourceFiles": [
+    {
+      "file": "server/entity/MovieReview.ts",
+      "sha256": "3d4cb36fe477bde5fa854bb1f28675c8f4872adaea21b304883a65bc920d86b9"
+    },
+    {
+      "file": "server/lib/letterboxdBrowser.ts",
+      "sha256": "c4be8826b4cc5919cbf49205492f56aaf2db975f0b01e95bcc0aaf64c408bef5"
+    },
+    {
+      "file": "server/lib/letterboxdExportInbox.ts",
+      "sha256": "d31bb68882dc628f6ce016e7a001e7f048078a457277f071ac887d0666c02c4c"
+    },
+    {
+      "file": "server/lib/letterboxdWriteQueue.ts",
+      "sha256": "3d6ee7b2fea68031949d4466fc9ca323cf23c7f4ec5b3fc453fb23a1ab7f9499"
+    },
+    {
+      "file": "server/lib/letterboxdWriteWorker.ts",
+      "sha256": "0213888a9f51885cee88d630467be03ac2cb9c89cb874c7d657e36b221b549b1"
+    },
+    {
+      "file": "server/migration/postgres/1793100000000-LetterboxdImportCompleted.ts",
+      "sha256": "3418a61a7ba5b2a315fdf8890d8d5c152ad2ff36505f2e5f2605842d438977bd"
+    },
+    {
+      "file": "server/migration/sqlite/1793100000000-LetterboxdImportCompleted.ts",
+      "sha256": "dd4cd62a3f8aa663ace5e3ad129d8ae0c52e52d8365be585755f3713b81a2ab9"
+    },
+    {
+      "file": "server/routes/letterboxdWorker.ts",
+      "sha256": "8044dd884eaa4575c855c9aa434a29c7ea8a4099027b434e922c9c4d76574714"
+    },
+    {
+      "file": "server/routes/reviews.ts",
+      "sha256": "c6974ab5683b0c6ce046448f604574731a89c03aa2f529d2c52022889cc22d3e"
+    },
+    {
+      "file": "src/components/RequestList/RequestItem/index.tsx",
+      "sha256": "54b01e8a40deb53ef2b7013abded8eb55395097f6cef5bd91ac3cf115d49dec6"
+    },
+    {
+      "file": "src/components/Reviews/LetterboxdSettings.tsx",
+      "sha256": "6c68743e8067619c01377339fef3a020c9a62c7ed5f2026e2989c471c50afed0"
+    },
+    {
+      "file": "src/components/UserProfile/UserSettings/UserLinkedAccountsSettings/index.tsx",
+      "sha256": "b260bb9c781c65cfa89707077b18a9c7a09b035869b00733b730a771ac7bdb74"
+    }
+  ],
+  "schema": {
+    "commit": "e0d4fb7a66b5aaf88b20dfb88a090904c3d30a93",
+    "sha256": "5c650c613ae400bfde6ea447c348a876e0279f26025eae24eeaa6de3826075dd"
+  },
+  "zelza": {
+    "account": "zelzingb",
+    "userId": 14,
+    "exportId": "9428582d-5d3b-4100-92dd-40636e3f4a0c",
+    "completeBaseline": true,
+    "holds": 0,
+    "publishingEnabled": true,
+    "fullyIntegrated": true,
+    "hasCompletedImport": true
+  },
+  "existingTogglesUnchanged": true
+}

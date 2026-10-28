@@ -1,3 +1,5 @@
+> Deployed 2026-10-27. Historical preparation notes below; see [verified live release](live-2026-10-27.md), including completed Zelza activation.
+
 # Pending: admin Requests follow control
 
 2026-10-26: Remove FollowReleases from RequestItem, used by the admin Requests

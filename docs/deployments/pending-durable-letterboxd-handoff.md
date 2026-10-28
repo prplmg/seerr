@@ -1,3 +1,5 @@
+> Deployed 2026-10-27. Historical preparation notes below; see [verified live release](live-2026-10-27.md), including completed Zelza activation.
+
 # Durable Letterboxd handoff — 2026-10-27, NOT DEPLOYED
 
 User explicitly requested no deployment yet. Finish zelza activation after deployment.
