@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),{createRequire}=require('node:module');
+const yaml=require('js-yaml'),r=createRequire(require.resolve('express-openapi-validator'));
+const Ajv=r('ajv'),ajv=new Ajv({strict:false});r('ajv-formats')(ajv);
+const spec=yaml.load(fs.readFileSync('seerr-api.yml','utf8'));
+const schema=spec.paths['/letterboxd-worker/writes'].post.requestBody.content['application/json'].schema;
+const validate=ajv.compile(schema),base={version:1,instance:'6a7476f9-f1a1-4ea6-b230-013c21920ddc',supported:['rating','review','diary','diary-content']};
+assert(validate(base),JSON.stringify(validate.errors));
+assert(validate({...base,durableDelivery:1}),JSON.stringify(validate.errors));
+assert(!validate({...base,durableDelivery:2}));
+assert(!validate({...base,durableDelivery:'1'}));
+assert(!validate({...base,unexpected:true}));
+assert(validate({...base,durableDelivery:1,report:{id:'450257b9-ad3e-4c8f-98d9-b74566d3c774',outcome:'verified',identity:'zelzingb',values:{}}}),JSON.stringify(validate.errors));
+console.log('PASS: legacy and durable delivery schema, result reports, invalid capability and unknown property rejection');

@@ -2800,6 +2800,10 @@ paths:
               properties:
                 version: { type: integer, enum: [1] }
                 instance: { type: string, format: uuid }
+                durableDelivery:
+                  description: Worker durably deduplicates replayed delivery IDs.
+                  type: integer
+                  enum: [1]
                 supported:
                   description: Installed write adapters; omitted or empty permits reports only, never claims. Watchlist writes are excluded.
                   type: array
