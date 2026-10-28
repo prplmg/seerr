@@ -7,6 +7,7 @@ import {
   rotateBrowserToken,
 } from '@server/lib/letterboxdBrowser';
 import { readPlaybackConfig } from '@server/lib/letterboxdPlaybackConfig';
+import { summarizeWorkerHealth } from '@server/lib/letterboxdSyncHealth';
 import {
   readWriteState,
   setWriteEnabled,
@@ -30,6 +31,12 @@ router.get('/', async (_req, res) => {
       configured: !!state.tokenHash,
       bindings: state.bindings.map(({ snapshot, ...row }) => ({
         ...row,
+        syncHealth: summarizeWorkerHealth(
+          row.workerHealth,
+          writes.intents.filter(
+            (i) => i.userId === row.userId && i.account === row.username
+          )
+        ),
         reconciliationHolds:
           JSON.parse(
             exports.find((e) => e.userId === row.userId)?.value || '{}'
@@ -105,13 +112,11 @@ router.put('/writes', async (req, res) => {
       Date.now() - binding.lastSeen > 10 * 60 * 1000 ||
       (snapshot.holds || []).length
     ) {
-      return res
-        .status(409)
-        .json({
-          code: 'account-readiness-required',
-          message:
-            'A recent complete export, active browser, and resolved reconciliation holds are required.',
-        });
+      return res.status(409).json({
+        code: 'account-readiness-required',
+        message:
+          'A recent complete export, active browser, and resolved reconciliation holds are required.',
+      });
     }
     try {
       readPlaybackConfig();

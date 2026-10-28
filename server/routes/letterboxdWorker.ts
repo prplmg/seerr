@@ -41,7 +41,15 @@ router.post('/lists', (req, res) => {
         req.body.inPrivateAllowed === true
       )
     );
-  } catch {
+  } catch (error) {
+    if (error?.code === 'list-job-retired')
+      return res
+        .status(410)
+        .json({
+          code: 'list-job-retired',
+          message:
+            'List job no longer retained; preserve its report before retiring delivery.',
+        });
     return res.status(409).json({ message: 'List delivery rejected' });
   }
 });
@@ -171,7 +179,8 @@ router.post('/exchange', async (req, res) => {
       await browserExchange(
         req.body.instance,
         req.body.report,
-        req.body.exportCapable === true
+        req.body.exportCapable === true,
+        req.body.workerHealth
       )
     );
   } catch {

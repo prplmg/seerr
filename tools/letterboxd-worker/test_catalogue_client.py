@@ -9,6 +9,38 @@ from queue_store import Queue, INSTANCE
 from catalogue_client import CatalogueClient, CatalogueOriginConnection
 
 class CatalogueClientTests(unittest.TestCase):
+    def test_retired_list_is_archived_before_ack_but_mismatches_are_not(self):
+        import io
+        from urllib.error import HTTPError
+        job=self.q.enqueue('list_scan',INSTANCE,payload={'url':'https://letterboxd.com/alice/list/test/','token':str(uuid.uuid4())})
+        with self.q.db:self.q.db.execute("UPDATE jobs SET state='succeeded',result=? WHERE id=?",(json.dumps({'snapshot':{'title':'Preserve me'}}),job))
+        client=CatalogueClient(self.q,self.config,Mock(side_effect=HTTPError('https://safe',409,'Mismatch',None,io.BytesIO(b'{}'))))
+        with self.assertRaises(HTTPError):client.exchange_lists(INSTANCE)
+        self.assertIsNone(self.q.db.execute('SELECT 1 FROM list_acks WHERE id=?',(job,)).fetchone())
+        client.last_attempt.clear()
+        client.send=Mock(side_effect=HTTPError('https://safe',410,'Retired',None,io.BytesIO(b'{"code":"list-job-retired"}')))
+        client.exchange_lists(INSTANCE)
+        self.assertIsNotNone(self.q.db.execute('SELECT 1 FROM list_acks WHERE id=?',(job,)).fetchone())
+        saved=json.loads((self.root/'retired-list-reports'/(job+'.json')).read_text())
+        self.assertEqual(json.loads(saved['result'])['snapshot']['title'],'Preserve me')
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(INSTANCE,)).fetchone()[0],0)
+
+    def test_account_health_keeps_failures_separate_and_reports_pause_capabilities(self):
+        client=CatalogueClient(self.q,self.config)
+        client.record_failure(INSTANCE,'lists',ValueError('private review must not appear'))
+        with self.q.db:
+            self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(INSTANCE,))
+            self.q.db.execute('INSERT INTO readonly_pauses VALUES(?,?)',(INSTANCE,'read-check'))
+        health=client.worker_health(INSTANCE)
+        self.assertTrue(health['paused'])
+        self.assertEqual(health['pauseReason'],'read-check')
+        self.assertNotIn('watched',health['supportedWriteKinds'])
+        self.assertEqual(health['errors'][0]['stage'],'lists')
+        self.assertEqual(client.worker_health('other')['errors'],[])
+        stored=(self.config.parent/'account-health.json').read_text()
+        self.assertNotIn('private review',stored)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(INSTANCE,)).fetchone()[0],1)
+
     def test_durable_delivery_deduplicates_same_id_before_and_after_execution(self):
         instance,_,client=self.observation_setup(capability=False)
         job={'action':'media_write','id':str(uuid.uuid4()),'instance':instance,'account':'prplmg','userId':1,'film':'jaws','kind':'rating','expected':{'rating':None},'desired':{'rating':4}}

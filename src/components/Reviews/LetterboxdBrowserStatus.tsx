@@ -8,6 +8,18 @@ type Binding = {
   instance: string;
   username: string;
   enabled: boolean;
+  syncHealth?: {
+    runtime: string;
+    pauseReason?: string;
+    unsupportedQueued: number | null;
+    oldestQueuedAt: number | null;
+    recentErrors: {
+      stage: string;
+      at: number;
+      type: string;
+      httpStatus?: number;
+    }[];
+  };
   writeEnabled?: boolean;
   writePilotEligible?: boolean;
   reconciliationHolds?: { originId: string; reason: string }[];
@@ -147,6 +159,65 @@ export default function LetterboxdBrowserStatus({
                     ? 'Desactivado'
                     : 'Disabled'}
               </p>
+              <div
+                className="space-y-1 rounded-lg bg-gray-900 p-3 text-sm"
+                aria-label={
+                  es ? 'Estado real de sincronización' : 'Effective sync health'
+                }
+              >
+                <p
+                  className={
+                    row.syncHealth?.runtime === 'ready'
+                      ? 'text-green-300'
+                      : 'text-yellow-300'
+                  }
+                >
+                  {es ? 'Navegador: ' : 'Worker: '}
+                  {row.syncHealth?.runtime === 'ready'
+                    ? es
+                      ? 'listo'
+                      : 'ready'
+                    : row.syncHealth?.runtime === 'paused'
+                      ? es
+                        ? 'publicación pausada'
+                        : 'publishing paused'
+                      : es
+                        ? 'estado reciente no disponible'
+                        : 'fresh runtime status unavailable'}
+                </p>
+                {row.syncHealth?.runtime === 'paused' && (
+                  <p>
+                    {row.syncHealth.pauseReason === 'read-check'
+                      ? es
+                        ? 'Una verificación de lectura falló. La opción de publicación puede estar activa, pero el navegador no publicará hasta recuperarse.'
+                        : 'A read-only check failed. Publishing may be enabled, but this worker will not publish until it recovers.'
+                      : es
+                        ? 'Hay una pausa de seguridad o manual. Revisa el navegador antes de reactivar.'
+                        : 'A safety or manual pause is active. Review the worker before resuming.'}
+                  </p>
+                )}
+                {!!row.syncHealth?.unsupportedQueued && (
+                  <p className="text-yellow-300">
+                    {row.syncHealth.unsupportedQueued}{' '}
+                    {es
+                      ? 'operaciones en cola no compatibles con este navegador.'
+                      : 'queued operations are not supported by this worker.'}
+                  </p>
+                )}
+                {row.syncHealth?.oldestQueuedAt && (
+                  <p>
+                    {es ? 'En cola desde: ' : 'Oldest queued operation: '}
+                    {new Date(row.syncHealth.oldestQueuedAt).toLocaleString()}
+                  </p>
+                )}
+                {row.syncHealth?.recentErrors.map((e) => (
+                  <p key={e.stage} className="text-yellow-300">
+                    {es ? 'Error reciente' : 'Recent error'} · {e.stage} ·{' '}
+                    {e.httpStatus ? `HTTP ${e.httpStatus}` : e.type} ·{' '}
+                    {new Date(e.at).toLocaleTimeString()}
+                  </p>
+                ))}
+              </div>
               {row.issue && (
                 <p className="text-yellow-300">
                   {issues[row.issue] ||

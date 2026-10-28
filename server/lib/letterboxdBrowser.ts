@@ -23,6 +23,7 @@ import {
   readObservations,
   updateObservations,
 } from './letterboxdObservations';
+import { parseWorkerHealth } from './letterboxdSyncHealth';
 import { readWriteState } from './letterboxdWriteQueue';
 
 const filename = () => path.join(appDataPath(), 'letterboxd-browser.json');
@@ -114,12 +115,14 @@ export async function bindLetterboxdBrowser(
 export async function browserExchange(
   instance: string,
   report: unknown,
-  exportCapable = false
+  exportCapable = false,
+  workerHealth?: unknown
 ) {
   const binding = readBrowserState().bindings.find(
     (row) => row.instance === instance
   );
   if (!binding) throw Error('Browser not bound');
+  const health = parseWorkerHealth(workerHealth);
   const account = await getRepository(LetterboxdAccount).findOne({
     where: { userId: binding.userId },
   });
@@ -128,6 +131,7 @@ export async function browserExchange(
   updateBrowserState((state) => {
     const row = state.bindings.find((b) => b.instance === instance)!;
     row.exportCapable = exportCapable;
+    if (health) row.workerHealth = health;
     row.lastSeen = Date.now();
   });
   if (binding.job?.kind === 'export' && report && typeof report === 'object') {

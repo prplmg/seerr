@@ -1,5 +1,4 @@
 import IMDBRadarrProxy from '@server/api/rating/imdbRadarrProxy';
-import { getLetterboxdRating } from '@server/api/rating/letterboxd';
 import RottenTomatoes from '@server/api/rating/rottentomatoes';
 import { type RatingResponse } from '@server/api/ratings';
 import TheMovieDb from '@server/api/themoviedb';
@@ -7,6 +6,7 @@ import { MediaType } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { Watchlist } from '@server/entity/Watchlist';
+import { getMappedLetterboxdRating } from '@server/lib/letterboxdRatingLookup';
 import logger from '@server/logger';
 import { mapMovieDetails } from '@server/models/Movie';
 import { posterCard } from '@server/models/PosterCard';
@@ -18,7 +18,7 @@ const movieRoutes = Router();
 movieRoutes.get('/:id/letterboxd', async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id <= 0) return res.sendStatus(400);
-  return res.json({ rating: await getLetterboxdRating(id) });
+  return res.json({ rating: await getMappedLetterboxdRating(id, 'movie') });
 });
 
 movieRoutes.get('/:id', async (req, res, next) => {

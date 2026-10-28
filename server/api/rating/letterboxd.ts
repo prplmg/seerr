@@ -61,7 +61,8 @@ const pending = new Map<string, Promise<LetterboxdRating | null>>();
 
 export function getLetterboxdRating(
   id: number,
-  mediaType: 'movie' | 'tv' = 'movie'
+  mediaType: 'movie' | 'tv' = 'movie',
+  knownFilm?: () => Promise<string | null>
 ): Promise<LetterboxdRating | null> {
   if (
     !Number.isSafeInteger(id) ||
@@ -77,13 +78,30 @@ export function getLetterboxdRating(
   if (running) return running;
   if (pending.size >= 8) return Promise.resolve(previous?.value ?? null);
   const request = (async () => {
+    const deadline = Date.now() + 10000;
     let value = previous?.value ?? null;
     let ttl = 60 * 60 * 1000;
+    let known: string | null = null;
     try {
-      const response = await axios.get<string>(
-        `https://letterboxd.com/tmdb/${id}/${mediaType === 'tv' ? 'tv/' : ''}`,
-        {
-          timeout: 10000,
+      known = (await knownFilm?.()) ?? null;
+    } catch {
+      /* Mapping failure must not block the normal lookup. */
+    }
+    if (
+      known &&
+      !/^https:\/\/letterboxd\.com\/film\/[a-z0-9-]+\/$/i.test(known)
+    )
+      known = null;
+    const urls = [
+      ...(known ? [known] : []),
+      `https://letterboxd.com/tmdb/${id}/${mediaType === 'tv' ? 'tv/' : ''}`,
+    ];
+    for (const url of urls) {
+      const timeout = deadline - Date.now();
+      if (timeout <= 0) break;
+      try {
+        const response = await axios.get<string>(url, {
+          timeout,
           maxContentLength: 2 * 1024 * 1024,
           maxRedirects: 4,
           responseType: 'text',
@@ -94,15 +112,29 @@ export function getLetterboxdRating(
             )
               throw new Error('Unexpected Letterboxd redirect');
           },
+        });
+        const rating = parseLetterboxdRating(response.data, mediaType);
+        if (url === known) {
+          const identity = response.data.match(
+            /themoviedb\.org\/(movie|tv)\/(\d+)(?:[/?"'\s<]|$)/i
+          );
+          if (
+            !identity ||
+            identity[1] !== mediaType ||
+            Number(identity[2]) !== id ||
+            rating?.url !== known
+          )
+            continue;
         }
-      );
-      const rating = parseLetterboxdRating(response.data, mediaType);
-      if (rating) {
-        value = rating;
-        ttl = 24 * 60 * 60 * 1000;
+        if (rating) {
+          value = rating;
+          ttl = 24 * 60 * 60 * 1000;
+          break;
+        }
+      } catch {
+        // Retry temporary failures sooner; retain a previously fetched rating.
+        ttl = 5 * 60 * 1000;
       }
-    } catch {
-      // Keep a previously fetched rating during temporary upstream failures.
     }
     if (cache.size >= 1000 && !cache.has(key))
       cache.delete(cache.keys().next().value!);

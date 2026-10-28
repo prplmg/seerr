@@ -20,6 +20,7 @@ it('observation API requires dedicated credentials before dispatch and validates
     string,
     (req: Request, res: Response) => Promise<unknown>
   > = {};
+  let retired = false;
   let calls = 0,
     listCalls = 0;
   const deps: Record<string, unknown> = {
@@ -27,6 +28,10 @@ it('observation API requires dedicated credentials before dispatch and validates
     '@server/lib/discoveryBrowser': {
       exchangeBrowserLists: () => {
         listCalls++;
+        if (retired)
+          throw Object.assign(new Error('retired'), {
+            code: 'list-job-retired',
+          });
         return { action: 'idle' };
       },
       pendingBrowserList: () => ({ pending: false }),
@@ -114,4 +119,8 @@ it('observation API requires dedicated credentials before dispatch and validates
   assert.equal(listCalls, 0);
   assert.equal((await run('Bearer dedicated', true, '/lists')).code, 200);
   assert.equal(listCalls, 1);
+  retired = true;
+  const response = await run('Bearer dedicated', true, '/lists');
+  assert.equal(response.code, 410);
+  assert.equal((response.data as { code: string }).code, 'list-job-retired');
 });

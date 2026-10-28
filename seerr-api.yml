@@ -2654,6 +2654,7 @@ paths:
         '200': { description: List scan or idle }
         '403': { description: Invalid worker credential }
         '409': { description: Invalid list delivery }
+        '410': { description: List job no longer retained; preserve report before retiring delivery }
   /letterboxd-worker/exchange:
     post:
       security: []
@@ -2670,6 +2671,44 @@ paths:
                 version: { type: integer, enum: [1] }
                 instance: { type: string, format: uuid }
                 exportCapable: { type: boolean, default: false }
+                workerHealth:
+                  type: object
+                  additionalProperties: false
+                  required: [paused, pauseReason, supportedWriteKinds, errors]
+                  properties:
+                    paused: { type: boolean }
+                    pauseReason:
+                      type: string
+                      enum:
+                        [none, read-check, uncertain-write, watchdog, manual]
+                    supportedWriteKinds:
+                      type: array
+                      maxItems: 5
+                      uniqueItems: true
+                      items:
+                        {
+                          type: string,
+                          enum: [rating, review, diary, diary-content, watched],
+                        }
+                    errors:
+                      type: array
+                      maxItems: 3
+                      items:
+                        type: object
+                        additionalProperties: false
+                        required: [stage, at, type]
+                        properties:
+                          stage:
+                            {
+                              type: string,
+                              enum: [publishing, heartbeat, lists],
+                            }
+                          at: { type: number, minimum: 1 }
+                          type:
+                            { type: string, pattern: '^[A-Za-z0-9_]{1,80}$' }
+                          httpStatus:
+                            { type: integer, minimum: 100, maximum: 599 }
+
                 report: { type: object, additionalProperties: true }
       responses:
         '200': { description: Pending read-only scan or idle }

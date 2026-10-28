@@ -222,6 +222,14 @@ export function exchangeBrowserLists(
   const now = Date.now();
   if (report)
     update((jobs) => {
+      if (
+        typeof report.id === 'string' &&
+        /^[a-f0-9-]{36}$/.test(report.id) &&
+        !jobs.some((j) => j.id === report.id)
+      )
+        throw Object.assign(new Error('List job no longer retained'), {
+          code: 'list-job-retired',
+        });
       const job = jobs.find(
         (j) =>
           j.id === report.id &&

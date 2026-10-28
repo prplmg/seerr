@@ -1,3 +1,4 @@
+import type { WorkerHealth } from './letterboxdSyncHealth';
 import { createHash, randomUUID } from 'crypto';
 
 export type BrowserIssue =
@@ -13,6 +14,7 @@ export type BrowserBinding = {
   instance: string;
   enabled: boolean;
   exportCapable?: boolean;
+  workerHealth?: WorkerHealth;
   exportDue?: boolean;
   lastSeen?: number;
   lastSuccess?: number;

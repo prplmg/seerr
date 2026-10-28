@@ -4,9 +4,11 @@ import time
 import ssl
 import re
 import traceback
+import uuid
 from http.client import HTTPSConnection
 from urllib.request import Request, build_opener, HTTPRedirectHandler, HTTPSHandler, ProxyHandler
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 
 ENDPOINT = 'https://catalogue.prpl.com.mx:8443/api/v1/letterboxd-worker/exchange'
 SUPPORTED_WRITE_KINDS = ('rating', 'review', 'diary')
@@ -58,7 +60,26 @@ class CatalogueClient:
             with file.open('a',encoding='utf-8') as out:out.write(json.dumps(failure)+'\n')
         except OSError:
             pass  # Diagnostics must never alter delivery semantics.
+        if stage in ('publishing','heartbeat','lists'):
+            try:
+                target=self.config_path.parent/'account-health.json'
+                state=json.loads(target.read_text()) if target.exists() else {}
+                state.setdefault(instance,{})[stage]={'stage':stage,'at':int(time.time()*1000),'type':type(error).__name__,**({'httpStatus':code} if isinstance(code,int) else {})}
+                temp=target.with_suffix('.tmp');temp.write_text(json.dumps(state));temp.replace(target)
+            except (OSError,ValueError,TypeError): pass
         return failure
+
+    def worker_health(self, instance):
+        account = self.queue.db.execute('SELECT paused FROM accounts WHERE instance=?',(instance,)).fetchone()
+        paused = bool(account and account['paused'])
+        reason = 'none'
+        if paused:
+            reason = 'read-check' if self.queue.db.execute('SELECT 1 FROM readonly_pauses WHERE instance=?',(instance,)).fetchone() else 'watchdog' if self.queue.db.execute('SELECT 1 FROM watchdog_pauses WHERE instance=?',(instance,)).fetchone() else 'uncertain-write' if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND action='media_write' AND state IN ('blocked','unknown')",(instance,)).fetchone() else 'manual'
+        try: errors = list(json.loads((self.config_path.parent/'account-health.json').read_text()).get(instance,{}).values())
+        except (OSError,ValueError,AttributeError): errors=[]
+        kinds=list(SUPPORTED_WRITE_KINDS)
+        if self.workflow_capable(instance): kinds.append('diary-content')
+        return {'paused':paused,'pauseReason':reason,'supportedWriteKinds':kinds,'errors':errors[-3:]}
 
     def exchange_cycle(self, instance):
         # Publishing failures must not suppress the independent health/read path.
@@ -219,7 +240,32 @@ class CatalogueClient:
             payload['report']={'id':row['id'],'token':intent['token'],'outcome':row['state']}
             for key in ('snapshot','error'):
                 if key in result:payload['report'][key]=result[key]
-        job=self.send(config['token'],payload,lists=True)
+        try:
+            job=self.send(config['token'],payload,lists=True)
+        except HTTPError as error:
+            retired=False
+            if row and error.code==410:
+                try: retired=json.loads(error.read(4096)).get('code')=='list-job-retired'
+                except (ValueError,AttributeError): pass
+            if not retired: raise
+            # Keep the original snapshot before acknowledging an absent server job.
+            # Never reinterpret token/account mismatches (409) as retirement.
+            archive=self.config_path.parent/'retired-list-reports'
+            archive.mkdir(exist_ok=True)
+            file=archive/(row['id']+'.json')
+            saved={'id':row['id'],'instance':instance,'payload':row['payload'],'result':row['result'],'reason':'list-job-retired'}
+            if file.exists():
+                if json.loads(file.read_text())!=saved: raise ValueError('List archive identity mismatch')
+            else:
+                temp=file.with_suffix('.'+str(uuid.uuid4())+'.tmp')
+                try:
+                    with temp.open('x',encoding='utf-8') as out:json.dump(saved,out)
+                    temp.replace(file)
+                finally:
+                    if temp.exists():temp.unlink()
+            with self.queue.db:self.queue.db.execute('INSERT OR IGNORE INTO list_acks VALUES(?)',(row['id'],))
+            return
+
         if job.get('action') not in ('idle','list_scan'):raise ValueError('Invalid list job')
         if row:
             with self.queue.db:self.queue.db.execute('INSERT OR IGNORE INTO list_acks VALUES(?)',(row['id'],))
@@ -242,7 +288,7 @@ class CatalogueClient:
         if not account or account['username'] != expected:
             raise ValueError('Unverified catalogue profile')
         self.queue.expire()
-        payload = {'version':1, 'instance':instance, 'exportCapable':config.get('exportCapable') is True}
+        payload = {'version':1, 'instance':instance, 'exportCapable':config.get('exportCapable') is True, 'workerHealth':self.worker_health(instance)}
         row = self.queue.db.execute('SELECT j.* FROM catalogue_jobs c JOIN jobs j ON j.id=c.id LEFT JOIN catalogue_acks a ON a.id=j.id WHERE c.instance=? AND a.id IS NULL ORDER BY j.created DESC LIMIT 1', (instance,)).fetchone()
         if row and row['state'] in ('succeeded','blocked','unknown'):
             result = json.loads(row['result'] or '{}')

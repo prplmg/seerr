@@ -1,5 +1,4 @@
 import { getMetadataProvider } from '@server/api/metadata';
-import { getLetterboxdRating } from '@server/api/rating/letterboxd';
 import RottenTomatoes from '@server/api/rating/rottentomatoes';
 import TheMovieDb from '@server/api/themoviedb';
 import { ANIME_KEYWORD_ID } from '@server/api/themoviedb/constants';
@@ -8,6 +7,7 @@ import { MediaType } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { Watchlist } from '@server/entity/Watchlist';
+import { getMappedLetterboxdRating } from '@server/lib/letterboxdRatingLookup';
 import logger from '@server/logger';
 import { posterCard } from '@server/models/PosterCard';
 import { mapTvResult } from '@server/models/Search';
@@ -19,7 +19,7 @@ const tvRoutes = Router();
 tvRoutes.get('/:id/letterboxd', async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id <= 0) return res.sendStatus(400);
-  return res.json({ rating: await getLetterboxdRating(id, 'tv') });
+  return res.json({ rating: await getMappedLetterboxdRating(id, 'tv') });
 });
 
 tvRoutes.get('/:id', async (req, res, next) => {
