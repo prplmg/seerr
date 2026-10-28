@@ -155,8 +155,8 @@ function ReviewMetadata({
             {review.user.name}
           </Link>
         )}
-        <time dateTime={review.publishedAt}>
-          {review.publishedAt.slice(0, 10)}
+        <time dateTime={review.watchedDate || review.publishedAt}>
+          {review.watchedDate || review.publishedAt.slice(0, 10)}
         </time>
       </div>
       <Rating review={review} />

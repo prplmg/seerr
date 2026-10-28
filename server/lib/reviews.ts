@@ -295,9 +295,10 @@ export function syncReviews(userId: number): Promise<void> {
         }
       );
       logger.info('RSS account refresh completed', { label: 'Letterboxd', userId, entries: entries.length, unresolved, durationMs: Date.now() - started });
-    } catch {
+    } catch (error) {
       await repo.update({ userId, username }, { error: 'unavailable' });
-      logger.warn('RSS account refresh failed', { label: 'Letterboxd', userId, reason: 'unavailable', durationMs: Date.now() - started });
+      const failure = error as {code?: unknown; response?: {status?: unknown}};
+      logger.warn('RSS account refresh failed', { label: 'Letterboxd', userId, reason: 'unavailable', durationMs: Date.now() - started, code: typeof failure?.code === 'string' && /^[A-Z_0-9]{1,50}$/.test(failure.code) ? failure.code : 'RSS_REFRESH_FAILED', httpStatus: typeof failure?.response?.status === 'number' ? failure.response.status : undefined });
     }
   }).finally(() => pending.delete(userId));
   pending.set(userId, work);

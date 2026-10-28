@@ -1,3 +1,4 @@
+import { readHistoryHealth } from '@server/lib/letterboxdHistoryHealth';
 import { getRepository } from '@server/datasource';
 import { LetterboxdExportBaseline } from '@server/entity/LetterboxdExport';
 import { LetterboxdAccount } from '@server/entity/MovieReview';
@@ -29,6 +30,7 @@ router.get('/', async (_req, res) => {
     const exports = await getRepository(LetterboxdExportBaseline).find();
     return res.json({
       configured: !!state.tokenHash,
+      sharedHistory: readHistoryHealth(),
       bindings: state.bindings.map(({ snapshot, ...row }) => ({
         ...row,
         syncHealth: summarizeWorkerHealth(

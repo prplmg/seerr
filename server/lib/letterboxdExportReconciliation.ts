@@ -3,12 +3,20 @@ import { LetterboxdExportBaseline } from '@server/entity/LetterboxdExport';
 import { MovieReview } from '@server/entity/MovieReview';
 import { applyExportRecords } from './letterboxdExportApply';
 import { commitExportToDatabase } from './letterboxdExportDatabase';
+import { assertExportFresh } from './letterboxdExportPreflight';
 import type { ExportRecord } from './letterboxdExportRecords';
 import { resolveExportRecords } from './letterboxdExportRecords';
 import { readExportSnapshot } from './letterboxdExportSnapshot';
 import type { ExportBaseline } from './letterboxdExportTransaction';
 import { recordFilmEvidence } from './letterboxdFilmEvidence';
-import { verifiedRatingBaseline, latestVerifiedPublicationAt } from './letterboxdPublicationPlan';
+import {
+  readMetadataMatch,
+  saveMetadataMatch,
+} from './letterboxdMetadataMatches';
+import {
+  latestVerifiedPublicationAt,
+  verifiedRatingBaseline,
+} from './letterboxdPublicationPlan';
 import { reconcileLetterboxdReview } from './letterboxdReconcile';
 import { readSyncReceipts } from './letterboxdSyncReceipts';
 import { readWriteState, updateWriteState } from './letterboxdWriteQueue';
@@ -47,6 +55,7 @@ export async function reconcileExport(
       userId,
       source: 'letterboxd',
     });
+    assertExportFresh(revision, capturedAt, old, existing);
     for (const r of existing)
       if (r.externalUrl && !mappings[r.externalUrl])
         mappings[r.externalUrl] = {
@@ -58,9 +67,11 @@ export async function reconcileExport(
       snapshot,
       async (entry, username) => {
         const originalUrl = entry.externalUrl;
-        const cached = mappings[originalUrl];
-        if (cached) Object.assign(entry, cached);
-        else {
+        const cached = mappings[originalUrl] || readMetadataMatch(originalUrl);
+        if (cached) {
+          mappings[originalUrl] = cached;
+          Object.assign(entry, cached);
+        } else {
           await expandReviewLink(entry, username);
           const previous = existing.find(
             (r) => r.externalUrl === entry.externalUrl
@@ -72,6 +83,7 @@ export async function reconcileExport(
             tmdbId,
             mediaType: previous?.mediaType || entry.mediaType || 'movie',
           };
+          saveMetadataMatch(originalUrl, mappings[originalUrl]);
           Object.assign(entry, mappings[originalUrl]);
         }
         const previous = existing.find(
@@ -115,7 +127,11 @@ export async function reconcileExport(
         });
         for (const local of locals) {
           if (Date.parse(local.updatedAt) > capturedAt) continue;
-          const verifiedAt = latestVerifiedPublicationAt(writes.intents, userId, local.id);
+          const verifiedAt = latestVerifiedPublicationAt(
+            writes.intents,
+            userId,
+            local.id
+          );
           if (verifiedAt > capturedAt) continue;
           const receipt = receipts.find(
             (r) =>

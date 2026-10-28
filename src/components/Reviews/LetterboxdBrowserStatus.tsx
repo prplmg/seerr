@@ -40,6 +40,7 @@ export default function LetterboxdBrowserStatus({
 }) {
   const es = useIntl().locale.startsWith('es');
   const { data, error, mutate } = useSWR<{
+    sharedHistory?: { attempts: number; nextAttemptAt: number; error?: {stage: string; code: string} };
     configured: boolean;
     bindings: Binding[];
   }>('/api/v1/settings/letterboxd-browser', { refreshInterval: 30000 });
@@ -140,6 +141,12 @@ export default function LetterboxdBrowserStatus({
         <p>{es ? 'Cargando…' : 'Loading…'}</p>
       ) : (
         <>
+          {!!data.sharedHistory?.attempts && (
+            <p role="status" className="text-yellow-300">
+              {es ? 'La lectura compartida del historial de Plex está fallando; se reintentará automáticamente. No indica un fallo de publicación.' : 'The shared Plex history check is failing; it will retry automatically. This does not indicate a failed publication.'}
+              {' '}{data.sharedHistory.error?.stage}: {data.sharedHistory.error?.code}
+            </p>
+          )}
           {!data.configured && (
             <p className="text-yellow-300">
               {es

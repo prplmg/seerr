@@ -9,6 +9,33 @@ from queue_store import Queue, INSTANCE
 from catalogue_client import CatalogueClient, CatalogueOriginConnection
 
 class CatalogueClientTests(unittest.TestCase):
+    def test_watched_capability_requires_fresh_loaded_adapter(self):
+        client=CatalogueClient(self.q,self.config)
+        file=self.root/'worker-versions.json'
+        self.assertNotIn('watched',client.supported_writes(INSTANCE))
+        file.write_text(json.dumps({INSTANCE:{'version':'0.2.48','seenAt':time.time()}}))
+        self.assertIn('watched',client.supported_writes(INSTANCE))
+        file.write_text(json.dumps({INSTANCE:{'version':'0.2.48','seenAt':time.time()-601}}))
+        self.assertNotIn('watched',client.supported_writes(INSTANCE))
+
+    def test_read_pause_recovers_with_probe_not_write_and_never_overrides_manual_hold(self):
+        client=CatalogueClient(self.q,self.config)
+        probe=self.q.enqueue('identity_probe',INSTANCE)
+        self.q.claim(INSTANCE)
+        self.q.event(INSTANCE,probe,{'outcome':'blocked'},True)
+        with self.q.db:self.q.db.execute("UPDATE jobs SET created=? WHERE action='identity_probe'",(time.time()-1000,))
+        client.recover_read_pause(INSTANCE)
+        self.assertEqual(self.q.db.execute("SELECT count(*) FROM jobs WHERE action='identity_probe'").fetchone()[0],3)
+        client.recover_read_pause(INSTANCE)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM jobs').fetchone()[0],3)
+        nextjob=self.q.claim(INSTANCE)
+        self.q.event(INSTANCE,nextjob['id'],{'outcome':'succeeded','identity':'prplmg'},True)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(INSTANCE,)).fetchone()[0],0)
+        with self.q.db:self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(INSTANCE,))
+        client.recover_read_pause(INSTANCE)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM jobs').fetchone()[0],3)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(INSTANCE,)).fetchone()[0],1)
+
     def test_retired_list_is_archived_before_ack_but_mismatches_are_not(self):
         import io
         from urllib.error import HTTPError

@@ -1,3 +1,5 @@
+import logger from '@server/logger';
+import { readHistoryHealth, saveHistoryHealth, historyResult } from '@server/lib/letterboxdHistoryHealth';
 import PlexAPI from '@server/api/plexapi';
 import PlexTvAPI from '@server/api/plextv';
 import TheMovieDb from '@server/api/themoviedb';
@@ -337,18 +339,20 @@ function playbackRefreshFailure(failed: boolean) {
 export async function refreshRecentMoviePlayback() {
   if (playbackRefreshPending) return playbackRefreshPending;
   // Leave five seconds of tolerance for scheduler jitter around the 30s cadence.
-  if (Date.now() - playbackRefreshAt < 25000) return;
+  if (Date.now() - playbackRefreshAt < 25000 || Date.now() < readHistoryHealth().nextAttemptAt) return;
   const p = policy();
   if (!p.enabled || !Object.values(readWriteState().settings).some(s => s.enabled)) return;
   playbackRefreshAt = Date.now();
+  let stage = 'history-fetch';
   playbackRefreshPending = (async () => {
     const response = await axios.get(`${p.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
-      timeout: 5000,
+      timeout: 10000,
       params: { apikey: p.tautulliKey, cmd: 'get_history', grouping: 0,
         media_type: 'movie', length: 50, start: 0, order_column: 'date', order_dir: 'desc' },
     });
     const payload = response.data.response;
     if (payload?.result !== 'success' || !Array.isArray(payload.data?.data)) throw Error('Invalid playback history response');
+    stage = 'history-validation-and-import';
     await collectCompletedLetterboxdPlayback(payload.data.data
       .filter((row: Record<string, unknown>) => row.media_type === 'movie' && Number(row.stopped) > 0 && row.rating_key)
       .map((row: Record<string, unknown>) => ({row_id: row.row_id, reference_id: row.reference_id,
@@ -357,9 +361,16 @@ export async function refreshRecentMoviePlayback() {
         key: String(row.rating_key), rating_key: String(row.rating_key), type: 'movie',
         machine_id: row.machine_id, started: Number(row.started), watched_status: Number(row.watched_status)})));
     playbackRefreshFailure(false);
-  })().catch(() => {
-    // A history outage must not prevent acknowledgement of an existing write.
-    playbackRefreshFailure(true);
+    saveHistoryHealth(historyResult(readHistoryHealth()));
+  })().catch((error) => {
+    // One shared dependency failure, not six independent account failures.
+    playbackRefreshFailure(false); // Clear legacy per-account alerts.
+    const health = historyResult(readHistoryHealth(), error, stage);
+    saveHistoryHealth(health);
+    logger.warn('Shared Letterboxd playback history check failed', {
+      label: 'Letterboxd', ...health.error, attempts: health.attempts,
+      nextAttemptAt: health.nextAttemptAt,
+    });
   }).finally(() => { playbackRefreshPending = undefined; });
   return playbackRefreshPending;
 }

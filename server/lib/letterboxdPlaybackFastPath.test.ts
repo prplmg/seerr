@@ -1,0 +1,54 @@
+import { historyResult } from './letterboxdHistoryHealth';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import { it } from 'node:test';
+import ts from 'typescript';
+
+function harness() {
+  const source = fs.readFileSync(path.join(__dirname, '../routes/social.ts'), 'utf8');
+  const code = source.slice(source.indexOf('let playbackRefreshAt'), source.indexOf('// Collection only:'));
+  let now = 100000, enabled = true, fail = false;
+  let health:any={attempts:0,nextAttemptAt:0};
+  const calls: any[] = [], collected: any[] = [];
+  const failures: boolean[] = [];
+  const exports: any = {};
+  vm.runInNewContext(ts.transpileModule(code, {compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText, {
+    readHistoryHealth:()=>health, saveHistoryHealth:(v:any)=>{health=v;}, historyResult:(old:any,error:any,stage:any)=>historyResult(old,error,stage,now), logger:{warn:()=>{}},
+    exports, Date: {now: () => now},
+    policy: () => ({enabled:true,tautulliUrl:'http://history',tautulliKey:'test'}),
+    readWriteState: () => ({settings:{1:{enabled}}}),
+    updateWriteState: (fn: any) => fn({settings:{1:{enabled,account:'prplmg'}}}),
+    setPreparationFailure: (_s: unknown,_id:number,_account:string,_phase:string,failed:boolean)=>failures.push(failed),
+    axios: {get: async (_url: string, options: any) => {
+      calls.push(options);
+      if (fail) throw Error('offline');
+      return {data:{response:{result:'success',data:{data:[
+        {media_type:'movie',stopped:99,started:10,rating_key:'7',row_id:3,reference_id:3,user_id:1,watched_status:1},
+        {media_type:'movie',stopped:0,rating_key:'8'},
+        {media_type:'episode',stopped:99,rating_key:'9'},
+      ]}}}};
+    }},
+    collectCompletedLetterboxdPlayback: async (rows: unknown) => {collected.push(rows);},
+  });
+  return {run:exports.refreshRecentMoviePlayback,calls,collected,failures,advance:()=>{now+=30000;},disable:()=>{enabled=false;},fail:()=>{fail=true;}};
+}
+it('fast playback intake is bounded, coalesced, throttled, and additive', async () => {
+  const h = harness();
+  await Promise.all([h.run(),h.run(),h.run()]);
+  assert.equal(h.calls.length,1);
+  assert.equal(h.calls[0].params.length,50);
+  assert.equal(h.collected[0].length,1);
+  assert.equal(h.collected[0][0].row_id,3);
+  assert.equal(h.collected[0][0].stopped,99);
+  await h.run();assert.equal(h.calls.length,1);
+  h.advance();await h.run();assert.equal(h.calls.length,2);
+});
+it('disabled publishing makes no fast history request; history failure cannot block acknowledgements', async () => {
+  const disabled = harness();disabled.disable();await disabled.run();assert.equal(disabled.calls.length,0);
+  const failed = harness();failed.fail();await failed.run();await failed.run();
+  assert.equal(failed.calls.length,1);assert.equal(failed.collected.length,0);
+  assert.deepEqual(failed.failures,[false]);
+  failed.advance(); await failed.run(); assert.equal(failed.calls.length,1);
+});

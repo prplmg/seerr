@@ -19,6 +19,11 @@ import {
   type BrowserState,
 } from './letterboxdBrowserState';
 import {
+  historyNeedsAlert,
+  readHistoryHealth,
+  saveHistoryHealth,
+} from './letterboxdHistoryHealth';
+import {
   maintainObservationHealth,
   readObservations,
   updateObservations,
@@ -362,11 +367,33 @@ export async function monitorLetterboxdBrowsers() {
         return alert ? [{ binding, alert }] : [];
       });
     });
-    if (!incidents.length && !writeIncidents.length) return;
+    const historyHealth = readHistoryHealth();
+    if (
+      !incidents.length &&
+      !writeIncidents.length &&
+      !historyNeedsAlert(historyHealth)
+    )
+      return;
     const settings = getSettings().notifications.agents.email;
     if (!settings.enabled) throw Error('Email notifications are disabled');
     const owner = await getRepository(User).findOne({ where: { id: 1 } });
     if (!owner?.email) throw Error('Administrator email unavailable');
+    if (historyNeedsAlert(historyHealth)) {
+      await new PreparedEmail(settings).send({
+        message: {
+          to: owner.email,
+          subject: 'Multimeldia: shared playback-history sync needs attention',
+          text: `The shared playback-history check has failed repeatedly. This affects importing new Plex watches for linked users; it is not evidence of a failed Letterboxd publication. Existing writes and RSS imports continue independently. Automatic retries continue with backoff.\n\nStage: ${historyHealth.error?.stage}; error: ${historyHealth.error?.code}; HTTP: ${historyHealth.error?.status ?? 'not available'}. No need to resubmit reviews.`,
+        },
+      });
+      const current = readHistoryHealth();
+      if (
+        current.firstFailedAt === historyHealth.firstFailedAt &&
+        current.attempts
+      )
+        saveHistoryHealth({ ...current, notified: true });
+    }
+
     const reasons = {
       offline: 'The browser is not responding.',
       cloudflare: 'A browser security check needs your attention.',

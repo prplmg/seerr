@@ -77,14 +77,35 @@ class CatalogueClient:
             reason = 'read-check' if self.queue.db.execute('SELECT 1 FROM readonly_pauses WHERE instance=?',(instance,)).fetchone() else 'watchdog' if self.queue.db.execute('SELECT 1 FROM watchdog_pauses WHERE instance=?',(instance,)).fetchone() else 'uncertain-write' if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND action='media_write' AND state IN ('blocked','unknown')",(instance,)).fetchone() else 'manual'
         try: errors = list(json.loads((self.config_path.parent/'account-health.json').read_text()).get(instance,{}).values())
         except (OSError,ValueError,AttributeError): errors=[]
-        kinds=list(SUPPORTED_WRITE_KINDS)
+        kinds=self.supported_writes(instance)
         if self.workflow_capable(instance): kinds.append('diary-content')
         return {'paused':paused,'pauseReason':reason,'supportedWriteKinds':kinds,'errors':errors[-3:]}
+
+    def supported_writes(self, instance):
+        kinds=list(SUPPORTED_WRITE_KINDS)
+        try:
+            version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
+            if version.get('version')=='0.2.48' and 0 <= time.time()-version.get('seenAt',0) < 600:
+                kinds.append('watched')
+        except (OSError,ValueError,TypeError): pass
+        return kinds
+
+    def recover_read_pause(self, instance):
+        # Only recover a positively identified read-induced pause. Manual or
+        # uncertain mutation holds remain untouched. Probe performs no writes.
+        row=self.queue.db.execute('SELECT a.paused,j.created FROM accounts a JOIN readonly_pauses p ON p.instance=a.instance JOIN jobs j ON j.id=p.job WHERE a.instance=?',(instance,)).fetchone()
+        if not row or not row['paused']: return
+        if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND (state IN ('queued','offered','running') OR (action NOT IN ('identity_probe','review_observe','watchlist_scan','export_scan','list_scan') AND state IN ('unknown','blocked') AND created>=?))",(instance,row['created'])).fetchone(): return
+        last=self.queue.db.execute("SELECT MAX(created) FROM jobs WHERE instance=? AND action='identity_probe'",(instance,)).fetchone()[0]
+        if last and time.time()-last < 900: return
+        self.queue.enqueue('identity_probe',instance)
 
     def exchange_cycle(self, instance):
         # Publishing failures must not suppress the independent health/read path.
         # Do not retry writes here; durable delivery/recovery owns that decision.
         failures = []
+        try: self.recover_read_pause(instance)
+        except Exception as error: self.record_failure(instance,'heartbeat',error)
         for stage, exchange in (('publishing', self.exchange_writes), ('heartbeat', self.exchange), ('lists',self.exchange_lists)):
             if stage=='lists' and failures:continue
             try:
@@ -144,7 +165,7 @@ class CatalogueClient:
         config=json.loads(self.config_path.read_text())
         expected=config.get('accounts',{}).get(instance)
         if instance not in config.get('instances',[]) or not expected: return
-        payload={'version':1,'instance':instance,'supported':list(SUPPORTED_WRITE_KINDS),'durableDelivery':1}
+        payload={'version':1,'instance':instance,'supported':self.supported_writes(instance),'durableDelivery':1}
         if self.workflow_capable(instance):
             payload['supported'].append('diary-content')
         row=self.queue.db.execute("SELECT j.* FROM jobs j JOIN write_payloads w ON w.id=j.id LEFT JOIN write_acks a ON a.id=j.id WHERE j.instance=? AND a.id IS NULL ORDER BY j.created LIMIT 1",(instance,)).fetchone()
@@ -167,7 +188,7 @@ class CatalogueClient:
         if 'report' in payload:
             with self.queue.db:self.queue.db.execute('INSERT OR IGNORE INTO write_acks VALUES(?)',(row['id'],))
         if job.get('action')=='idle':return
-        if job.get('kind') not in SUPPORTED_WRITE_KINDS:raise ValueError('Unsupported write kind')
+        if job.get('kind') not in self.supported_writes(instance):raise ValueError('Unsupported write kind')
         if job.get('instance')!=instance or job.get('account')!=expected:raise ValueError('Wrong write account')
         self.queue.enqueue('media_write',instance,job['id'],payload=job)
 

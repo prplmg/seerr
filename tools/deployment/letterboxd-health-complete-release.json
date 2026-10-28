@@ -1,0 +1,23 @@
+{
+  "files": [
+    "seerr-api.yml",
+    "server/api/rating/letterboxd.ts",
+    "server/lib/discoveryBrowser.ts",
+    "server/lib/letterboxdBrowser.ts",
+    "server/lib/letterboxdBrowserState.ts",
+    "server/lib/letterboxdExportPreflight.ts",
+    "server/lib/letterboxdExportReconciliation.ts",
+    "server/lib/letterboxdHistoryHealth.ts",
+    "server/lib/letterboxdMetadataMatches.ts",
+    "server/lib/letterboxdRatingLookup.ts",
+    "server/lib/letterboxdSyncHealth.ts",
+    "server/lib/reviews.ts",
+    "server/routes/letterboxdWorker.ts",
+    "server/routes/movie.ts",
+    "server/routes/settings/letterboxdBrowser.ts",
+    "server/routes/social.ts",
+    "server/routes/tv.ts",
+    "src/components/Reviews/LetterboxdBrowserStatus.tsx",
+    "src/components/Reviews/index.tsx"
+  ]
+}

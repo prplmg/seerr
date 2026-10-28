@@ -1,3 +1,4 @@
+import {historyNeedsAlert} from './letterboxdHistoryHealth';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -60,6 +61,7 @@ function harness(overrides: Record<string, unknown> = {}) {
     if (name === '@server/logger') return {error:()=>{}};
     if (name === '@server/utils/appDataVolume')
       return { appDataPath: () => dir };
+    if (name === './letterboxdHistoryHealth') return {readHistoryHealth:()=>({attempts:0,nextAttemptAt:0}),historyNeedsAlert,saveHistoryHealth:()=>{}};
     if (name === './letterboxdBrowserState') return stateFunctions;
     if (name === './letterboxdExportPolicy')return {exportConflicts:async()=>[]};
     if (name === './letterboxdObservations')return {readObservations:()=>({requests:[]}),updateObservations:(fn: (s: {requests: never[]})=>unknown)=>fn({requests:[]}),maintainObservationHealth:()=>{}};
@@ -284,4 +286,17 @@ it('retains bindings and jobs across module restart without issuing duplicate wo
   } finally {
     h.cleanup();
   }
+});
+
+it('one shared history incident sends one email for six profiles, retries failed email and resets after recovery', async () => {
+  let shared:any={attempts:4,nextAttemptAt:0,firstFailedAt:Date.now()-1000000,error:{stage:'history-fetch',code:'ECONNABORTED'}};
+  const h=harness({'./letterboxdHistoryHealth':{readHistoryHealth:()=>shared,historyNeedsAlert,saveHistoryHealth:(v:any)=>{shared=v;}}});
+  try {
+    fs.writeFileSync(path.join(h.dir,'letterboxd-browser.json'),JSON.stringify({version:1,bindings:Array.from({length:6},(_,i)=>({userId:i+1,username:'user'+i,instance:'instance'+i,enabled:true,lastSeen:Date.now()}))}));
+    h.failEmail(true);await assert.rejects(h.api.monitorLetterboxdBrowsers());assert(!shared.notified);
+    h.failEmail(false);await h.api.monitorLetterboxdBrowsers();await h.api.monitorLetterboxdBrowsers();
+    assert.equal(h.emails.length,1);assert(shared.notified);
+    assert(JSON.stringify(h.emails).includes('shared playback-history'));
+    assert.deepEqual(h.writes.intents,[]);
+  } finally {h.cleanup();}
 });

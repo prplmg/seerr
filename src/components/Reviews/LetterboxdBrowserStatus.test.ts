@@ -196,6 +196,7 @@ it('GET summarizes only the bound user and account without leaking write payload
   }));
   const exports = {};
   new Function('require', 'exports', routeCode)((name: string) => {
+    if (name === '@server/lib/letterboxdHistoryHealth') return {readHistoryHealth:()=>({attempts:0,nextAttemptAt:0})};
     if (name === '@server/lib/letterboxdSyncHealth')
       return { summarizeWorkerHealth };
     if (name === 'express') return { Router: () => router };
