@@ -8,4 +8,6 @@ test('the emitted PowerShell selector matches actual Windows and slash command p
  assert(new RegExp(pattern).test('node.exe dist/index.js'));
  assert(!new RegExp(pattern).test('node.exe watch-party-relay.js'));
  assert(command.includes('Catalogue child survived stop'));
+ assert(command.indexOf('WaitForExit(15000)') < command.indexOf('$survivors ='));
+ assert(command.includes('Stop-Process -InputObject $process')); 
 });

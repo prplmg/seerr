@@ -52,7 +52,7 @@ async function main(){
  const mappingsBefore=hash(read(root+'/data/account-mappings.json'));
  const publishingSettingsBefore=JSON.stringify(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings);
  const swap=release+'/previous';if(fs.existsSync(swap))throw Error('Already deployed');fs.mkdirSync(swap);
- const stop=()=>ps("Stop-ScheduledTask -TaskName Seerr; Start-Sleep -Seconds 2; $catalogueProcesses = Get-CimInstance Win32_Process | Where-Object {$_.Name -eq 'node.exe' -and $_.ExecutablePath -eq 'C:\\ProgramData\\Seerr\\node\\node.exe' -and $_.CommandLine -match 'dist[\\\\/]index[.]js'}; $catalogueProcesses | ForEach-Object {Stop-Process -Id $_.ProcessId -Force}; $survivors = Get-CimInstance Win32_Process | Where-Object {$_.ProcessId -in @($catalogueProcesses.ProcessId)}; if ($survivors) {throw 'Catalogue child survived stop'}");
+ const stop=()=>ps("Stop-ScheduledTask -TaskName Seerr; Start-Sleep -Seconds 2; $catalogueProcesses = Get-CimInstance Win32_Process | Where-Object {$_.Name -eq 'node.exe' -and $_.ExecutablePath -eq 'C:\\ProgramData\\Seerr\\node\\node.exe' -and $_.CommandLine -match 'dist[\\\\/]index[.]js'}; $catalogueProcesses | ForEach-Object { $process = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; if ($process) { Stop-Process -InputObject $process -Force; if (-not $process.WaitForExit(15000)) { throw 'Catalogue child exit timed out' } } }; $survivors = Get-CimInstance Win32_Process | Where-Object {$_.ProcessId -in @($catalogueProcesses.ProcessId)}; if ($survivors) {throw 'Catalogue child survived stop'}");
  const moved=[];let touched=false;
  try{
   stop();

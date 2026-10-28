@@ -1,3 +1,4 @@
+import { reviewActivityDate } from '@server/lib/reviewChronology';
 import TheMovieDb from '@server/api/themoviedb';
 import { getRepository } from '@server/datasource';
 import { LetterboxdExportBaseline } from '@server/entity/LetterboxdExport';
@@ -131,8 +132,8 @@ router.get('/', async (req, res) => {
         mediaType: reviewType(req),
       });
     else
-      q.where('review.publishedAt >= :since', {
-        since: new Date(Date.now() - days * 86400000).toISOString(),
+      q.where(`${reviewActivityDate} >= :since`, {
+        since: new Date(Date.now() - days * 86400000).toISOString().slice(0, 10),
       }).andWhere("review.text <> ''");
     const receipts = await currentSyncReceipts();
     const filmEvidence = readFilmEvidence();
@@ -147,7 +148,9 @@ router.get('/', async (req, res) => {
       else q.andWhere('review.episodeNumber IS NULL');
     }
     const [rows, total] = await q
-      .orderBy('review.publishedAt', 'DESC')
+      .addSelect(reviewActivityDate, 'review_activity_date')
+      .orderBy('review_activity_date', 'DESC')
+      .addOrderBy('review.publishedAt', 'DESC')
       .addOrderBy('review.id', 'ASC')
       .skip((page - 1) * 20)
       .take(20)
