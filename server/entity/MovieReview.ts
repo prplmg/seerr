@@ -45,5 +45,6 @@ export class LetterboxdAccount {
   @Column({ type: 'boolean', default: true }) enabled: boolean;
   @Column({ type: 'varchar', nullable: true }) lastSync: string | null;
   @Column({ type: 'varchar', nullable: true }) lastAttempt: string | null;
+  @Column({ type: 'varchar', nullable: true }) importCompletedAt: string | null;
   @Column({ type: 'varchar', nullable: true }) error: string | null;
 }

@@ -1,11 +1,15 @@
 import TheMovieDb from '@server/api/themoviedb';
 import { getRepository } from '@server/datasource';
+import { LetterboxdExportBaseline } from '@server/entity/LetterboxdExport';
 import { LetterboxdAccount, MovieReview } from '@server/entity/MovieReview';
 import { User } from '@server/entity/User';
 import { communityRating } from '@server/lib/communityRating';
 import { episodeReviewScope } from '@server/lib/episodeReviewScope';
 import { archiveReviews } from '@server/lib/letterboxdArchive';
-import { readBrowserState } from '@server/lib/letterboxdBrowser';
+import {
+  disableLetterboxdBrowser,
+  readBrowserState,
+} from '@server/lib/letterboxdBrowser';
 import { wasVerifiedDeleted } from '@server/lib/letterboxdDeletedEntries';
 import { currentSyncReceipts } from '@server/lib/letterboxdExportPolicy';
 import {
@@ -21,6 +25,7 @@ import { publicationSchedule } from '@server/lib/letterboxdPublicationSchedule';
 import { readSyncReceipts } from '@server/lib/letterboxdSyncReceipts';
 import {
   readWriteState,
+  setWriteEnabled,
   updateWriteState,
 } from '@server/lib/letterboxdWriteQueue';
 import { manualWatchedId, watchedOnlyRecord } from '@server/lib/manualWatched';
@@ -493,7 +498,17 @@ router.get('/account/:userId', async (req, res) => {
   const userId = Number(req.params.userId);
   if (!positive(userId)) return res.sendStatus(400);
   const account = await getRepository(LetterboxdAccount).findOneBy({ userId });
+  const baseline =
+    account && managesLetterboxd(req, userId)
+      ? await getRepository(LetterboxdExportBaseline).findOneBy({
+          userId,
+          account: account.username,
+        })
+      : null;
   return res.json({
+    hasCompletedImport:
+      !!account?.importCompletedAt ||
+      !!(baseline && JSON.parse(baseline.value).snapshot?.complete),
     fullyIntegrated:
       managesLetterboxd(req, userId) &&
       !!account &&
@@ -512,11 +527,17 @@ router.get('/account/:userId', async (req, res) => {
 });
 router.delete('/account/:userId', async (req, res) => {
   const userId = Number(req.params.userId);
-  if (!positive(userId) || !admin(req)) return res.sendStatus(403);
+  if (!managesLetterboxd(req, userId)) return res.sendStatus(403);
   await withReviewLock(userId, async () => {
+    disableLetterboxdBrowser(userId);
+    updateWriteState((state) => {
+      const setting = state.settings[userId];
+      if (setting) setWriteEnabled(state, userId, setting.account, false);
+    });
     await getRepository(MovieReview).manager.transaction(async (manager) => {
       await manager.delete(MovieReview, { userId, source: 'letterboxd' });
       await manager.delete(LetterboxdAccount, { userId });
+      await manager.delete(LetterboxdExportBaseline, { userId });
     });
   });
   return res.sendStatus(204);
@@ -632,6 +653,13 @@ router.post(
                     false,
                     manager
                   );
+              }
+              if (offset + entries.length >= all.length) {
+                await manager.update(
+                  LetterboxdAccount,
+                  { userId },
+                  { importCompletedAt: new Date().toISOString() }
+                );
               }
             }
           );

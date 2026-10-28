@@ -18,7 +18,11 @@ import {
   queueBrowserScans,
   type BrowserState,
 } from './letterboxdBrowserState';
-import { readObservations, updateObservations, maintainObservationHealth } from './letterboxdObservations';
+import {
+  maintainObservationHealth,
+  readObservations,
+  updateObservations,
+} from './letterboxdObservations';
 import { readWriteState } from './letterboxdWriteQueue';
 
 const filename = () => path.join(appDataPath(), 'letterboxd-browser.json');
@@ -46,6 +50,12 @@ function updateBrowserState<T>(change: (state: BrowserState) => T): T {
   return result;
 }
 const digest = (token: string) => createHash('sha256').update(token).digest();
+export function disableLetterboxdBrowser(userId: number) {
+  updateBrowserState((state) => {
+    const binding = state.bindings.find((b) => b.userId === userId);
+    if (binding) binding.enabled = false;
+  });
+}
 export function rotateBrowserToken() {
   const token = randomBytes(32).toString('base64url');
   updateBrowserState((state) => {
@@ -146,10 +156,19 @@ export async function browserExchange(
       const { readExportSnapshot } = await import('./letterboxdExportSnapshot');
       await readExportSnapshot(result.encoded, account.username);
       // Archive validation yields: another exchange may finish this job meanwhile.
-      const latest = readBrowserState().bindings.find((b) => b.instance === instance);
-      if (!latest?.enabled || latest.username !== account.username || latest.job?.id !== result.id)
+      const latest = readBrowserState().bindings.find(
+        (b) => b.instance === instance
+      );
+      if (
+        !latest?.enabled ||
+        latest.username !== account.username ||
+        latest.job?.id !== result.id
+      )
         throw Error('Export binding changed');
-      if (latest.job.state === 'succeeded' && latest.lastCompletedJobId === result.id)
+      if (
+        latest.job.state === 'succeeded' &&
+        latest.lastCompletedJobId === result.id
+      )
         return { action: 'idle' as const };
       if (latest.job.state !== 'running') throw Error('Export job changed');
       stageExport(instance, {
@@ -174,9 +193,18 @@ export async function browserExchange(
           throw Error('Export binding changed');
         const completed = updateBrowserState((state) => {
           const current = state.bindings.find((b) => b.instance === instance);
-          if (current?.enabled && current.username === delivery.account && current.job?.id === delivery.id && current.job.state === 'succeeded' && current.lastCompletedJobId === delivery.id)
+          if (
+            current?.enabled &&
+            current.username === delivery.account &&
+            current.job?.id === delivery.id &&
+            current.job.state === 'succeeded' &&
+            current.lastCompletedJobId === delivery.id
+          )
             return true;
-          if (current?.job?.id !== delivery.id || current.job.state !== 'running')
+          if (
+            current?.job?.id !== delivery.id ||
+            current.job.state !== 'running'
+          )
             throw Error('Export job changed');
           current.job.reconciliationStartedAt ??= Date.now();
           return false;
@@ -193,13 +221,23 @@ export async function browserExchange(
         );
         // The preview must never turn a successful core reconciliation into a failure.
         try {
-          const { enqueueDiscoveryExport } = await import('./discoveryImportInbox');
+          const { enqueueDiscoveryExport } =
+            await import('./discoveryImportInbox');
           await enqueueDiscoveryExport(delivery);
         } catch (error) {
-          logger.warn('Discovery list import retained its previous snapshot', { label: 'Discovery lists', userId: delivery.userId });
+          logger.warn('Discovery list import retained its previous snapshot', {
+            label: 'Discovery lists',
+            userId: delivery.userId,
+          });
         }
         updateBrowserState((state) => {
-          completeReconciledExport(state, instance, delivery.id, delivery.account, Date.now());
+          completeReconciledExport(
+            state,
+            instance,
+            delivery.id,
+            delivery.account,
+            Date.now()
+          );
         });
       },
       (id, detail) =>
@@ -299,7 +337,7 @@ export async function monitorLetterboxdBrowsers() {
     );
     const { exportConflicts } = await import('./letterboxdExportPolicy');
     const conflicts = await exportConflicts();
-    updateObservations(state => maintainObservationHealth(state, Date.now()));
+    updateObservations((state) => maintainObservationHealth(state, Date.now()));
     const readIssues = observationHealthIssues(
       readObservations().requests,
       Date.now()
@@ -357,8 +395,12 @@ export async function monitorLetterboxdBrowsers() {
         ? binding.username
         : `user ${binding.userId}`;
       const failures = (readWriteState().preparationFailures || []).filter(
-        (i) => i.userId === binding.userId && i.account === binding.username &&
-          Number.isFinite(i.firstFailedAt) && Date.now()-i.firstFailedAt! >= 15*60*1000 && (i.attempts ?? 0) >= 3
+        (i) =>
+          i.userId === binding.userId &&
+          i.account === binding.username &&
+          Number.isFinite(i.firstFailedAt) &&
+          Date.now() - i.firstFailedAt! >= 15 * 60 * 1000 &&
+          (i.attempts ?? 0) >= 3
       );
       const preparationDetails = failures.length
         ? 'A background activity check has failed repeatedly for at least 15 minutes. This does not mean a Letterboxd write failed. Automatic checks continue; the administrator should check the catalogue job logs. No review needs to be re-submitted.\n\n'
@@ -406,7 +448,12 @@ export async function monitorLetterboxdBrowsers() {
             return `${film ? film.replace(/-/g, ' ') : 'Unidentified film'}: ${reason}${film ? '\nhttps://letterboxd.com/' + account + '/film/' + film + '/' : ''}`;
           })
           .join('\n\n');
-      const uncertainWrite = readWriteState().intents.some(i => i.userId === binding.userId && i.account === binding.username && ['unknown','dispatched'].includes(i.state));
+      const uncertainWrite = readWriteState().intents.some(
+        (i) =>
+          i.userId === binding.userId &&
+          i.account === binding.username &&
+          ['unknown', 'dispatched'].includes(i.state)
+      );
       const introduction = uncertainWrite
         ? 'A submitted write needs verification. It remains held to prevent duplicate entries or overwriting an edit.'
         : 'A background sync check or conflict needs attention. This is not evidence of an uncertain Letterboxd write.';

@@ -16,7 +16,9 @@ for(const [start,end] of [["router.put('/account/:userId'","router.post("],["'/a
  assert.match(block,/if \(!managesLetterboxd\(req, userId\)\) return res.sendStatus\(403\)/);
 }
 const deletion=source.slice(source.indexOf("router.delete('/account/:userId'"),source.indexOf("router.put('/account/:userId'"));
-assert.match(deletion,/!admin\(req\)/);
+assert.match(deletion,/!managesLetterboxd\(req, userId\)/);
+assert.match(deletion,/disableLetterboxdBrowser\(userId\)/);
+assert.match(source,/importCompletedAt: new Date\(\).toISOString\(\)/);
 assert.match(source,/old && old.username !== username/);
 const ui=fs.readFileSync('src/components/Reviews/LetterboxdSettings.tsx','utf8');
 assert.match(ui,/canManage = isAdmin \|\| user\?\.id === userId/);

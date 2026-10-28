@@ -21,6 +21,7 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
     canManage = isAdmin || user?.id === userId;
   const { data, mutate } = useSWR<{
     fullyIntegrated: boolean;
+    hasCompletedImport: boolean;
     account: {
       username: string;
       enabled: boolean;
@@ -155,9 +156,10 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
       <h3 className="text-overseerr text-xl font-bold">Letterboxd</h3>
       <p className="text-gray-300">
         {t(
-          'Import watched titles, ratings and reviews, then check the public RSS feed every 15 minutes. This does not write to Letterboxd.',
-          'Importa títulos vistos, calificaciones y reseñas; después se consulta el RSS público cada 15 minutos. Esto no escribe en Letterboxd.'
+          'Import watched titles, ratings, and reviews. We’ll keep your recent activity in sync',
+          'Importa títulos vistos, calificaciones y reseñas. Mantendremos tu actividad reciente sincronizada'
         )}
+        {data?.fullyIntegrated ? '.' : t(' (read only).', ' (solo lectura).')}
       </p>
       {canManage ? (
         <form
@@ -183,10 +185,14 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
               required
             />
           </label>
-          <Button type="submit" disabled={busy}>
-            {t('Enable RSS', 'Activar RSS')}
-          </Button>
-          {data?.account && (
+          {(!data?.account || isAdmin) && (
+            <Button type="submit" disabled={busy}>
+              {isAdmin
+                ? t('Enable RSS', 'Activar RSS')
+                : t('Connect', 'Conectar')}
+            </Button>
+          )}
+          {isAdmin && data?.account && (
             <Button
               disabled={busy}
               type="button"
@@ -223,15 +229,20 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
       )}
       {data?.account && (
         <>
-          <p className="text-sm text-gray-300">
-            {data.account.enabled
-              ? t('RSS enabled', 'RSS activo')
-              : t('RSS paused', 'RSS pausado')}{' '}
-            · {t('Last successful sync:', 'Última sincronización correcta:')}{' '}
-            {data.account.lastSync
-              ? new Date(data.account.lastSync).toLocaleString()
-              : t('Not yet', 'Todavía no')}
+          <p role="status" className="font-semibold text-green-400">
+            {t('✓ Connected!', '✓ ¡Conectado!')}
           </p>
+          {isAdmin && (
+            <p className="text-sm text-gray-300">
+              {data.account.enabled
+                ? t('RSS enabled', 'RSS activo')
+                : t('RSS paused', 'RSS pausado')}{' '}
+              · {t('Last successful sync:', 'Última sincronización correcta:')}{' '}
+              {data.account.lastSync
+                ? new Date(data.account.lastSync).toLocaleString()
+                : t('Not yet', 'Todavía no')}
+            </p>
+          )}
           {data.account.error && (
             <p role="status" className="text-yellow-300">
               {data.account.error === 'unresolved'
@@ -240,22 +251,24 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
                     'No se pudieron identificar algunas películas. Las reseñas existentes están guardadas.'
                   )
                 : t(
-                    'RSS is temporarily unavailable. Existing reviews are safe.',
-                    'El RSS no está disponible temporalmente. Las reseñas existentes están guardadas.'
+                    'Recent activity sync is temporarily unavailable. Existing reviews are safe.',
+                    'La sincronización de actividad reciente no está disponible temporalmente. Las reseñas existentes están guardadas.'
                   )}
             </p>
           )}
-          <Button
-            disabled={busy || !data.account.enabled}
-            onClick={() =>
-              void action(async () => {
-                await axios.post(`/api/v1/reviews/account/${userId}/sync`);
-              })
-            }
-          >
-            {t('Check RSS now', 'Consultar RSS ahora')}
-          </Button>
           {isAdmin && (
+            <Button
+              disabled={busy || !data.account.enabled}
+              onClick={() =>
+                void action(async () => {
+                  await axios.post(`/api/v1/reviews/account/${userId}/sync`);
+                })
+              }
+            >
+              {t('Check RSS now', 'Consultar RSS ahora')}
+            </Button>
+          )}
+          {canManage && (
             <Button
               buttonType="danger"
               disabled={busy}
@@ -263,8 +276,8 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
                 if (
                   window.confirm(
                     t(
-                      'Unlink Letterboxd and delete its imported watched titles, ratings and reviews? Local reviews and other watch-history sources will stay.',
-                      '¿Desvincular Letterboxd y eliminar sus títulos vistos, calificaciones y reseñas importadas? Las reseñas locales y las otras fuentes del historial se conservarán.'
+                      'Are you sure you want to unlink? This will delete your Letterboxd history from Multimeldia. Letterboxd will not be affected. Local reviews and other watch-history sources will stay.',
+                      '¿Seguro que quieres desvincular? Esto eliminará tu historial de Letterboxd de Multimeldia. Letterboxd no se verá afectado. Tus reseñas locales y otras fuentes del historial se conservarán.'
                     )
                   )
                 )
@@ -281,59 +294,64 @@ export default function LetterboxdSettings({ userId }: { userId: number }) {
               )}
             </Button>
           )}
-          <label className="block">
-            <a
-              href="https://letterboxd.com/user/exportdata/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-overseerr underline"
-            >
+          {!data.hasCompletedImport && (
+            <label className="block">
+              <a
+                href="https://letterboxd.com/user/exportdata/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-overseerr underline"
+              >
+                {t(
+                  'Upload your complete Letterboxd ZIP (up to 10 MB)',
+                  'Sube el ZIP completo de Letterboxd (hasta 10 MB)'
+                )}
+              </a>
               {t(
-                'Upload your complete Letterboxd ZIP (up to 10 MB)',
-                'Sube el ZIP completo de Letterboxd (hasta 10 MB)'
+                ', or reviews.csv, ratings.csv, diary.csv or watched.csv (up to 2 MB each). No need to unzip.',
+                ', o reviews.csv, ratings.csv, diary.csv o watched.csv (hasta 2 MB cada uno). No es necesario descomprimirlo.'
               )}
-            </a>
-            {t(
-              ', or reviews.csv, ratings.csv, diary.csv or watched.csv (up to 2 MB each). No need to unzip.',
-              ', o reviews.csv, ratings.csv, diary.csv o watched.csv (hasta 2 MB cada uno). No es necesario descomprimirlo.'
-            )}
-            <input
-              type="file"
-              accept=".csv,.zip,text/csv,application/zip"
-              disabled={busy}
-              className="mt-2 block max-w-full"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file)
-                  void action(async () => {
-                    setPreview(null);
-                    setConfirmed(false);
-                    const zipped = file.name.toLowerCase().endsWith('.zip');
-                    if (file.size > (zipped ? 10 : 2) * 1024 * 1024)
-                      throw Error('large');
-                    const value: typeof upload = zipped
-                      ? {
-                          zip: await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () =>
-                              resolve(String(reader.result).split(',')[1]);
-                            reader.onerror = () => reject(Error('Read failed'));
-                            reader.readAsDataURL(file);
-                          }),
-                        }
-                      : {
-                          csv: await file.text(),
-                          filename: file.name.toLowerCase(),
-                        };
-                    setUpload(value);
-                    nextImportOffset.current = 0;
-                    setImportProgress(null);
-                    setSkipped([]);
-                    await loadPreview(value);
-                  });
-              }}
-            />
-          </label>
+              <input
+                type="file"
+                accept=".csv,.zip,text/csv,application/zip"
+                disabled={busy}
+                className="mt-2 block max-w-full"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file)
+                    void action(async () => {
+                      setPreview(null);
+                      setConfirmed(false);
+                      const zipped = file.name.toLowerCase().endsWith('.zip');
+                      if (file.size > (zipped ? 10 : 2) * 1024 * 1024)
+                        throw Error('large');
+                      const value: typeof upload = zipped
+                        ? {
+                            zip: await new Promise<string>(
+                              (resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () =>
+                                  resolve(String(reader.result).split(',')[1]);
+                                reader.onerror = () =>
+                                  reject(Error('Read failed'));
+                                reader.readAsDataURL(file);
+                              }
+                            ),
+                          }
+                        : {
+                            csv: await file.text(),
+                            filename: file.name.toLowerCase(),
+                          };
+                      setUpload(value);
+                      nextImportOffset.current = 0;
+                      setImportProgress(null);
+                      setSkipped([]);
+                      await loadPreview(value);
+                    });
+                }}
+              />
+            </label>
+          )}
           {preview && (
             <div className="space-y-3">
               <p className="text-sm text-gray-300">
