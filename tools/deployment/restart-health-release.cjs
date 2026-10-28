@@ -1,0 +1,11 @@
+const fs=require('fs'),cp=require('child_process'),assert=require('assert/strict'),crypto=require('crypto');
+const root='C:/ProgramData/Seerr';
+const snapshot=()=>{const b=JSON.parse(fs.readFileSync(root+'/data/letterboxd-browser.json'));const w=JSON.parse(fs.readFileSync(root+'/data/letterboxd-write-queue.json'));return JSON.stringify({settings:w.settings,bindings:b.bindings.map(x=>({userId:x.userId,enabled:x.enabled,instance:x.instance}))});};
+(async()=>{const before=snapshot();
+cp.execFileSync('powershell.exe',['-NoProfile','-Command',String.raw`$ErrorActionPreference='Stop'; Stop-ScheduledTask -TaskName Seerr; $workers=Get-CimInstance Win32_Process | Where-Object {$_.Name -eq 'node.exe' -and $_.ExecutablePath -eq 'C:\ProgramData\Seerr\node\node.exe' -and $_.CommandLine -match 'dist[\\/]index[.]js'}; $workers | ForEach-Object {Stop-Process -Id $_.ProcessId -Force}; Start-Sleep -Seconds 2; if(Get-CimInstance Win32_Process | Where-Object {$_.ProcessId -in @($workers.ProcessId)}) {throw 'Old catalogue process survived'}; Start-ScheduledTask -TaskName Seerr`],{stdio:'inherit'});
+await new Promise(r=>setTimeout(r,60000));
+const key=JSON.parse(fs.readFileSync(root+'/data/settings.json')).main.apiKey;
+const get=async p=>{const r=await fetch('https://catalogue.prpl.com.mx/api/v1'+p,{headers:{'X-Api-Key':key,'X-API-User':'1'},redirect:'error',signal:AbortSignal.timeout(30000)});assert(r.ok,'API '+r.status);return r.json();};
+const health=await get('/settings/letterboxd-browser');assert(health.sharedHistory,'New health API not loaded');assert(health.bindings.every(x=>x.syncHealth),'Missing health reporting');assert.equal(snapshot(),before);
+const rating=await get('/tv/87108/letterboxd');console.log(JSON.stringify({build:fs.readFileSync(root+'/app/.next/BUILD_ID','utf8').trim(),newHealthLoaded:true,togglesUnchanged:true,history:health.sharedHistory,rating}));
+})().catch(e=>{console.error(e.message);process.exitCode=1});

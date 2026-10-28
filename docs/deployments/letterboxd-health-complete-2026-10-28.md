@@ -18,4 +18,12 @@ Targeted server, UI and real SQLite transaction tests pass, including six-profil
 
 ## Deployment
 
-In progress; append completion identity and verification below. Existing user toggles must remain unchanged; no test publication is submitted.
+Live build **B12zQTRe9q7Z_QNTZMoEJ**. Production build and schema/HTTPS checks passed. The first deployment restart selector missed a Windows-backslash child; the corrected explicit restart was executed and the new runtime-only health fields verified. A regression test covers the emitted Windows/slash selector. Chernobyl now returns 4.62/5 live.
+
+At 2026-10-28T15:31:31Z all six profiles report ready, pauseReason none, zero unsupported queued intents, and no recent worker errors. All six advertise watched capability from fresh 0.2.48 instances. Percy Jackson intent `73b026b7-0cb2-48f7-b2f1-cdad16da868b` verified at 1793201478171; no unsettled intents remain. The existing desired action was handled through the normal precondition/read-back workflow, not a test or duplicate submission. Shared history has zero current failures and a recent success. Pan’s Labyrinth ranks second in avellana’s live feed.
+
+Publishing/RSS/browser toggle hash remains `efc1909bb44d5c3b37c841fb3c0520d7f999a48524050cade273b7107ef89c5e`. Worker installation independently compared all account pause values and configuration bytes unchanged. No Edge profiles, playback or download settings were changed.
+
+Rollback: catalogue `C:/ProgramData/Seerr/catalogue-20261028151812836-9475-release` (previous build aWB1WGuuR7Wy9GX9tSDIu); worker `C:/Users/MSI/MultimeldiaLetterboxdRuntime/health-client-backup-20261028-093010`. Roll back code while retaining newer account/database state. Server/schema must precede the new worker on installation; reverse the order when rolling back compatibility. Build invoked once and original completion awaited; no build log/process polling. No Git push.
+
+Receipt: `letterboxd-health-completion-2026-10-28.json`. Original transient history failures had generic logs, so their exact network/processing cause cannot be reconstructed; this release adds stage/code/status evidence, backoff and shared alert deduplication rather than claiming to eliminate external outages.

@@ -1,0 +1,144 @@
+{
+  "at": "2026-10-28T15:31:31.720Z",
+  "build": "B12zQTRe9q7Z_QNTZMoEJ",
+  "toggleHash": "efc1909bb44d5c3b37c841fb3c0520d7f999a48524050cade273b7107ef89c5e",
+  "sharedHistory": {
+    "attempts": 0,
+    "nextAttemptAt": 1793201515259,
+    "lastSuccess": 1793201490259
+  },
+  "rating": {
+    "score": 4.62,
+    "url": "https://letterboxd.com/film/chernobyl/"
+  },
+  "avellanaPansLabyrinthRank": 2,
+  "accounts": [
+    {
+      "userId": 1,
+      "account": "prplmg",
+      "enabled": true,
+      "syncHealth": {
+        "runtime": "ready",
+        "pauseReason": "none",
+        "unsupportedQueued": 0,
+        "oldestQueuedAt": null,
+        "recentErrors": []
+      },
+      "capabilities": [
+        "rating",
+        "review",
+        "diary",
+        "watched",
+        "diary-content"
+      ],
+      "seen": 1793201447102
+    },
+    {
+      "userId": 4,
+      "account": "jairoheredia",
+      "enabled": true,
+      "syncHealth": {
+        "runtime": "ready",
+        "pauseReason": "none",
+        "unsupportedQueued": 0,
+        "oldestQueuedAt": null,
+        "recentErrors": []
+      },
+      "capabilities": [
+        "rating",
+        "review",
+        "diary",
+        "watched",
+        "diary-content"
+      ],
+      "seen": 1793201439456
+    },
+    {
+      "userId": 7,
+      "account": "evegrissel",
+      "enabled": true,
+      "syncHealth": {
+        "runtime": "ready",
+        "pauseReason": "none",
+        "unsupportedQueued": 0,
+        "oldestQueuedAt": null,
+        "recentErrors": []
+      },
+      "capabilities": [
+        "rating",
+        "review",
+        "diary",
+        "watched",
+        "diary-content"
+      ],
+      "seen": 1793201437317
+    },
+    {
+      "userId": 5,
+      "account": "margotnochill",
+      "enabled": true,
+      "syncHealth": {
+        "runtime": "ready",
+        "pauseReason": "none",
+        "unsupportedQueued": 0,
+        "oldestQueuedAt": null,
+        "recentErrors": []
+      },
+      "capabilities": [
+        "rating",
+        "review",
+        "diary",
+        "watched",
+        "diary-content"
+      ],
+      "seen": 1793201445195
+    },
+    {
+      "userId": 12,
+      "account": "beast199666",
+      "enabled": true,
+      "syncHealth": {
+        "runtime": "ready",
+        "pauseReason": "none",
+        "unsupportedQueued": 0,
+        "oldestQueuedAt": null,
+        "recentErrors": []
+      },
+      "capabilities": [
+        "rating",
+        "review",
+        "diary",
+        "watched",
+        "diary-content"
+      ],
+      "seen": 1793201441332
+    },
+    {
+      "userId": 14,
+      "account": "zelzingb",
+      "enabled": true,
+      "syncHealth": {
+        "runtime": "ready",
+        "pauseReason": "none",
+        "unsupportedQueued": 0,
+        "oldestQueuedAt": null,
+        "recentErrors": []
+      },
+      "capabilities": [
+        "rating",
+        "review",
+        "diary",
+        "watched",
+        "diary-content"
+      ],
+      "seen": 1793201443340
+    }
+  ],
+  "unsettled": [],
+  "percy": [
+    {
+      "state": "verified",
+      "verifiedAt": 1793201478171
+    }
+  ]
+}
