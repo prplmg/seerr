@@ -1,0 +1,1449 @@
+From e8ac5f2675ea30ee5ff70bd90d0e0d1b60e776f4 Mon Sep 17 00:00:00 2001
+From: Melanie Garcia <melanie@eano.com>
+Date: Wed, 28 Oct 2026 11:32:06 -0600
+Subject: [PATCH] Add admin user activity history with bounded isolated storage
+
+---
+ bin/test-user-activity.cjs                    |  40 ++
+ .../user-activity-pending-2026-10-28.md       |  13 +
+ seerr-api.yml                                 |  47 +++
+ server/lib/userActivity.ts                    |  69 ++++
+ server/lib/userActivityPolicy.test.ts         |  56 +++
+ server/lib/userActivityPolicy.ts              | 170 +++++++++
+ server/lib/userActivityStore.test.ts          |  90 +++++
+ server/lib/userActivityStore.ts               | 139 +++++++
+ server/middleware/userActivity.ts             |  30 ++
+ server/routes/index.ts                        |  24 +-
+ server/routes/userActivity.ts                 |  98 +++++
+ src/components/Settings/SettingsLayout.tsx    |  20 +-
+ .../Settings/UserActivity/index.tsx           | 354 ++++++++++++++++++
+ src/components/UserActivityTracker.tsx        |  45 +++
+ src/pages/_app.tsx                            |  13 +-
+ src/pages/settings/activity.tsx               |  12 +
+ tools/deployment/user-activity-release.json   |  16 +
+ 17 files changed, 1224 insertions(+), 12 deletions(-)
+ create mode 100644 bin/test-user-activity.cjs
+ create mode 100644 docs/deployments/user-activity-pending-2026-10-28.md
+ create mode 100644 server/lib/userActivity.ts
+ create mode 100644 server/lib/userActivityPolicy.test.ts
+ create mode 100644 server/lib/userActivityPolicy.ts
+ create mode 100644 server/lib/userActivityStore.test.ts
+ create mode 100644 server/lib/userActivityStore.ts
+ create mode 100644 server/middleware/userActivity.ts
+ create mode 100644 server/routes/userActivity.ts
+ create mode 100644 src/components/Settings/UserActivity/index.tsx
+ create mode 100644 src/components/UserActivityTracker.tsx
+ create mode 100644 src/pages/settings/activity.tsx
+ create mode 100644 tools/deployment/user-activity-release.json
+
+diff --git a/bin/test-user-activity.cjs b/bin/test-user-activity.cjs
+new file mode 100644
+index 00000000..292c53fd
+--- /dev/null
++++ b/bin/test-user-activity.cjs
+@@ -0,0 +1,40 @@
++const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript'),express=require('express'),{EventEmitter}=require('node:events');
++const root=path.resolve(__dirname,'..');
++function load(file,mocks={},globals={}){const exp={};const req=n=>Object.hasOwn(mocks,n)?mocks[n]:require(n);vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:exp,require:req,URL,URLSearchParams,console,setTimeout,clearTimeout,...globals});return exp;}
++const policy=load('server/lib/userActivityPolicy.ts');const events=[];
++const auth=load('server/middleware/auth.ts',{'@server/datasource':{},'@server/entity/User':{},'@server/lib/settings':{}});
++const recorder={recordUserActivity:e=>events.push(e),queryUserActivity:async()=>({events,totals:{total:events.length}})};
++const middleware=load('server/middleware/userActivity.ts',{'@server/lib/userActivityPolicy':policy,'@server/lib/userActivity':recorder});
++const req=(method,url,userId=1)=>({method,originalUrl:url,body:{},session:{userId},sessionID:'cookie',header:()=>undefined});
++function finish(r,status=200){const res=new EventEmitter();res.statusCode=status;middleware.userActivityMiddleware(r,res,()=>{});res.emit('finish');}
++finish(req('GET','/api/v1/request'));finish(req('POST','/api/v1/request'),403);const service=req('POST','/api/v1/request');service.header=n=>n==='X-Api-Key'?'key':undefined;finish(service);assert.equal(events.length,0);
++finish(req('POST','/api/v1/request'));assert.equal(events.length,1);assert.equal(events[0].userId,1);
++const login=req('POST','/api/v1/auth/local',undefined);login.session={};const res=new EventEmitter();res.statusCode=200;middleware.userActivityMiddleware(login,res,()=>{});login.session.userId=5;res.emit('finish');assert.equal(events.at(-1).userId,5);
++const logout=req('POST','/api/v1/auth/logout',5);const out=new EventEmitter();out.statusCode=200;middleware.userActivityMiddleware(logout,out,()=>{});logout.session=undefined;out.emit('finish');assert.equal(events.at(-1).kind,'logout');
++const router=load('server/routes/userActivity.ts',{'@server/lib/userActivityPolicy':policy,'@server/lib/userActivity':recorder,'@server/lib/permissions':{Permission:{ADMIN:2}},'@server/middleware/auth':auth,'@server/datasource':{getRepository:()=>({find:async()=>[{id:1,displayName:'Admin',avatar:'',password:'never expose'}]})},'@server/entity/User':{User:class{}}}).default;
++// Exercise the actual client tracker with completed-navigation and visibility events.
++let effect,timerCallback;const posted=[];const navigation=new EventEmitter();const visibility=new EventEmitter();const routerState={asPath:'/movie/42?private=yes',events:navigation};
++const documentMock={visibilityState:'visible',addEventListener:(n,f)=>visibility.on(n,f),removeEventListener:(n,f)=>visibility.off(n,f)};
++const tracker=load('src/components/UserActivityTracker.tsx',{'@app/hooks/useUser':{useUser:()=>({user:{id:1}})},'next/router':{useRouter:()=>routerState},'axios':{post:async(...a)=>posted.push(a)},'react':{useEffect:f=>effect=f,useRef:v=>({current:v})}},{document:documentMock,setTimeout:f=>{timerCallback=f;return 1;},clearTimeout:()=>{timerCallback=undefined;}}).default;
++tracker();const cleanup=effect();timerCallback();assert.equal(posted.length,1);assert.equal(posted[0][1].path,'/movie/42');navigation.emit('routeChangeComplete','/movie/42?different=secret');timerCallback();assert.equal(posted.length,1);documentMock.visibilityState='hidden';navigation.emit('routeChangeComplete','/tv/99');timerCallback();assert.equal(posted.length,1);documentMock.visibilityState='visible';routerState.asPath='/tv/99';visibility.emit('visibilitychange');timerCallback();assert.equal(posted.length,2);navigation.emit('routeChangeComplete','/resetpassword/secret');assert.equal(timerCallback,undefined);cleanup();assert.equal(navigation.listenerCount('routeChangeComplete'),0);
++(async()=>{
++let fail=true;const batches=[];const queue=load('server/lib/userActivity.ts',{'@server/logger':{warn:()=>{}},'@server/utils/appDataVolume':{appDataPath:()=>'/tmp'},'./userActivityStore':{UserActivityStore:class {async append(batch){if(fail)throw Error('disk unavailable');batches.push(...batch);}async query(){return {events:batches};}}}},{setTimeout:()=>({unref(){}})});
++for(let i=0;i<1100;i++)queue.recordUserActivity({...events[0],at:Date.now()+i});await queue.flushUserActivity();fail=false;const recovered=await queue.queryUserActivity({days:7,page:1});assert.equal(recovered.collection.dropped,150);assert.equal(recovered.events.length,950);assert.equal(recovered.collection.pending,0);
++const app=express();app.use(express.json());app.use((req,res,next)=>{const role=req.header('test-role');if(role){req.user={id:1,hasPermission:p=>!p||role==='admin'};req.session={userId:1};req.sessionID='cookie';}next();});app.use('/api/v1/activity',router);const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const base=`http://127.0.0.1:${server.address().port}/api/v1/activity`;
++try{
++ for(const role of ['', 'user'])assert.equal((await fetch(base,{headers:{'test-role':role}})).status,403);
++ const allowed=await fetch(base,{headers:{'test-role':'admin'}});assert.equal(allowed.status,200);assert.match(allowed.headers.get('cache-control'),/no-store/);assert(!(await allowed.text()).includes('never expose'));
++ const post=(body,headers={})=>fetch(base+'/page',{method:'POST',headers:{'Content-Type':'application/json','test-role':'user',...headers},body:JSON.stringify(body)});
++ assert.equal((await post({path:'/movie/42'})).status,204);
++ assert.equal((await post({path:'/movie/42',userId:5})).status,400);
++ assert.equal((await post({path:'/resetpassword/secret'})).status,400);
++ assert.equal((await post({path:'/movie/42'},{'X-Api-Key':'service'})).status,403);
++ assert.equal((await fetch(base+'?days=31',{headers:{'test-role':'admin'}})).status,400);
++ const yaml=require('js-yaml'),Ajv=require(require.resolve('ajv',{paths:[path.dirname(require.resolve('express-openapi-validator'))]}));const spec=yaml.load(fs.readFileSync(path.join(root,'seerr-api.yml'),'utf8'));const schema=spec.paths['/activity/page'].post.requestBody.content['application/json'].schema;const validate=new Ajv().compile(schema);assert(validate({path:'/movie/42'}));assert(!validate({path:'/movie/42',userId:5}));assert(!validate({}));
++ const React=require('react'),render=require('react-dom/server').renderToStaticMarkup;
++ const view=load('src/components/Settings/UserActivity/index.tsx',{'@app/components/Common/PageTitle':()=>null,'@app/hooks/useUser':{},'next/link':({href,children,...props})=>React.createElement('a',{href,...props},children)}).UserActivityView;
++ const props={data:{events:[{...events[0],id:1}],users:[{id:1,name:'Test admin'}],totals:{total:1,users:1,pages:0,actions:1,logins:0},collection:{dropped:0}},days:'7',userId:'',kind:'',session:'',page:1,refresh:()=>{},setDays:()=>{},setUserId:()=>{},setKind:()=>{},setSession:()=>{},setPage:()=>{}};
++ const html=render(React.createElement(view,props));assert(html.includes('Test admin'));assert(html.includes('View session'));assert(!html.includes('cookie'));assert(render(React.createElement(view,{...props,error:true})).includes('role="alert"'));
++ console.log('PASS: actual Express routes, admin authorization, session-only telemetry, successful actions, login/logout, API-key/poll exclusions, privacy and strict request contract');
++}finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
++})().catch(e=>{console.error(e);process.exitCode=1;});
+diff --git a/docs/deployments/user-activity-pending-2026-10-28.md b/docs/deployments/user-activity-pending-2026-10-28.md
+new file mode 100644
+index 00000000..95b9d799
+--- /dev/null
++++ b/docs/deployments/user-activity-pending-2026-10-28.md
+@@ -0,0 +1,13 @@
++# User activity history — implemented, NOT deployed
++
++The current live release remains HfqeWOf_V3dYQaiV-LdjR. No activity tracking is live yet. Existing sync/account toggles are unchanged.
++
++Admin-only Settings → User activity shows successful sign-ins/sign-outs, completed visible page navigation, and recognized successful interactive actions (requests, reviews/ratings, watched state, lists, release follows, watchlists, issues, user settings). Filters: user, event kind, last 1/7/30 days, and authentication session; newest-first pagination, aggregate counts, links to opened pages and profiles. A session is an authentication session, not a measured visit duration. Existing logged-in users generate page activity without a fresh login.
++
++No historical backfill. Media links currently identify movie/series IDs rather than fetching extra titles. No query strings, search terms, review text, passwords, raw session IDs, IP addresses or raw user-agent strings retained. Session IDs are SHA-256 digests; only device/browser families remain. Client telemetry is session-only and server assigns actor/time. API-key jobs, GET polling, failed actions and hidden-tab navigation are excluded. Navigation is reported after completion with a short delay, duplicate suppression, no heartbeat and no awaited dependency for rendering.
++
++Storage: separate asynchronous SQLite/WAL user-activity.sqlite3 in the existing data directory, not the main catalogue database. Batches of 50, one-second flush, at most 1,000 queued events. Retain 30 days/100,000 events; prune on writes/reads and hourly while initialized. Failures do not fail user actions; dropped counts and last error are visible in the admin response, warnings throttled. This is best-effort usage history, not a durable security audit: a hard stop can lose the short pending batch, and dropped counters reset with process restart.
++
++Tests passed: policy/privacy, real SQLite restart persistence/retention/concurrent writes/pagination/100,000-event cap; actual Express route authorization, session spoof rejection, strict OpenAPI request schema; successful login/logout and mutations vs rejected/API-key/polling exclusions; actual client tracker visible/completed navigation, query stripping, duplicate suppression and cleanup; server rendering with mocked events/error state; bounded queue, failed storage and subsequent recovery. Server/client typechecks and targeted lint pass. Production build and live browser verification remain for a future deployment.
++
++Deploy manifest: tools/deployment/user-activity-release.json. New table is isolated and created lazily; no main database migration or toggle write. Rollback code disables collection while retaining the separate history file.
+diff --git a/seerr-api.yml b/seerr-api.yml
+index 0c73ce9e..aae67cbc 100644
+--- a/seerr-api.yml
++++ b/seerr-api.yml
+@@ -2163,6 +2163,53 @@ components:
+       name: X-Api-Key
+ 
+ paths:
++  /activity/page:
++    post:
++      tags: [users]
++      summary: Record an opened page for the authenticated browser session
++      requestBody:
++        required: true
++        content:
++          application/json:
++            schema:
++              type: object
++              additionalProperties: false
++              required: [path]
++              properties:
++                path: { type: string, minLength: 1, maxLength: 2048 }
++      responses:
++        '204': { description: Page event accepted }
++        '400': { description: Invalid page }
++        '403': { description: Browser session required }
++        '429': { description: Event rate limit exceeded }
++  /activity:
++    get:
++      tags: [settings]
++      summary: Admin-only user activity history
++      parameters:
++        - in: query
++          name: days
++          schema: { type: integer, minimum: 1, maximum: 30, default: 7 }
++        - in: query
++          name: page
++          schema: { type: integer, minimum: 1, maximum: 2000, default: 1 }
++        - in: query
++          name: userId
++          schema: { type: integer, minimum: 1 }
++        - in: query
++          name: kind
++          schema: { type: string, enum: [login, logout, page, action] }
++        - in: query
++          name: session
++          schema: { type: string, pattern: '^[a-f0-9]{64}$' }
++      responses:
++        '200':
++          description: Activity history and aggregate counts
++          content:
++            application/json:
++              schema: { type: object }
++        '403': { description: Administrator required }
++        '503': { description: Activity storage unavailable }
+   /discovery-lists/releases:
+     parameters:
+       - $ref: '#/components/parameters/DiscoveryPreviewUser'
+diff --git a/server/lib/userActivity.ts b/server/lib/userActivity.ts
+new file mode 100644
+index 00000000..fbe22b94
+--- /dev/null
++++ b/server/lib/userActivity.ts
+@@ -0,0 +1,69 @@
++import logger from '@server/logger';
++import { appDataPath } from '@server/utils/appDataVolume';
++import path from 'path';
++import type { ActivityEvent } from './userActivityPolicy';
++import { UserActivityStore, type ActivityFilter } from './userActivityStore';
++let store: UserActivityStore | undefined;
++const pending: ActivityEvent[] = [];
++let timer: ReturnType<typeof setTimeout> | undefined;
++let flushing: Promise<void> | undefined;
++let dropped = 0,
++  lastErrorAt: number | null = null;
++let lastWarningAt = 0;
++const recent = new Map<string, number>();
++const database = () =>
++  (store ??= new UserActivityStore(
++    path.join(appDataPath(), 'user-activity.sqlite3')
++  ));
++export function recordUserActivity(event: ActivityEvent) {
++  if (event.kind === 'page') {
++    const key = `${event.userId}:${event.session}:${event.target}`;
++    if (event.at - (recent.get(key) ?? 0) < 10000) return;
++    recent.set(key, event.at);
++    if (recent.size > 2000) recent.delete(recent.keys().next().value!);
++  }
++  if (pending.length >= 1000) {
++    dropped++;
++    return;
++  }
++  pending.push(event);
++  if (!timer) {
++    timer = setTimeout(() => {
++      timer = undefined;
++      void flushUserActivity();
++    }, 1000);
++    timer.unref();
++  }
++}
++export function flushUserActivity(): Promise<void> {
++  if (flushing) return flushing;
++  flushing = (async () => {
++    while (pending.length) {
++      const batch = pending.splice(0, 50);
++      try {
++        await database().append(batch);
++      } catch {
++        dropped += batch.length;
++        lastErrorAt = Date.now();
++        if (lastErrorAt - lastWarningAt >= 60000) {
++          lastWarningAt = lastErrorAt;
++          logger.warn('Usage activity could not be stored', {
++            label: 'Activity',
++            dropped,
++          });
++        }
++        break;
++      }
++    }
++  })().finally(() => {
++    flushing = undefined;
++  });
++  return flushing;
++}
++export async function queryUserActivity(filter: ActivityFilter) {
++  await flushUserActivity();
++  return {
++    ...(await database().query(filter)),
++    collection: { pending: pending.length, dropped, lastErrorAt },
++  };
++}
+diff --git a/server/lib/userActivityPolicy.test.ts b/server/lib/userActivityPolicy.test.ts
+new file mode 100644
+index 00000000..b3c1f78c
+--- /dev/null
++++ b/server/lib/userActivityPolicy.test.ts
+@@ -0,0 +1,56 @@
++import assert from 'node:assert/strict';
++import { it } from 'node:test';
++import {
++  activityAction,
++  activityIdentity,
++  activityPage,
++} from './userActivityPolicy';
++it('records only safe routes without search queries, reset tokens or arbitrary URLs', () => {
++  assert.equal(activityPage('/movie/42?token=secret#review'), '/movie/42');
++  assert.equal(activityPage('/search?query=private'), '/search');
++  for (const p of [
++    '/resetpassword/secret',
++    '//evil.example',
++    'https://evil.example',
++    '/movie/1/../../secret',
++    '/unknown/private',
++    null,
++  ])
++    assert.equal(activityPage(p), null);
++});
++it('hashes session identity and retains only coarse device/browser', () => {
++  const id = activityIdentity(5, 'private-cookie', 'Mozilla iPhone Safari');
++  assert.equal(id?.userId, 5);
++  assert.equal(id?.device, 'Mobile');
++  assert.equal(id?.browser, 'Safari');
++  assert.match(id!.session, /^[a-f0-9]{64}$/);
++  assert(!JSON.stringify(id).includes('private-cookie'));
++  assert.equal(activityIdentity('5', 'cookie'), null);
++  assert.equal(activityIdentity(5, ''), null);
++});
++it('ignores polling and strips form contents from successful action descriptions', () => {
++  assert.equal(activityAction('GET', '/api/v1/request'), null);
++  assert.equal(activityAction('POST', '/api/v1/activity/page'), null);
++  const e = activityAction('POST', '/api/v1/reviews/mine/42?mediaType=tv', {
++    review: 'secret',
++    password: 'secret',
++  });
++  assert.equal(e?.target, '/tv/42');
++  assert(!JSON.stringify(e).includes('secret'));
++  assert.equal(
++    activityAction('POST', '/api/v1/auth/local', { password: 'secret' })?.kind,
++    'login'
++  );
++  assert.equal(
++    activityAction('PUT', '/api/v1/discovery-lists/created/42')?.action,
++    'Edited list'
++  );
++  assert.equal(
++    activityAction('PUT', '/api/v1/discovery-lists/follow/tv/42')?.target,
++    '/tv/42'
++  );
++  assert.equal(
++    activityAction('POST', '/api/v1/request', null)?.target,
++    '/requests'
++  );
++});
+diff --git a/server/lib/userActivityPolicy.ts b/server/lib/userActivityPolicy.ts
+new file mode 100644
+index 00000000..d776876e
+--- /dev/null
++++ b/server/lib/userActivityPolicy.ts
+@@ -0,0 +1,170 @@
++import { createHash } from 'crypto';
++export type ActivityKind = 'login' | 'logout' | 'page' | 'action';
++export type ActivityEvent = {
++  at: number;
++  userId: number;
++  session: string;
++  kind: ActivityKind;
++  action: string;
++  target: string | null;
++  device: string;
++  browser: string;
++};
++export function activityPage(raw: unknown): string | null {
++  if (
++    typeof raw !== 'string' ||
++    raw.length > 2048 ||
++    !raw.startsWith('/') ||
++    raw.startsWith('//')
++  )
++    return null;
++  const path = raw.split(/[?#]/)[0].replace(/\/$/, '') || '/';
++  if (
++    [
++      '/',
++      '/for-you',
++      '/lists',
++      '/lists/explore',
++      '/requests',
++      '/issues',
++      '/search',
++      '/profile',
++      '/profile/watchlist',
++    ].includes(path)
++  )
++    return path;
++  if (
++    /^\/(movie|tv|person|collection)\/[1-9]\d*(?:\/(cast|crew|recommendations|similar))?$/.test(
++      path
++    )
++  )
++    return path;
++  if (/^\/lists\/[a-z0-9:_-]{1,160}$/i.test(path)) return path;
++  if (/^\/discover\/[a-z0-9/-]{1,120}$/i.test(path)) return path;
++  if (
++    /^\/users\/[1-9]\d*(?:\/(requests|watchlist|letterboxd-watchlist))?$/.test(
++      path
++    )
++  )
++    return path;
++  if (
++    /^\/(?:settings|profile\/settings|users\/[1-9]\d*\/settings)(?:\/[a-z-]{1,50}){0,3}$/.test(
++      path
++    )
++  )
++    return path;
++  if (/^\/issues\/[1-9]\d*$/.test(path)) return path;
++  return null;
++}
++export function activityIdentity(userId: unknown, sessionId: unknown, ua = '') {
++  if (
++    !Number.isSafeInteger(userId) ||
++    Number(userId) < 1 ||
++    typeof sessionId !== 'string' ||
++    !sessionId
++  )
++    return null;
++  return {
++    userId: Number(userId),
++    session: createHash('sha256').update(sessionId).digest('hex'),
++    device: /ipad|tablet/i.test(ua)
++      ? 'Tablet'
++      : /mobile|iphone|android/i.test(ua)
++        ? 'Mobile'
++        : ua
++          ? 'Desktop'
++          : 'Unknown',
++    browser: /edg\//i.test(ua)
++      ? 'Edge'
++      : /firefox|fxios/i.test(ua)
++        ? 'Firefox'
++        : /chrome|crios/i.test(ua)
++          ? 'Chrome'
++          : /safari/i.test(ua)
++            ? 'Safari'
++            : 'Other',
++  };
++}
++export function activityAction(
++  method: string,
++  raw: string,
++  body: Record<string, unknown> | null = {}
++): { kind: ActivityKind; action: string; target: string | null } | null {
++  body = body && typeof body === 'object' ? body : {};
++  const p = raw.split('?')[0].replace(/^\/api\/v1/, '');
++  if (
++    method === 'POST' &&
++    /^\/auth\/(plex|local|jellyfin(?:\/quickconnect\/authenticate)?)$/.test(p)
++  )
++    return { kind: 'login', action: 'Signed in', target: null };
++  if (method === 'POST' && p === '/auth/logout')
++    return { kind: 'logout', action: 'Signed out', target: null };
++  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return null;
++  if (/^\/request(?:\/|$)/.test(p)) {
++    const target =
++      Number.isSafeInteger(body.mediaId) &&
++      Number(body.mediaId) > 0 &&
++      ['movie', 'tv'].includes(String(body.mediaType))
++        ? `/${body.mediaType}/${body.mediaId}`
++        : '/requests';
++    return {
++      kind: 'action',
++      action:
++        method === 'DELETE'
++          ? 'Deleted request'
++          : method === 'POST'
++            ? 'Requested media'
++            : 'Updated request',
++      target,
++    };
++  }
++  const reviewType =
++    new URL(raw, 'https://activity.invalid').searchParams.get('mediaType') ===
++      'tv' || body.mediaType === 'tv'
++      ? 'tv'
++      : 'movie';
++  let m = p.match(/^\/reviews\/(mine|watched)\/([1-9]\d*)$/);
++  if (m)
++    return {
++      kind: 'action',
++      action:
++        method === 'DELETE'
++          ? 'Removed review'
++          : m[1] === 'watched'
++            ? 'Changed watched status'
++            : 'Saved rating or review',
++      target: `/${reviewType}/${m[2]}`,
++    };
++  if (/^\/discovery-lists\/(?:created|import|[a-z0-9:_-]+\/save)/i.test(p))
++    return {
++      kind: 'action',
++      action: p.endsWith('/save')
++        ? 'Changed saved list'
++        : p.endsWith('/import')
++          ? 'Imported list'
++          : method === 'DELETE'
++            ? 'Deleted list'
++            : method === 'POST'
++              ? 'Created list'
++              : 'Edited list',
++      target: '/lists',
++    };
++  m = p.match(/^\/discovery-lists\/follow\/(movie|tv)\/([1-9]\d*)$/);
++  if (m)
++    return {
++      kind: 'action',
++      action: 'Changed release follow',
++      target: `/${m[1]}/${m[2]}`,
++    };
++  if (/^\/watchlist(?:\/|$)/.test(p))
++    return {
++      kind: 'action',
++      action: 'Changed watchlist',
++      target: '/profile/watchlist',
++    };
++  if (/^\/issue(?:Comment)?(?:\/|$)/.test(p))
++    return { kind: 'action', action: 'Updated issue', target: '/issues' };
++  if (/^\/user\/[1-9]\d*\/settings(?:\/|$)/.test(p))
++    return { kind: 'action', action: 'Updated user settings', target: null };
++  return null;
++}
+diff --git a/server/lib/userActivityStore.test.ts b/server/lib/userActivityStore.test.ts
+new file mode 100644
+index 00000000..0a678db1
+--- /dev/null
++++ b/server/lib/userActivityStore.test.ts
+@@ -0,0 +1,90 @@
++import assert from 'node:assert/strict';
++import { mkdtemp, rm } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import path from 'node:path';
++import { it } from 'node:test';
++import type { ActivityEvent } from './userActivityPolicy';
++import { UserActivityStore } from './userActivityStore';
++it('persists across restart, retains 30 days, isolates users/sessions and paginates accurately', async () => {
++  const dir = await mkdtemp(path.join(tmpdir(), 'usage-test-'));
++  const file = path.join(dir, 'activity.db');
++  let db = new UserActivityStore(file);
++  const now = Date.now();
++  const event = (at: number, userId = 1, session = 'a'): ActivityEvent => ({
++    at,
++    userId,
++    session,
++    kind: 'page',
++    action: 'Opened page',
++    target: '/movie/42',
++    device: 'Mobile',
++    browser: 'Safari',
++  });
++  try {
++    await Promise.all([
++      db.append(
++        [
++          event(now - 31 * 86400000),
++          ...Array.from({ length: 55 }, (_, i) => event(now - i)),
++        ],
++        now
++      ),
++      db.append(
++        [{ ...event(now, 2, 'b'), kind: 'login', action: 'Signed in' }],
++        now
++      ),
++    ]);
++    const result = await db.query({ days: 30, page: 1 }, now);
++    assert.equal(result.totals.total, 56);
++    assert.equal(result.events.length, 50);
++    assert.equal((await db.query({ days: 30, page: 2 }, now)).events.length, 6);
++    assert.equal(
++      (
++        await db.query(
++          { days: 30, page: 1, userId: 2, session: 'b', kind: 'login' },
++          now
++        )
++      ).totals.total,
++      1
++    );
++    await db.close();
++    db = new UserActivityStore(file);
++    assert.equal((await db.query({ days: 30, page: 1 }, now)).totals.total, 56);
++    assert.equal(
++      (await db.query({ days: 30, page: 1 }, now + 31 * 86400000)).totals.total,
++      0
++    );
++  } finally {
++    await db.close();
++    await rm(dir, { recursive: true, force: true });
++  }
++});
++it('caps retained events at 100,000', async () => {
++  const sqlite = (await import('sqlite3')).default;
++  const dir = await mkdtemp(path.join(tmpdir(), 'usage-cap-'));
++  const filename = path.join(dir, 'activity.db');
++  const now = Date.now();
++  let db = new UserActivityStore(filename);
++  try {
++    await db.query({ days: 30, page: 1 }, now);
++    await db.close();
++    const raw = new sqlite.Database(filename);
++    await new Promise<void>((resolve, reject) =>
++      raw.exec(
++        `WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<100005) INSERT INTO activity(at,userId,session,kind,action,target,device,browser) SELECT ${now},1,'a','page','Opened page','/','Desktop','Safari' FROM n`,
++        (e) => (e ? reject(e) : resolve())
++      )
++    );
++    await new Promise<void>((resolve, reject) =>
++      raw.close((e) => (e ? reject(e) : resolve()))
++    );
++    db = new UserActivityStore(filename);
++    assert.equal(
++      (await db.query({ days: 30, page: 1 }, now)).totals.total,
++      100000
++    );
++  } finally {
++    await db.close();
++    await rm(dir, { recursive: true, force: true });
++  }
++});
+diff --git a/server/lib/userActivityStore.ts b/server/lib/userActivityStore.ts
+new file mode 100644
+index 00000000..4dc67273
+--- /dev/null
++++ b/server/lib/userActivityStore.ts
+@@ -0,0 +1,139 @@
++import sqlite3 from 'sqlite3';
++import type { ActivityEvent, ActivityKind } from './userActivityPolicy';
++export type ActivityFilter = {
++  days: number;
++  userId?: number;
++  kind?: ActivityKind;
++  session?: string;
++  page: number;
++};
++export class UserActivityStore {
++  private db!: sqlite3.Database;
++  private ready: Promise<void>;
++  private serial: Promise<unknown> = Promise.resolve();
++  private maintenance?: ReturnType<typeof setInterval>;
++  constructor(filename: string) {
++    this.ready = new Promise<void>((resolve, reject) => {
++      this.db = new sqlite3.Database(filename, (error) =>
++        error ? reject(error) : resolve()
++      );
++    })
++      .then(() =>
++        this
++          .exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=1000;
++      CREATE TABLE IF NOT EXISTS activity (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL, userId INTEGER NOT NULL, session TEXT NOT NULL, kind TEXT NOT NULL, action TEXT NOT NULL, target TEXT, device TEXT NOT NULL, browser TEXT NOT NULL);
++      CREATE INDEX IF NOT EXISTS activity_at ON activity(at DESC,id DESC);
++      CREATE INDEX IF NOT EXISTS activity_user_at ON activity(userId,at DESC);
++      CREATE INDEX IF NOT EXISTS activity_session_at ON activity(session,at DESC);`)
++      )
++      .then(() => {
++        this.maintenance = setInterval(() => {
++          void this.job(() => this.prune(Date.now())).catch(() => {});
++        }, 3600000);
++        this.maintenance.unref();
++      });
++  }
++  private exec(sql: string): Promise<void> {
++    return new Promise((resolve, reject) =>
++      this.db.exec(sql, (e) => (e ? reject(e) : resolve()))
++    );
++  }
++  private all<T = Record<string, unknown>>(
++    sql: string,
++    args: unknown[] = []
++  ): Promise<T[]> {
++    return new Promise((resolve, reject) =>
++      this.db.all(sql, args, (e, rows) =>
++        e ? reject(e) : resolve(rows as T[])
++      )
++    );
++  }
++  private run(sql: string, args: unknown[] = []): Promise<void> {
++    return new Promise((resolve, reject) =>
++      this.db.run(sql, args, (e) => (e ? reject(e) : resolve()))
++    );
++  }
++  private job<T>(fn: () => Promise<T>): Promise<T> {
++    const result = this.serial.then(() => this.ready).then(fn);
++    this.serial = result.catch(() => {});
++    return result;
++  }
++  private async prune(now: number) {
++    await this.run('DELETE FROM activity WHERE at < ?', [now - 30 * 86400000]);
++    await this.exec(
++      'DELETE FROM activity WHERE id IN (SELECT id FROM activity ORDER BY at DESC,id DESC LIMIT -1 OFFSET 100000)'
++    );
++  }
++  append(events: ActivityEvent[], now = Date.now()) {
++    return this.job(async () => {
++      await this.exec('BEGIN IMMEDIATE');
++      try {
++        for (const e of events)
++          await this.run(
++            'INSERT INTO activity(at,userId,session,kind,action,target,device,browser) VALUES(?,?,?,?,?,?,?,?)',
++            [
++              e.at,
++              e.userId,
++              e.session,
++              e.kind,
++              e.action,
++              e.target,
++              e.device,
++              e.browser,
++            ]
++          );
++        await this.prune(now);
++        await this.exec('COMMIT');
++      } catch (error) {
++        await this.exec('ROLLBACK');
++        throw error;
++      }
++    });
++  }
++  query(filter: ActivityFilter, now = Date.now()) {
++    return this.job(async () => {
++      await this.prune(now);
++      const where = ['at >= ?'],
++        params: unknown[] = [now - filter.days * 86400000];
++      if (filter.userId) {
++        where.push('userId = ?');
++        params.push(filter.userId);
++      }
++      if (filter.kind) {
++        where.push('kind = ?');
++        params.push(filter.kind);
++      }
++      if (filter.session) {
++        where.push('session = ?');
++        params.push(filter.session);
++      }
++      const clause = where.join(' AND ');
++      const events = await this.all<ActivityEvent & { id: number }>(
++        `SELECT * FROM activity WHERE ${clause} ORDER BY at DESC,id DESC LIMIT 50 OFFSET ?`,
++        [...params, (filter.page - 1) * 50]
++      );
++      const totals = (
++        await this.all(
++          `SELECT COUNT(*) AS total,COUNT(DISTINCT userId) AS users,COUNT(DISTINCT session) AS sessions,COALESCE(SUM(kind='page'),0) AS pages,COALESCE(SUM(kind='action'),0) AS actions,COALESCE(SUM(kind='login'),0) AS logins FROM activity WHERE ${clause}`,
++          params
++        )
++      )[0];
++      return {
++        events,
++        totals,
++        retentionDays: 30,
++        maxEvents: 100000,
++        page: filter.page,
++      };
++    });
++  }
++  async close() {
++    await this.ready;
++    if (this.maintenance) clearInterval(this.maintenance);
++    await this.serial;
++    await this.ready;
++    await new Promise<void>((resolve, reject) =>
++      this.db.close((e) => (e ? reject(e) : resolve()))
++    );
++  }
++}
+diff --git a/server/middleware/userActivity.ts b/server/middleware/userActivity.ts
+new file mode 100644
+index 00000000..9ab3b2a7
+--- /dev/null
++++ b/server/middleware/userActivity.ts
+@@ -0,0 +1,30 @@
++import { recordUserActivity } from '@server/lib/userActivity';
++import {
++  activityAction,
++  activityIdentity,
++} from '@server/lib/userActivityPolicy';
++import type { NextFunction, Request, Response } from 'express';
++// Count successful interactive actions, never polling or service/API-key work.
++export function userActivityMiddleware(
++  req: Request,
++  res: Response,
++  next: NextFunction
++) {
++  if (req.header('X-Api-Key')) return next();
++  const action = activityAction(req.method, req.originalUrl, req.body);
++  if (!action) return next();
++  const initialUser = req.session?.userId;
++  const session = req.sessionID;
++  const agent = req.header('user-agent') || '';
++  res.once('finish', () => {
++    if (res.statusCode < 200 || res.statusCode >= 300) return;
++    const identity = activityIdentity(
++      action.kind === 'login' ? req.session?.userId : initialUser,
++      action.kind === 'login' ? req.sessionID : session,
++      agent
++    );
++    if (identity)
++      recordUserActivity({ ...identity, ...action, at: Date.now() });
++  });
++  next();
++}
+diff --git a/server/routes/index.ts b/server/routes/index.ts
+index bc0d534a..c92e1288 100644
+--- a/server/routes/index.ts
++++ b/server/routes/index.ts
+@@ -1,10 +1,3 @@
+-import socialRoutes from './social';
+-import discoveryListRoutes from './discoveryLists';
+-import reviewRoutes from './reviews';
+-import letterboxdWorkerRoutes from './letterboxdWorker';
+-import letterboxdWatchlistRoutes from './letterboxdWatchlist';
+-import curatedRoutes from './curated';
+-import watchPartyRoutes from './watchParty';
+ import GithubAPI from '@server/api/github';
+ import PushoverAPI from '@server/api/pushover';
+ import TheMovieDb from '@server/api/themoviedb';
+@@ -20,6 +13,7 @@ import { getSettings } from '@server/lib/settings';
+ import logger from '@server/logger';
+ import { checkUser, isAuthenticated } from '@server/middleware/auth';
+ import deprecatedRoute from '@server/middleware/deprecation';
++import { userActivityMiddleware } from '@server/middleware/userActivity';
+ import { mapProductionCompany } from '@server/models/Movie';
+ import { mapNetwork } from '@server/models/Tv';
+ import { mapWatchProviderDetails } from '@server/models/common';
+@@ -38,24 +32,38 @@ import { Router } from 'express';
+ import authRoutes from './auth';
+ import blocklistRoutes from './blocklist';
+ import collectionRoutes from './collection';
++import curatedRoutes from './curated';
+ import discoverRoutes, { createTmdbWithRegionLanguage } from './discover';
++import discoveryListRoutes from './discoveryLists';
+ import issueRoutes from './issue';
+ import issueCommentRoutes from './issueComment';
++import letterboxdWatchlistRoutes from './letterboxdWatchlist';
++import letterboxdWorkerRoutes from './letterboxdWorker';
+ import mediaRoutes from './media';
+ import movieRoutes from './movie';
+ import personRoutes from './person';
+ import requestRoutes from './request';
++import reviewRoutes from './reviews';
+ import searchRoutes from './search';
+ import serviceRoutes from './service';
++import socialRoutes from './social';
+ import tvRoutes from './tv';
+ import user from './user';
++import userActivityRoutes from './userActivity';
++import watchPartyRoutes from './watchParty';
+ 
+ const router = Router();
+ 
+ router.use(checkUser);
++router.use(userActivityMiddleware);
++router.use('/activity', userActivityRoutes);
+ router.use('/discovery-lists', isAuthenticated(), discoveryListRoutes);
+ router.use('/letterboxd-worker', letterboxdWorkerRoutes);
+-router.use('/letterboxd-watchlist', isAuthenticated(), letterboxdWatchlistRoutes);
++router.use(
++  '/letterboxd-watchlist',
++  isAuthenticated(),
++  letterboxdWatchlistRoutes
++);
+ router.use('/reviews', isAuthenticated(), reviewRoutes);
+ router.use('/curated', isAuthenticated(), curatedRoutes);
+ router.use('/social', isAuthenticated(), socialRoutes);
+diff --git a/server/routes/userActivity.ts b/server/routes/userActivity.ts
+new file mode 100644
+index 00000000..0749336f
+--- /dev/null
++++ b/server/routes/userActivity.ts
+@@ -0,0 +1,98 @@
++import { getRepository } from '@server/datasource';
++import { User } from '@server/entity/User';
++import { Permission } from '@server/lib/permissions';
++import {
++  queryUserActivity,
++  recordUserActivity,
++} from '@server/lib/userActivity';
++import {
++  activityIdentity,
++  activityPage,
++  type ActivityKind,
++} from '@server/lib/userActivityPolicy';
++import { isAuthenticated } from '@server/middleware/auth';
++import { Router } from 'express';
++import rateLimit from 'express-rate-limit';
++const router = Router();
++router.use(isAuthenticated());
++router.use((_req, res, next) => {
++  res.setHeader('Cache-Control', 'private, no-store');
++  next();
++});
++router.post(
++  '/page',
++  rateLimit({
++    windowMs: 60000,
++    limit: 60,
++    keyGenerator: (req) => String(req.user!.id),
++  }),
++  (req, res) => {
++    // Actor and time come from the authenticated session, not telemetry input.
++    if (req.header('X-Api-Key') || req.session?.userId !== req.user!.id)
++      return res.sendStatus(403);
++    if (!req.body || Object.keys(req.body).some((k) => k !== 'path'))
++      return res.sendStatus(400);
++    const target = activityPage(req.body.path),
++      identity = activityIdentity(
++        req.user!.id,
++        req.sessionID,
++        req.header('user-agent')
++      );
++    if (!target || !identity) return res.sendStatus(400);
++    recordUserActivity({
++      ...identity,
++      at: Date.now(),
++      kind: 'page',
++      action: 'Opened page',
++      target,
++    });
++    return res.sendStatus(204);
++  }
++);
++router.get('/', isAuthenticated(Permission.ADMIN), async (req, res) => {
++  const days = Number(req.query.days ?? 7),
++    page = Number(req.query.page ?? 1),
++    userId =
++      req.query.userId === undefined ? undefined : Number(req.query.userId),
++    kind = req.query.kind as ActivityKind | undefined,
++    session = req.query.session;
++  if (
++    !Number.isInteger(days) ||
++    days < 1 ||
++    days > 30 ||
++    !Number.isInteger(page) ||
++    page < 1 ||
++    page > 2000 ||
++    (userId !== undefined && (!Number.isSafeInteger(userId) || userId < 1)) ||
++    (kind !== undefined &&
++      !['login', 'logout', 'page', 'action'].includes(kind)) ||
++    (session !== undefined &&
++      (typeof session !== 'string' || !/^[a-f0-9]{64}$/.test(session)))
++  )
++    return res.sendStatus(400);
++  try {
++    const [result, users] = await Promise.all([
++      queryUserActivity({
++        days,
++        page,
++        userId,
++        kind,
++        session: session as string | undefined,
++      }),
++      getRepository(User).find(),
++    ]);
++    return res.json({
++      ...result,
++      users: users.map((u) => ({
++        id: u.id,
++        name: u.displayName,
++        avatar: u.avatar,
++      })),
++    });
++  } catch {
++    return res
++      .status(503)
++      .json({ error: 'Activity history is temporarily unavailable' });
++  }
++});
++export default router;
+diff --git a/src/components/Settings/SettingsLayout.tsx b/src/components/Settings/SettingsLayout.tsx
+index 72109f94..37f2b72f 100644
+--- a/src/components/Settings/SettingsLayout.tsx
++++ b/src/components/Settings/SettingsLayout.tsx
+@@ -33,7 +33,17 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
+   const t = usePartyText();
+   const { hasPermission } = useUser();
+   const settingsRoutes: SettingsRoute[] = [
+-    ...(hasPermission(Permission.ADMIN) ? [{text:intl.locale.startsWith('es')?'Asignación de cuentas':'Account mappings',route:'/settings/account-mappings',regex:/^\/settings\/account-mappings/}] : []),
++    ...(hasPermission(Permission.ADMIN)
++      ? [
++          {
++            text: intl.locale.startsWith('es')
++              ? 'Asignación de cuentas'
++              : 'Account mappings',
++            route: '/settings/account-mappings',
++            regex: /^\/settings\/account-mappings/,
++          },
++        ]
++      : []),
+     {
+       text: intl.formatMessage(messages.menuGeneralSettings),
+       route: '/settings/main',
+@@ -92,6 +102,14 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
+     },
+   ];
+ 
++  if (hasPermission(Permission.ADMIN))
++    settingsRoutes.splice(settingsRoutes.length - 1, 0, {
++      text: intl.locale.startsWith('es')
++        ? 'Actividad de usuarios'
++        : 'User activity',
++      route: '/settings/activity',
++      regex: /^\/settings\/activity/,
++    });
+   if (hasPermission(Permission.ADMIN))
+     settingsRoutes.splice(settingsRoutes.length - 1, 0, {
+       text: t('Watch Party Activity', 'Actividad de Ver Juntos'),
+diff --git a/src/components/Settings/UserActivity/index.tsx b/src/components/Settings/UserActivity/index.tsx
+new file mode 100644
+index 00000000..642a9fdf
+--- /dev/null
++++ b/src/components/Settings/UserActivity/index.tsx
+@@ -0,0 +1,354 @@
++import PageTitle from '@app/components/Common/PageTitle';
++import { Permission, useUser } from '@app/hooks/useUser';
++import Link from 'next/link';
++import { useState } from 'react';
++import { useIntl } from 'react-intl';
++import useSWR from 'swr';
++
++type Activity = {
++  id: number;
++  at: number;
++  userId: number;
++  session: string;
++  kind: string;
++  action: string;
++  target: string | null;
++  device: string;
++  browser: string;
++};
++export type UserActivityData = {
++  events: Activity[];
++  users: { id: number; name: string; avatar: string }[];
++  totals: {
++    total: number;
++    users: number;
++    sessions: number;
++    pages: number;
++    actions: number;
++    logins: number;
++  };
++  page: number;
++  retentionDays: number;
++  collection: { dropped: number; lastErrorAt: number | null };
++};
++const pageName = (path: string, es: boolean) => {
++  const names: Record<string, string> = {
++    '/': es ? 'Descubrir' : 'Discover',
++    '/for-you': es ? 'Para ti' : 'For you',
++    '/lists': es ? 'Mis listas' : 'My lists',
++    '/lists/explore': es ? 'Explorar listas' : 'Explore lists',
++    '/requests': es ? 'Solicitudes' : 'Requests',
++    '/search': es ? 'Búsqueda' : 'Search',
++    '/profile': es ? 'Perfil' : 'Profile',
++    '/issues': es ? 'Problemas' : 'Issues',
++  };
++  if (names[path]) return names[path];
++  const m = path.match(/^\/(movie|tv)\/(\d+)$/);
++  if (m)
++    return `${m[1] === 'movie' ? (es ? 'Película' : 'Movie') : es ? 'Serie' : 'Series'} #${m[2]}`;
++  return path;
++};
++export function UserActivityView({
++  data,
++  error,
++  loading,
++  days,
++  setDays,
++  userId,
++  setUserId,
++  kind,
++  setKind,
++  session,
++  setSession,
++  page,
++  setPage,
++  refresh,
++  es = false,
++}: {
++  data?: UserActivityData;
++  error?: boolean;
++  loading?: boolean;
++  days: string;
++  setDays: (v: string) => void;
++  userId: string;
++  setUserId: (v: string) => void;
++  kind: string;
++  setKind: (v: string) => void;
++  session: string;
++  setSession: (v: string) => void;
++  page: number;
++  setPage: (v: number) => void;
++  refresh: () => void;
++  es?: boolean;
++}) {
++  const t = (en: string, spanish: string) => (es ? spanish : en);
++  const select =
++    'rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-white';
++  return (
++    <div className="space-y-6">
++      <div className="flex flex-wrap items-center justify-between gap-3">
++        <div>
++          <h1 className="text-2xl font-bold text-purple-300">
++            {t('User activity', 'Actividad de usuarios')}
++          </h1>
++          <p className="mt-1 text-sm text-gray-400">
++            {t(
++              'Sign-ins, pages opened, and successful actions. Kept for 30 days.',
++              'Inicios de sesión, páginas abiertas y acciones completadas. Se conservan 30 días.'
++            )}
++          </p>
++        </div>
++        <button className={select} onClick={refresh}>
++          {t('Refresh', 'Actualizar')}
++        </button>
++      </div>
++      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
++        {[
++          [t('Active users', 'Usuarios activos'), data?.totals.users],
++          [t('Page views', 'Páginas vistas'), data?.totals.pages],
++          [t('Actions', 'Acciones'), data?.totals.actions],
++          [t('Sign-ins', 'Inicios de sesión'), data?.totals.logins],
++        ].map(([label, value]) => (
++          <div
++            key={label}
++            className="rounded-xl border border-gray-700 bg-gray-800 p-4"
++          >
++            <div className="text-sm text-gray-400">{label}</div>
++            <div className="mt-1 text-2xl font-semibold">{value ?? '—'}</div>
++          </div>
++        ))}
++      </div>
++      <div className="flex flex-wrap gap-3">
++        <label className="flex flex-col gap-1 text-sm text-gray-400">
++          {t('User', 'Usuario')}
++          <select
++            className={select}
++            value={userId}
++            onChange={(e) => {
++              setUserId(e.target.value);
++              setSession('');
++              setPage(1);
++            }}
++          >
++            <option value="">{t('Everyone', 'Todos')}</option>
++            {data?.users.map((u) => (
++              <option key={u.id} value={u.id}>
++                {u.name || `#${u.id}`}
++              </option>
++            ))}
++          </select>
++        </label>
++        <label className="flex flex-col gap-1 text-sm text-gray-400">
++          {t('Show', 'Mostrar')}
++          <select
++            className={select}
++            value={kind}
++            onChange={(e) => {
++              setKind(e.target.value);
++              setPage(1);
++            }}
++          >
++            <option value="">{t('All activity', 'Toda la actividad')}</option>
++            <option value="page">{t('Browsing', 'Navegación')}</option>
++            <option value="action">{t('Actions', 'Acciones')}</option>
++            <option value="login">{t('Sign-ins', 'Inicios de sesión')}</option>
++            <option value="logout">
++              {t('Sign-outs', 'Cierres de sesión')}
++            </option>
++          </select>
++        </label>
++        <label className="flex flex-col gap-1 text-sm text-gray-400">
++          {t('Period', 'Periodo')}
++          <select
++            className={select}
++            value={days}
++            onChange={(e) => {
++              setDays(e.target.value);
++              setPage(1);
++            }}
++          >
++            {[1, 7, 30].map((n) => (
++              <option key={n} value={n}>
++                {t(`Last ${n} days`, `Últimos ${n} días`)}
++              </option>
++            ))}
++          </select>
++        </label>
++      </div>
++      {session && (
++        <div className="flex items-center gap-3 rounded-lg bg-purple-900/30 px-3 py-2 text-sm">
++          <span>{t('Showing one session', 'Mostrando una sesión')}</span>
++          <button
++            className="text-purple-300 underline"
++            onClick={() => {
++              setSession('');
++              setPage(1);
++            }}
++          >
++            {t('Clear', 'Quitar filtro')}
++          </button>
++        </div>
++      )}
++      {!!data?.collection.dropped && (
++        <p role="status" className="text-yellow-300">
++          {t(
++            'Some activity could not be recorded. The history may be incomplete.',
++            'No se pudo registrar parte de la actividad. El historial puede estar incompleto.'
++          )}
++        </p>
++      )}
++      {error ? (
++        <p role="alert">
++          {t(
++            'Activity could not be loaded. Try refreshing.',
++            'No se pudo cargar la actividad. Intenta actualizar.'
++          )}
++        </p>
++      ) : loading || !data ? (
++        <p role="status" className="animate-pulse text-gray-400">
++          {t('Loading activity…', 'Cargando actividad…')}
++        </p>
++      ) : !data.events.length ? (
++        <div className="rounded-xl border border-gray-700 bg-gray-800 p-8 text-center text-gray-400">
++          {t(
++            'No activity in this period. New visits will appear here after logging is enabled.',
++            'No hay actividad en este periodo. Las nuevas visitas aparecerán aquí después de activar el registro.'
++          )}
++        </div>
++      ) : (
++        <div className="divide-y divide-gray-700 overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
++          {data.events.map((event) => {
++            const user = data.users.find((u) => u.id === event.userId);
++            return (
++              <article
++                key={event.id}
++                className="flex min-w-0 flex-col gap-2 p-4 sm:flex-row sm:items-start sm:gap-4"
++              >
++                <time
++                  className="shrink-0 text-sm text-gray-400 sm:w-40"
++                  dateTime={new Date(event.at).toISOString()}
++                >
++                  {new Date(event.at).toLocaleString(es ? 'es-MX' : 'en-US', {
++                    month: 'short',
++                    day: 'numeric',
++                    hour: 'numeric',
++                    minute: '2-digit',
++                  })}
++                </time>
++                <div className="min-w-0 flex-1">
++                  <Link
++                    href={`/users/${event.userId}`}
++                    className="font-semibold text-purple-300"
++                  >
++                    {user?.name || `User #${event.userId}`}
++                  </Link>
++                  <p className="break-words">
++                    {event.action}
++                    {event.target && (
++                      <>
++                        {' '}
++                        ·{' '}
++                        <Link
++                          className="text-purple-300 hover:underline"
++                          href={event.target}
++                        >
++                          {pageName(event.target, es)}
++                        </Link>
++                      </>
++                    )}
++                  </p>
++                  <p className="mt-1 text-xs text-gray-400">
++                    {event.device} · {event.browser}
++                  </p>
++                </div>
++                <button
++                  className="self-start text-sm text-gray-400 hover:text-purple-300"
++                  onClick={() => {
++                    setSession(event.session);
++                    setPage(1);
++                  }}
++                >
++                  {t('View session', 'Ver sesión')}
++                </button>
++              </article>
++            );
++          })}
++        </div>
++      )}
++      <div className="flex items-center justify-between gap-3 text-sm">
++        <button
++          className={select}
++          disabled={page <= 1 || loading}
++          onClick={() => setPage(page - 1)}
++        >
++          {t('Previous', 'Anterior')}
++        </button>
++        <span className="text-gray-400">
++          {t('Page', 'Página')} {page}
++          {data ? ` · ${data.totals.total} ${t('events', 'eventos')}` : ''}
++        </span>
++        <button
++          className={select}
++          disabled={!data || page * 50 >= data.totals.total || loading}
++          onClick={() => setPage(page + 1)}
++        >
++          {t('Next', 'Siguiente')}
++        </button>
++      </div>
++      <p className="text-xs text-gray-500">
++        {t(
++          'Page views show what was opened, not time spent. Background refreshes are excluded. Search text, review contents, passwords and IP addresses are not recorded.',
++          'Las vistas indican qué se abrió, no el tiempo dedicado. Se excluyen las actualizaciones en segundo plano. No se registran búsquedas, reseñas, contraseñas ni direcciones IP.'
++        )}
++      </p>
++    </div>
++  );
++}
++export default function UserActivity() {
++  const { hasPermission } = useUser(),
++    intl = useIntl();
++  const [days, setDays] = useState('7'),
++    [userId, setUserId] = useState(''),
++    [kind, setKind] = useState(''),
++    [session, setSession] = useState(''),
++    [page, setPage] = useState(1);
++  const params = new URLSearchParams({ days, page: String(page) });
++  if (userId) params.set('userId', userId);
++  if (kind) params.set('kind', kind);
++  if (session) params.set('session', session);
++  const { data, error, isLoading, mutate } = useSWR<UserActivityData>(
++    hasPermission(Permission.ADMIN) ? `/api/v1/activity?${params}` : null,
++    { revalidateOnFocus: false }
++  );
++  if (!hasPermission(Permission.ADMIN)) return null;
++  return (
++    <>
++      <PageTitle
++        title={
++          intl.locale.startsWith('es')
++            ? 'Actividad de usuarios'
++            : 'User activity'
++        }
++      />
++      <UserActivityView
++        {...{
++          data,
++          days,
++          setDays,
++          userId,
++          setUserId,
++          kind,
++          setKind,
++          session,
++          setSession,
++          page,
++          setPage,
++        }}
++        error={!!error}
++        loading={isLoading}
++        refresh={() => void mutate()}
++        es={intl.locale.startsWith('es')}
++      />
++    </>
++  );
++}
+diff --git a/src/components/UserActivityTracker.tsx b/src/components/UserActivityTracker.tsx
+new file mode 100644
+index 00000000..2b80fc96
+--- /dev/null
++++ b/src/components/UserActivityTracker.tsx
+@@ -0,0 +1,45 @@
++import { useUser } from '@app/hooks/useUser';
++import axios from 'axios';
++import { useRouter } from 'next/router';
++import { useEffect, useRef } from 'react';
++// Observe completed navigation, not API polling. Keep telemetry off the page's
++// loading path, and never transmit search strings, query parameters or fragments.
++export default function UserActivityTracker() {
++  const { user } = useUser();
++  const router = useRouter();
++  const last = useRef({ userId: 0, path: '', at: 0 });
++  useEffect(() => {
++    if (!user?.id) return;
++    let timer: ReturnType<typeof setTimeout> | undefined;
++    const send = (url: string) => {
++      if (timer) clearTimeout(timer);
++      const path = url.split(/[?#]/)[0];
++      if (/^\/(login|setup|resetpassword)(\/|$)/.test(path)) return;
++      timer = setTimeout(() => {
++        if (document.visibilityState !== 'visible') return;
++        if (
++          last.current.userId === user.id &&
++          last.current.path === path &&
++          Date.now() - last.current.at < 30 * 60000
++        )
++          return;
++        last.current = { userId: user.id, path, at: Date.now() };
++        void axios.post('/api/v1/activity/page', { path }).catch(() => {
++          /* Usage logging must never interrupt browsing. */
++        });
++      }, 300);
++    };
++    const visible = () => {
++      if (document.visibilityState === 'visible') send(router.asPath);
++    };
++    send(router.asPath);
++    router.events.on('routeChangeComplete', send);
++    document.addEventListener('visibilitychange', visible);
++    return () => {
++      if (timer) clearTimeout(timer);
++      router.events.off('routeChangeComplete', send);
++      document.removeEventListener('visibilitychange', visible);
++    };
++  }, [user?.id, router]);
++  return null;
++}
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 13a640c4..29889582 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,8 +1,9 @@
+-﻿import Layout from '@app/components/Layout';
++import Layout from '@app/components/Layout';
+ import LoadingBar from '@app/components/LoadingBar';
+ import PWAHeader from '@app/components/PWAHeader';
+ import ServiceWorkerSetup from '@app/components/ServiceWorkerSetup';
+ import StatusChecker from '@app/components/StatusChecker';
++import UserActivityTracker from '@app/components/UserActivityTracker';
+ import { InteractionProvider } from '@app/context/InteractionContext';
+ import { LanguageContext } from '@app/context/LanguageContext';
+ import { SettingsProvider } from '@app/context/SettingsContext';
+@@ -218,7 +219,10 @@ const CoreApp: Omit<NextAppComponentType, 'origGetInitialProps'> = ({
+               </Head>
+               <StatusChecker />
+               <ServiceWorkerSetup />
+-              <UserContext initialUser={user}>{component}</UserContext>
++              <UserContext initialUser={user}>
++                <UserActivityTracker />
++                {component}
++              </UserContext>
+               <Toaster
+                 position="top-right"
+                 toastOptions={{ duration: 4000 }}
+@@ -276,7 +280,10 @@ CoreApp.getInitialProps = async (initialProps) => {
+     const initialized = response.data.initialized;
+ 
+     if (!initialized) {
+-      if (!router.pathname.match(/(setup|login\/plex)/) && !ctx.req?.url?.match(/^\/(setup|login\/plex)(?:[/?]|$)/)) {
++      if (
++        !router.pathname.match(/(setup|login\/plex)/) &&
++        !ctx.req?.url?.match(/^\/(setup|login\/plex)(?:[/?]|$)/)
++      ) {
+         ctx.res.writeHead(307, {
+           Location: '/setup',
+         });
+diff --git a/src/pages/settings/activity.tsx b/src/pages/settings/activity.tsx
+new file mode 100644
+index 00000000..b2c90a9c
+--- /dev/null
++++ b/src/pages/settings/activity.tsx
+@@ -0,0 +1,12 @@
++import SettingsLayout from '@app/components/Settings/SettingsLayout';
++import UserActivity from '@app/components/Settings/UserActivity';
++import useRouteGuard from '@app/hooks/useRouteGuard';
++import { Permission } from '@app/hooks/useUser';
++export default function ActivityPage() {
++  useRouteGuard(Permission.ADMIN);
++  return (
++    <SettingsLayout>
++      <UserActivity />
++    </SettingsLayout>
++  );
++}
+diff --git a/tools/deployment/user-activity-release.json b/tools/deployment/user-activity-release.json
+new file mode 100644
+index 00000000..b0599341
+--- /dev/null
++++ b/tools/deployment/user-activity-release.json
+@@ -0,0 +1,16 @@
++{
++  "files": [
++    "server/lib/userActivityPolicy.ts",
++    "server/lib/userActivityStore.ts",
++    "server/lib/userActivity.ts",
++    "server/middleware/userActivity.ts",
++    "server/routes/userActivity.ts",
++    "server/routes/index.ts",
++    "seerr-api.yml",
++    "src/components/UserActivityTracker.tsx",
++    "src/components/Settings/UserActivity/index.tsx",
++    "src/pages/settings/activity.tsx",
++    "src/pages/_app.tsx",
++    "src/components/Settings/SettingsLayout.tsx"
++  ]
++}
+-- 
+2.50.1 (Apple Git-155)
+
