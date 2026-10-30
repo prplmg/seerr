@@ -24,7 +24,7 @@ export default function StarPicker({
       <p className="mb-2 text-sm font-medium text-gray-300">
         {t('Rating', 'Calificación')}
       </p>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="flex min-w-0 flex-col items-start gap-2">
         <div
           role="slider"
           tabIndex={disabled ? -1 : 0}
@@ -102,14 +102,17 @@ export default function StarPicker({
             </span>
           ))}
         </div>
-        <span className="min-w-[4rem] text-sm text-purple-300">
-          {shown ? `${shown} / 5` : t('No rating', 'Sin calificación')}
-        </span>
-        {value && (
+        <div className="flex min-h-[44px] w-full items-center gap-4">
+          <span
+            className="min-w-[5rem] text-sm leading-6 text-purple-300"
+            aria-live="polite"
+          >
+            {shown ? `${shown} / 5` : t('No rating', 'Sin calificación')}
+          </span>
           <button
             type="button"
-            disabled={disabled}
-            className="min-h-[44px] text-sm text-gray-300 underline hover:text-white"
+            disabled={disabled || !value}
+            className="min-h-[44px] text-sm text-gray-300 underline hover:text-white disabled:opacity-40"
             onClick={() => {
               setPreview(null);
               onChange('');
@@ -117,7 +120,7 @@ export default function StarPicker({
           >
             {t('Clear rating', 'Quitar calificación')}
           </button>
-        )}
+        </div>
       </div>
       <p className="mt-1 text-xs text-gray-400">
         {t(

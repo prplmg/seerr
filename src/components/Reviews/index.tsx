@@ -380,7 +380,7 @@ export function MovieReviews({
       </div>
       {editing && (
         <form
-          className="mb-6 space-y-4 rounded-xl border border-purple-400/50 bg-gray-800 p-4"
+          className="mb-6 flex min-w-0 flex-col gap-5 rounded-xl border border-purple-400/50 bg-gray-800 p-4"
           onSubmit={(e) => {
             e.preventDefault();
             void save();
@@ -388,10 +388,10 @@ export function MovieReviews({
         >
           <StarPicker value={rating} onChange={setRating} disabled={busy} />
           {episodeNumber === undefined && (
-            <label className="block text-sm">
+            <label className="m-0 flex min-w-0 flex-col gap-2 text-sm leading-6">
               {t('Associate with a viewing', 'Asociar con una visualización')}
               <select
-                className="mt-2 w-full rounded bg-gray-900 p-3"
+                className="m-0 w-full rounded bg-gray-900 p-3 text-base leading-6 sm:text-base sm:leading-6"
                 value={viewingId === undefined ? 'existing' : viewingId || ''}
                 onChange={(e) =>
                   setViewingId(
@@ -438,12 +438,12 @@ export function MovieReviews({
               )}
             </label>
           )}
-          <label className="block">
+          <label className="m-0 flex min-w-0 flex-col gap-2 leading-6">
             {t('Your review (optional)', 'Tu reseña (opcional)')}
             <textarea
               rows={5}
               maxLength={20000}
-              className="mt-2 w-full rounded bg-gray-900 p-3 text-white"
+              className="m-0 w-full rounded bg-gray-900 p-3 text-base leading-6 text-white sm:text-base sm:leading-6"
               value={text}
               onChange={(e) => setText(e.target.value)}
             />
