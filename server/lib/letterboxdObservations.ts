@@ -95,6 +95,18 @@ export function requestObservation(
         (r.state === 'claimed' && now - r.claimedAt! < MAX_AGE))
   );
   if (existing) return existing;
+  // Polls and scheduler continuations share a persisted scope-level retry budget.
+  // Preserve failed evidence; never turn an uncertain read into success.
+  const history = state.requests.filter(r => sameScope(r, scope))
+    .sort((a, b) => b.requestedAt - a.requestedAt);
+  const latest = history[0];
+  if (latest && ['unknown', 'ambiguous', 'claimed'].includes(latest.state)) {
+    const failures = history.findIndex(r => r.state === 'verified');
+    const count = failures < 0 ? history.length : failures;
+    if (count >= 3) return latest; // Exhausted: retain evidence for explicit reconciliation.
+    const delay = Math.min(60 * 60 * 1000, 15 * 60 * 1000 * 2 ** Math.min(2, Math.max(0, count - 1)));
+    if (now - Math.max(latest.requestedAt, latest.claimedAt || 0) < delay) return latest;
+  }
   const request: ObservationRequest = {
     ...scope,
     id: randomUUID(),

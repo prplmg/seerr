@@ -43,6 +43,26 @@ export function boundPlaybackOrigin(
   if (diaries.length === 1 && local.watchedDate === diaries[0].diaryBaseline!.watchedDate)
     return diaries[0].originId;
 }
+// Candidate only: caller must still validate the worker acknowledgement before
+// persisting this link. A date/title match alone is deliberately insufficient.
+export function verifiedReviewEchoBinding(
+  rows: readonly SyncReceipt[], userId: number, account: string,
+  entryId: string | undefined,
+  local: (ReviewFields & {id: string; source: string; tmdbId: number; mediaType: string; externalEntryId: string | null; watchedDate: string | null}) | null,
+  echoes: Array<ReviewFields & {userId: number; source: string; tmdbId: number; mediaType: string; externalEntryId: string | null; watchedDate: string | null}>,
+  desired: ReviewFields
+): {originId: string; entryId: string; watchedDate: string} | undefined {
+  if (!entryId || !local || local.source !== 'local' || !local.id.startsWith('local:') ||
+      local.externalEntryId !== null || local.watchedDate !== null || echoes.length !== 1) return;
+  const echo = echoes[0];
+  if (echo.userId !== userId || echo.source !== 'letterboxd' || echo.externalEntryId !== entryId ||
+      echo.tmdbId !== local.tmdbId || echo.mediaType !== local.mediaType || !echo.watchedDate) return;
+  if (local.rating !== desired.rating || local.text !== desired.text || local.spoiler !== desired.spoiler ||
+      echo.rating !== desired.rating || echo.text !== desired.text || echo.spoiler !== desired.spoiler) return;
+  const originId = boundPlaybackOrigin(rows, userId, account, entryId,
+    {externalEntryId:entryId, watchedDate:echo.watchedDate});
+  return originId ? {originId,entryId,watchedDate:echo.watchedDate} : undefined;
+}
 // Only call after independently verifying a successful remote write.
 // No receipt for an uncertain create: it must be reconciled, never blindly retried.
 export function mergeSyncReceipt(

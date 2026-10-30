@@ -17,6 +17,8 @@ type Batch = {
   enabledSince?: number;
   config: string;
   events: PlaybackEvent[];
+  admittedAt?: number;
+  deferredUntil?: Record<string, number>;
 };
 const filename = (userId: number) =>
   path.join(
@@ -45,7 +47,10 @@ function readBatch(userId: number): Batch {
       batch.version !== 1 ||
       !Array.isArray(batch.events) ||
       batch.events.length > 2 ||
-      typeof batch.config !== 'string'
+      typeof batch.config !== 'string' ||
+      (batch.admittedAt !== undefined && (!Number.isFinite(batch.admittedAt) || batch.admittedAt < 0)) ||
+      (batch.deferredUntil !== undefined && (typeof batch.deferredUntil !== 'object' || !batch.deferredUntil || Array.isArray(batch.deferredUntil) ||
+        Object.keys(batch.deferredUntil).length > 2000 || Object.values(batch.deferredUntil).some(t => !Number.isFinite(t) || t < 0)))
     )
       throw Error('Invalid playback continuation');
     return batch;
@@ -64,6 +69,7 @@ function saveBatch(userId: number, batch: Batch) {
     if (fs.existsSync(temp)) fs.unlinkSync(temp);
   }
 }
+const BATCH_LEASE_MS = 15 * 60 * 1000;
 const idle = () => ({ queued: 0, pendingObservations: [], issues: [] });
 let running = false;
 
@@ -72,26 +78,45 @@ async function prepareForUser(userId: number) {
   if (running) return idle();
   running = true;
   try {
-    if (readBatch(userId).events.length) return idle();
+    const previous = readBatch(userId);
+    const now = Date.now();
+    const deferredUntil = Object.fromEntries(
+      Object.entries(previous.deferredUntil || {}).filter(([, until]) => until > now)
+    );
+    // A bounded lease frees capacity without declaring an uncertain watch done.
+    // Its immutable event remains in the source store for a later retry.
+    const expired = previous.events.length &&
+      (!previous.admittedAt || now - previous.admittedAt >= BATCH_LEASE_MS);
+    if (expired) for (const event of previous.events)
+      deferredUntil[event.id] = now + BATCH_LEASE_MS;
+    const current = readWriteState().settings[userId];
+    const sameConfiguration = previous.enabledSince === current?.enabledSince &&
+      previous.config === config() && previous.events.every(e => e.userId === userId && e.account === current?.account);
+    const retained = expired || !sameConfiguration ? [] : previous.events;
+    if (retained.length >= 2) return idle();
     const setting = readWriteState().settings[userId];
     const batch: Batch = {
       version: 1,
       enabledSince: setting?.enabledSince,
       config: '',
-      events: [],
+      events: retained,
+      admittedAt: retained.length ? previous.admittedAt : now,
+      deferredUntil,
     };
     saveBatch(userId, batch);
     if (!setting?.enabled || !setting.account) return idle();
     batch.config = config();
     const snapshots = new Map<string, PlaybackEvent>();
     const report = await prepare(async (event) => {
+      if (retained.some(e => e.id === event.id) || deferredUntil[event.id] > now ||
+          snapshots.size >= 2 - retained.length) return null;
       snapshots.set(event.id, { ...event });
       return observeLetterboxdPlaybackEvent(event);
     }, userId);
-    batch.events = report.pendingObservations
+    batch.events = [...retained, ...report.pendingObservations
       .map((pending) => snapshots.get(pending.eventId))
       .filter((event): event is PlaybackEvent => !!event)
-      .slice(0, Math.max(0, 2 - report.queued));
+      .slice(0, Math.max(0, 2 - retained.length - report.queued))];
     saveBatch(userId, batch);
     return report;
   } finally {

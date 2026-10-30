@@ -14,6 +14,7 @@ import {
 import type { ReviewFields } from './letterboxdReconcile';
 import {
   boundPlaybackOrigin,
+  verifiedReviewEchoBinding,
   readSyncReceipts,
   recordSyncReceipt,
   type SyncReceipt,
@@ -336,6 +337,7 @@ export async function exchangeWrites(
           reviews.set(review.id, review);
       }
     let boundDiaryOriginId: string | undefined;
+    let echoBinding: ReturnType<typeof verifiedReviewEchoBinding>;
     if (report?.outcome === 'verified') {
       const intent = readWriteState().intents.find((i) => i.id === report.id);
       if (intent?.kind === 'review' && intent.originEntityId) {
@@ -343,7 +345,13 @@ export async function exchangeWrites(
           id: intent.originEntityId,
           userId: binding.userId,
         });
-        boundDiaryOriginId = boundPlaybackOrigin(
+        if (local && !local.externalEntryId && !local.watchedDate && intent.entryId) {
+          echoBinding = verifiedReviewEchoBinding(readSyncReceipts(), binding.userId,
+            binding.username, intent.entryId, local,
+            await getRepository(MovieReview).findBy({userId:binding.userId, source:'letterboxd', externalEntryId:intent.entryId}),
+            intent.desired as ReviewFields);
+        }
+        boundDiaryOriginId = echoBinding?.originId || boundPlaybackOrigin(
           readSyncReceipts(),
           binding.userId,
           binding.username,
@@ -368,6 +376,17 @@ export async function exchangeWrites(
         durableDelivery
       );
     });
+    if (echoBinding && report?.outcome === 'verified') {
+      const intent = readWriteState().intents.find(i => i.id === report.id && i.state === 'verified');
+      if (intent?.originEntityId) {
+        const repo = getRepository(MovieReview);
+        const local = await repo.findOneBy({id:intent.originEntityId,userId:binding.userId});
+        if (local && !local.externalEntryId && !local.watchedDate &&
+            local.rating === intent.desired.rating && local.text === intent.desired.text && local.spoiler === intent.desired.spoiler)
+          await repo.update({id:local.id,userId:binding.userId}, {externalEntryId:echoBinding.entryId,
+            externalUrl:echoBinding.entryId,watchedDate:echoBinding.watchedDate});
+      }
+    }
     // Replayed acknowledgements also repair a crash between queue persistence
     // and the catalogue projection. No additional browser mutation is involved.
     if (report?.outcome === 'verified') {
