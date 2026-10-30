@@ -1,0 +1,11 @@
+# iBoy duplicate repaired; Focus blocked — 2026-10-30
+
+Authorized data-only repair, no deployment or publishing/settings changes. Existing worker durable result for intent ca8f8c17-2dba-4556-84e4-f1d2cfb27de3 was succeeded/verified for prplmg's exact iBoy entry. Compared local/imported rating, text, spoiler, TMDB identity, canonical URL, party diary date, and intent desired fields. Guarded transaction linked the local review's externalEntryId/externalUrl/watchedDate to the already verified October28 diary entry. No record deleted or Letterboxd write submitted. Backup: C:/ProgramData/Seerr/data/iboy-link-backup-20261030.json. Repair helper: tools/recovery/repair-iboy-link-20261030.cjs (fail closed on rerun after state changes).
+
+Normal worker acknowledgement then succeeded: intent now verified. Live review API returns exactly one prplmg iBoy review, rating2, watchedDate2026-10-28, syncedToLetterboxd=true. Imported echo remains preserved and hidden through the existing verified receipt linkage. Party duplicate-prevention receipt preserved.
+
+Focus (TMDB256591) completed playback captured October29, Tautulli row1121/reference1117, stopped1793337314, percent_complete100. Saved prplmg event tautulli:c0e086bd037f963489d3714ae8a690a5bc2bb2a0d1d2bbd62e89e2366c6639e2. No Focus write intent or observation exists. Latest playback publication status says needs-fresh-event-baseline.
+
+Exact admission blocker: prplmg's persisted playback continuation contains only iBoy's Tautulli event tautulli:99c72463778de0c815b5bc16d0ca9b45da15bcaab95e2f48499a5995d8824b4a. prepareForUser returns while any batch event remains; continuation's observation provider permits only admitted events. The Plex iBoy event has not been reconciled with the same watch already logged through the party receipt. Focus is therefore not admitted, despite being safely captured. This is distinct from the repaired review acknowledgement. Do not fabricate a baseline or resubmit a diary create to clear it. Follow-up: prove equivalent playback/party event identity and safely resolve it; improve batch fairness/bounded recovery so one event cannot starve newer watches. Focus not yet synced at verification time.
+
+Live build HfqeWOf_V3dYQaiV-LdjR unchanged. Activity logging remains removed/deferred. No Git push.
