@@ -257,6 +257,7 @@ export function MovieReviews({
       id: string;
       date: string;
       source: 'catalogue' | 'letterboxd';
+      suggested?: boolean;
     } | null;
     publishing?: {
       enabled: boolean;
@@ -326,7 +327,7 @@ export function MovieReviews({
         ? review.syncToLetterboxd === true
         : mine?.publishing?.enabled === true
     );
-    setViewingId(review ? undefined : null);
+    setViewingId(review ? undefined : mine?.latestViewing?.suggested ? mine.latestViewing.id : null);
     setEditing(true);
   }
   const { mutate: refreshCache } = useSWRConfig();

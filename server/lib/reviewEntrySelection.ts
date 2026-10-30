@@ -4,6 +4,7 @@ import { appDataPath } from '@server/utils/appDataVolume';
 import fs from 'fs';
 import path from 'path';
 import { letterboxdEntryIdentity } from './letterboxdImport';
+import { recentUnratedViewing } from './recentUnratedViewing';
 import { readSyncReceipts } from './letterboxdSyncReceipts';
 
 export function scopedReviewId(base: string, value: unknown) {
@@ -26,6 +27,8 @@ export type ViewingChoice = {
   date: string;
   source: 'letterboxd' | 'catalogue';
   entryId: string | null;
+  occurredAt?: number;
+  suggested?: boolean;
 };
 export async function latestReviewViewing(
   userId: number,
@@ -33,12 +36,12 @@ export async function latestReviewViewing(
   mediaType: 'movie' | 'tv'
 ): Promise<ViewingChoice | null> {
   const choices: ViewingChoice[] = [];
-  for (const r of await getRepository(MovieReview).findBy({
+  const reviews = await getRepository(MovieReview).findBy({
     userId,
     tmdbId,
     mediaType,
-    source: 'letterboxd',
-  })) {
+  });
+  for (const r of reviews.filter(r => r.source === 'letterboxd')) {
     const entryId =
       r.externalEntryId ||
       (r.externalUrl && letterboxdEntryIdentity(r.externalUrl));
@@ -71,21 +74,25 @@ export async function latestReviewViewing(
               (r) =>
                 r.userId === userId && r.originId === e.id && r.diaryBaseline
             );
+            const linkedReview = reviews.find(r => r.source === 'local' && r.viewingEventId === e.id && r.externalEntryId);
+            const entryId = receipt?.entryId || linkedReview?.externalEntryId || null;
             choices.push({
               id: e.id,
               date: e.watchedDate,
-              source: receipt ? 'letterboxd' : 'catalogue',
-              entryId: receipt?.entryId || null,
+              occurredAt: e.occurredAt,
+              source: entryId ? 'letterboxd' : 'catalogue',
+              entryId,
             });
           }
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
       }
     }
-  return (
+  const latest = (
     choices.sort(
       (a, b) =>
-        b.date.localeCompare(a.date) || (a.source === 'letterboxd' ? -1 : 1)
+        b.date.localeCompare(a.date) || (b.occurredAt || 0) - (a.occurredAt || 0) || (a.source === 'letterboxd' ? -1 : 1)
     )[0] || null
   );
+  return latest ? { ...latest, suggested: !reviews.some(r => r.rating !== null && r.viewingEventId === latest.id) && recentUnratedViewing(latest, reviews) } : null;
 }
