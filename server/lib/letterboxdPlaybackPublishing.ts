@@ -48,6 +48,7 @@ type Config = {
 };
 type Dependencies = {
   userId?: number;
+  lastAttempt?: Record<string, number>;
   events: () => PlaybackEvent[];
   config: () => Promise<Config>;
   state: () => WriteState;
@@ -85,6 +86,7 @@ export async function planPendingPlaybackPublications(
   }
   const events = deps.events().map((event) => ({ ...event }));
   if (events.length > 2000) throw Error('Playback store exceeds bound');
+  events.sort((a, b) => (deps.lastAttempt?.[a.id] || 0) - (deps.lastAttempt?.[b.id] || 0));
   for (const event of events) {
     if (report.queued >= 2) break;
     if (
@@ -211,7 +213,8 @@ let running = false;
 /** Queue only publications supported by fresh authenticated observation evidence. */
 async function prepareForUser(
   userId: number,
-  observe: Dependencies['observe'] = observeLetterboxdPlaybackEvent
+  observe: Dependencies['observe'] = observeLetterboxdPlaybackEvent,
+  lastAttempt?: Record<string, number>
 ): Promise<PlaybackPublicationReport> {
   if (running)
     return {
@@ -239,6 +242,7 @@ async function prepareForUser(
       );
       const report = await planPendingPlaybackPublications({
         userId,
+        lastAttempt,
         events: () => {
           const party = readPartyPlaybackEvents();
           try {
@@ -317,7 +321,8 @@ async function prepareForUser(
 
 export async function prepareLetterboxdPlaybackPublications(
   observe: Dependencies['observe'] = observeLetterboxdPlaybackEvent,
-  onlyUserId?: number
+  onlyUserId?: number,
+  lastAttempt?: Record<string, number>
 ): Promise<PlaybackPublicationReport> {
   const report: PlaybackPublicationReport = {
     queued: 0,
@@ -333,7 +338,7 @@ export async function prepareLetterboxdPlaybackPublications(
       (onlyUserId !== undefined && userId !== onlyUserId)
     )
       continue;
-    const result = await prepareForUser(userId, observe);
+    const result = await prepareForUser(userId, observe, lastAttempt);
     report.queued += result.queued;
     report.pendingObservations.push(...result.pendingObservations);
     report.issues.push(...result.issues);

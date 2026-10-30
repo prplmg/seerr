@@ -18,6 +18,7 @@ type Batch = {
   config: string;
   events: PlaybackEvent[];
   admittedAt?: number;
+  lastAttempt?: Record<string, number>;
   deferredUntil?: Record<string, number>;
 };
 const filename = (userId: number) =>
@@ -49,6 +50,7 @@ function readBatch(userId: number): Batch {
       batch.events.length > 2 ||
       typeof batch.config !== 'string' ||
       (batch.admittedAt !== undefined && (!Number.isFinite(batch.admittedAt) || batch.admittedAt < 0)) ||
+      (batch.lastAttempt !== undefined && (!batch.lastAttempt || typeof batch.lastAttempt !== 'object' || Array.isArray(batch.lastAttempt) || Object.keys(batch.lastAttempt).length > 2000 || Object.values(batch.lastAttempt).some(t => !Number.isFinite(t) || t < 0))) ||
       (batch.deferredUntil !== undefined && (typeof batch.deferredUntil !== 'object' || !batch.deferredUntil || Array.isArray(batch.deferredUntil) ||
         Object.keys(batch.deferredUntil).length > 2000 || Object.values(batch.deferredUntil).some(t => !Number.isFinite(t) || t < 0)))
     )
@@ -80,6 +82,7 @@ async function prepareForUser(userId: number) {
   try {
     const previous = readBatch(userId);
     const now = Date.now();
+    const lastAttempt = { ...previous.lastAttempt };
     const deferredUntil = Object.fromEntries(
       Object.entries(previous.deferredUntil || {}).filter(([, until]) => until > now)
     );
@@ -102,6 +105,7 @@ async function prepareForUser(userId: number) {
       events: retained,
       admittedAt: retained.length ? previous.admittedAt : now,
       deferredUntil,
+      lastAttempt,
     };
     saveBatch(userId, batch);
     if (!setting?.enabled || !setting.account) return idle();
@@ -111,12 +115,16 @@ async function prepareForUser(userId: number) {
       if (retained.some(e => e.id === event.id) || deferredUntil[event.id] > now ||
           snapshots.size >= 2 - retained.length) return null;
       snapshots.set(event.id, { ...event });
+      lastAttempt[event.id] = now;
       return observeLetterboxdPlaybackEvent(event);
-    }, userId);
+    }, userId, { ...lastAttempt });
     batch.events = [...retained, ...report.pendingObservations
       .map((pending) => snapshots.get(pending.eventId))
       .filter((event): event is PlaybackEvent => !!event)
       .slice(0, Math.max(0, 2 - retained.length - report.queued))];
+    // Keep bounded retry ordering even after cooldowns expire and process restarts.
+    batch.lastAttempt = Object.fromEntries(Object.entries(lastAttempt)
+      .sort((a, b) => b[1] - a[1]).slice(0, 2000));
     saveBatch(userId, batch);
     return report;
   } finally {

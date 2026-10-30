@@ -82,9 +82,10 @@ function harness(userId = 1, accountName = 'prplmg') {
       observeLetterboxdPlaybackEvent: provider,
     },
     './letterboxdPlaybackPublishing': {
-      prepareLetterboxdPlaybackPublications: async (observe: typeof provider) =>
+      prepareLetterboxdPlaybackPublications: async (observe: typeof provider, _userId?: number, lastAttempt?: Record<string,number>) =>
         planPendingPlaybackPublications({
           userId,
+          lastAttempt,
           events: () => events,
           config: async () => ({ ...configuration }),
           state: () => state,
@@ -255,4 +256,37 @@ it('a stalled legacy batch leaves a slot for a later watch without falsely compl
  h.ready();await h.load().continueLetterboxdPlaybackPublications();
  assert.equal(h.state.intents.length,1);
  assert.equal(h.state.intents[0].originEntityId,h.events[2].id);
+});
+
+it('expires a current stalled lease after restart and respects its persisted cooldown',async()=>{
+ const h=harness();await h.prepareLetterboxdPlaybackPublications();
+ const file='/mock/letterboxd-playback-continuation.json';
+ const batch=JSON.parse(h.files.get(file)!);batch.admittedAt=Date.now()-16*60*1000;
+ h.files.set(file,JSON.stringify(batch));h.calls.length=0;
+ await h.load().prepareLetterboxdPlaybackPublications();
+ assert.deepEqual(h.calls,[h.events[2].id]);h.calls.length=0;
+ await h.load().prepareLetterboxdPlaybackPublications();
+ assert.deepEqual(h.calls,[]);
+ assert.equal(h.state.intents.length,0);
+});
+it('fills one free slot without observing a third unadmitted event',async()=>{
+ const h=harness();await h.prepareLetterboxdPlaybackPublications();
+ const file='/mock/letterboxd-playback-continuation.json';
+ const batch=JSON.parse(h.files.get(file)!);batch.events=batch.events.slice(0,1);
+ h.files.set(file,JSON.stringify(batch));h.calls.length=0;
+ await h.load().prepareLetterboxdPlaybackPublications();
+ assert.deepEqual(h.calls,[h.events[2].id]);
+ assert.equal(JSON.parse(h.files.get(file)!).events.length,2);
+});
+
+it('admits all six stalled events before revisiting older attempts across restarts', async () => {
+ const h=harness();
+ for(let n=4;n<=6;n++) h.events.push({...h.events[0],id:`tautulli:${String(n).repeat(64)}`,tmdbId:n});
+ const file='/mock/letterboxd-playback-continuation.json';
+ for(let round=0;round<3;round++) {
+   if(round) {const b=JSON.parse(h.files.get(file)!);b.admittedAt=Date.now()-16*60*1000;b.deferredUntil={};h.files.set(file,JSON.stringify(b));}
+   await h.load().prepareLetterboxdPlaybackPublications();
+ }
+ assert.deepEqual(h.calls,h.events.map(e=>e.id));
+ assert.equal(h.state.intents.length,0);
 });
