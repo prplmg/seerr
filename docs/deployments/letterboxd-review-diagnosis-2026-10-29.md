@@ -9,3 +9,9 @@ Observation store contains 930 iBoy check records: 923 unknown, five claimed, on
 Review composer: actual source rendered with offline data at mobile/tablet/desktop widths. No duplicate fields or clipping reproduced in the basic movie form. Existing test was stale: it required schedule-hours copy that is no longer displayed. Replaced that obsolete expectation with actual control-count and bounding-box assertions, added 320px coverage. This is a mock fixture, not proof about iOS Safari, episode modals, translations or the user's exact interaction. Screenshot from user is still needed to identify their reported case. No speculative production CSS changes.
 
 Activity logging saved separately in patches/deferred/activity-logging.patch, verified to reconstruct exactly e8ac5f26 from 0a9030a6 using a temporary Git index. Explicitly deferred; do not include in releases. See patches/deferred/README.md for restoration and checkout caveat.
+
+## Follow-up: duplicate visible reviews confirmed
+
+Read-only database inspection confirms an imported diary review for prplmg/iBoy (October28 watched date, canonical user entry URL) and a separate local review (no externalEntryId or watchedDate). Both are rating2 with empty text. A third imported rating-summary row also exists; it is not necessarily rendered as a separate review. This explains the two visible catalogue results and corrects the earlier overly broad “not duplicate publications” wording: no repeated remote publication was observed, but local/imported identity duplication is real. No records deleted or republished. Resolve the existing acknowledgement/linkage and merge the imported echo safely rather than deleting the durable party receipt.
+
+Activity logging removal was explicitly authorized and completed after a successful reverse-apply check. Exact affected source paths verified equal to baseline or absent; archive patch remains intact. No deployment.
