@@ -1,3 +1,4 @@
+import * as lifecycle from './letterboxdObservationLifecycle';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -50,6 +51,7 @@ function durableHarness(boundDiary = false) {
   let playbackCalls = 0;
   class Account {}
   const deps: Record<string, unknown> = {
+    './letterboxdObservationLifecycle': lifecycle,
     '@server/routes/social': { refreshRecentMoviePlayback: async () => {} },
     './letterboxdPlaybackContinuation': {
       prepareLetterboxdPlaybackPublications: async()=>{},

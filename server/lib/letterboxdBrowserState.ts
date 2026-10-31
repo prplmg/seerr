@@ -111,12 +111,13 @@ export function observationHealthIssues(
     state: string;
     requestedAt: number;
     supersededBy?: string;
+    retired?: { at: number; reason: string };
   }[],
   now: number
 ) {
   const newest = new Map<string, (typeof requests)[number]>();
   for (const r of requests) {
-    if (r.supersededBy) continue;
+    if (r.retired || r.supersededBy) continue;
     const key = JSON.stringify([
       r.userId,
       r.account,

@@ -238,7 +238,7 @@ export async function observeLetterboxdPlaybackEvent(event: PlaybackEvent) {
     observation: (scope, after, now) =>
       findObservation(readObservations(), scope, after, now),
     request: (scope, now) => {
-      updateObservations((s) => requestObservation(s, scope, now));
+      updateObservations((s) => requestObservation(s, scope, now, `playback:${event.id}`));
     },
     receipts: readSyncReceipts,
     intents: () => readWriteState().intents,

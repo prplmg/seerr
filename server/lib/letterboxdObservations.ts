@@ -35,6 +35,8 @@ export type ObservationRequest = ObservationScope & {
   observation?: ReviewObservation;
   retryOf?: string;
   supersededBy?: string;
+  owners?: string[];
+  retired?: { at: number; reason: string };
 };
 export type ObservationState = { version: 1; requests: ObservationRequest[] };
 const MAX_AGE = 5 * 60 * 1000;
@@ -69,35 +71,35 @@ const sameScope = (a: ObservationScope, b: ObservationScope) =>
 // A different entry or create-new read cannot retire this scope.
 export function maintainObservationHealth(state: ObservationState, now = Date.now()) {
   for (const request of [...state.requests]) {
-    if (request.supersededBy || !['claimed', 'unknown', 'ambiguous'].includes(request.state)) continue;
+    if (request.retired || request.supersededBy || !['claimed', 'unknown', 'ambiguous'].includes(request.state)) continue;
     const newer = state.requests.filter(r => sameScope(r, request) && r.requestedAt > request.requestedAt);
     const verified = newer.find(r => r.state === 'verified' && r.observation);
     if (verified) { request.supersededBy = verified.id; continue; }
-    if (newer.length || request.retryOf || now-request.requestedAt < 15*60*1000) continue;
-    const retry = requestObservation(state, {
-      userId: request.userId, account: request.account, film: request.film,
-      ...(request.entryId ? {entryId: request.entryId} : {}),
-      ...(request.createNew ? {createNew: true} : {}),
-    }, now);
-    if (retry.id !== request.id) retry.retryOf = request.id;
+    // Only a current consumer may request another read. Health monitoring must
+    // not resurrect abandoned work merely because its last attempt failed.
+
   }
 }
 export function requestObservation(
   state: ObservationState,
   scope: ObservationScope,
-  now = Date.now()
+  now = Date.now(),
+  owner?: string
 ) {
   validateScope(scope);
   const existing = state.requests.find(
     (r) =>
-      sameScope(r, scope) &&
+      !r.retired && !r.supersededBy && sameScope(r, scope) &&
       (r.state === 'queued' ||
         (r.state === 'claimed' && now - r.claimedAt! < MAX_AGE))
   );
-  if (existing) return existing;
+  if (existing) {
+    if (owner && !existing.owners?.includes(owner)) existing.owners = [...(existing.owners || []), owner];
+    return existing;
+  }
   // Polls and scheduler continuations share a persisted scope-level retry budget.
   // Preserve failed evidence; never turn an uncertain read into success.
-  const history = state.requests.filter(r => sameScope(r, scope))
+  const history = state.requests.filter(r => !r.retired && !r.supersededBy && sameScope(r, scope) && (!owner || r.owners?.includes(owner)))
     .sort((a, b) => b.requestedAt - a.requestedAt);
   const latest = history[0];
   if (latest && ['unknown', 'ambiguous', 'claimed'].includes(latest.state)) {
@@ -112,6 +114,7 @@ export function requestObservation(
     id: randomUUID(),
     requestedAt: now,
     state: 'queued',
+    ...(owner ? { owners: [owner] } : {}),
   };
   state.requests.push(request);
   return request;
@@ -130,7 +133,7 @@ export function claimObservation(
     throw Error('Invalid observation identity');
   const request = state.requests.find(
     (r) =>
-      r.state === 'queued' &&
+      !r.retired && !r.supersededBy && r.state === 'queued' &&
       r.userId === identity.userId &&
       r.account === identity.account
   );
@@ -163,6 +166,9 @@ export function reportObservation(
     sameScope(request, input)
   )
     return request;
+  // A late authenticated result may be acknowledged, but cannot resurrect work
+  // explicitly retired by verified completion/consolidation.
+  if (request?.retired && request.claimToken === input.claimToken && sameScope(request, input)) return request;
   // Delivery acknowledgements may be lost after the durable result was saved.
   // Accept only an identical authenticated replay, never replace a baseline.
   if (
@@ -291,7 +297,7 @@ export function findObservation(
 ): ReviewObservation | null {
   validateScope(scope);
   const latest = state.requests
-    .filter((r) => sameScope(r, scope))
+    .filter((r) => !r.retired && !r.supersededBy && sameScope(r, scope))
     .sort((a, b) => b.requestedAt - a.requestedAt)[0];
   const o = latest?.observation;
   return latest?.state === 'verified' &&
@@ -314,6 +320,8 @@ export function readObservations(): ObservationState {
       throw Error('Invalid observation store');
     for (const r of state.requests) {
       validateScope(r);
+      if (r.retired && (!Number.isFinite(r.retired.at) || r.retired.at <= 0 || typeof r.retired.reason !== 'string')) throw Error('Invalid observation retirement');
+      if (r.owners && (!Array.isArray(r.owners) || r.owners.length > 2000 || r.owners.some(owner => typeof owner !== 'string' || owner.length > 500 || !/^(playback|review):/.test(owner)))) throw Error('Invalid observation ownership');
       if (
         !r.id ||
         !Number.isFinite(r.requestedAt) ||

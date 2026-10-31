@@ -19,14 +19,15 @@ import {
   maintainObservationHealth,
 } from './letterboxdObservations';
 const scope = { userId: 1, account: 'prplmg', film: 'test-film' };
-it('health retries a stale read once and retires it only after verified same-scope evidence',()=>{
+it('health never creates work and retires old evidence after a consumer succeeds',()=>{
  const state:ObservationState={version:1,requests:[]};
  const old=requestObservation(state,scope,1);claimObservation(state,scope,2);
  const unrelated=requestObservation(state,{...scope,createNew:true},3);
  unrelated.state='verified';unrelated.observation={rating:3,text:'',spoiler:false,observedAt:4};
  maintainObservationHealth(state,1000000);
  assert.equal(old.supersededBy,undefined);
- const retry=state.requests.find(r=>r.retryOf===old.id)!;assert.ok(retry);
+ assert.equal(state.requests.length,2);
+ const retry=requestObservation(state,scope,1000000);assert.notEqual(retry.id,old.id);
  maintainObservationHealth(state,1000001);assert.equal(state.requests.length,3);
  retry.state='unknown';maintainObservationHealth(state,2000000);assert.equal(state.requests.length,3);
  retry.state='verified';retry.observation={rating:3,text:'',spoiler:false,observedAt:2000001};

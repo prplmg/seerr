@@ -312,7 +312,7 @@ export async function prepareLetterboxdPublications(
             ratingBase ||
             receipt?.baseline
           ) {
-            updateObservations((s) => requestObservation(s, scope));
+            updateObservations((s) => requestObservation(s, scope, Date.now(), `review:${local.id}`));
             return hold('needs-baseline');
           }
           if (

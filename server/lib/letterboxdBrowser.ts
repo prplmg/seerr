@@ -1,5 +1,5 @@
 import { getRepository } from '@server/datasource';
-import { LetterboxdAccount } from '@server/entity/MovieReview';
+import { LetterboxdAccount, MovieReview } from '@server/entity/MovieReview';
 import { User } from '@server/entity/User';
 import PreparedEmail from '@server/lib/email';
 import { getSettings } from '@server/lib/settings';
@@ -28,6 +28,8 @@ import {
   readObservations,
   updateObservations,
 } from './letterboxdObservations';
+import { readSyncReceipts } from './letterboxdSyncReceipts';
+import { retireCompletedObservations, retireConsolidatedPlaybackObservations } from './letterboxdObservationLifecycle';
 import { parseWorkerHealth } from './letterboxdSyncHealth';
 import { readWriteState } from './letterboxdWriteQueue';
 
@@ -346,7 +348,12 @@ export async function monitorLetterboxdBrowsers() {
     );
     const { exportConflicts } = await import('./letterboxdExportPolicy');
     const conflicts = await exportConflicts();
-    updateObservations((state) => maintainObservationHealth(state, Date.now()));
+    const ownedReviews = await getRepository(MovieReview).findBy({ source: 'local', syncToLetterboxd: true });
+    updateObservations((state) => {
+      retireConsolidatedPlaybackObservations(state, ownedReviews, readSyncReceipts());
+      retireCompletedObservations(state, readWriteState().intents);
+      maintainObservationHealth(state, Date.now());
+    });
     const readIssues = observationHealthIssues(
       readObservations().requests,
       Date.now()

@@ -1,3 +1,4 @@
+import { retireCompletedObservations } from './letterboxdObservationLifecycle';
 import {
   evidenceFromVerifiedWrite,
   readFilmEvidence,
@@ -139,9 +140,10 @@ export async function exchangeObservations(
       )
     );
   }
-  const result = updateObservations((state) =>
-    exchangeObservationState(state, binding, report, supported)
-  );
+  const result = updateObservations((state) => {
+    retireCompletedObservations(state, readWriteState().intents);
+    return exchangeObservationState(state, binding, report, supported);
+  });
   if (
     readWriteState().intents.some(
       (i) => i.state === 'unknown' && i.recovery?.status === 'checking'
