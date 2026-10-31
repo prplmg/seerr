@@ -56,13 +56,19 @@ const MobileMenu = ({
   openIssuesCount,
 }: MobileMenuProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
   const intl = useIntl();
   const { enabled: discovery } = useDiscovery();
   const [isOpen, setIsOpen] = useState(false);
   const [viewportRevision, setViewportRevision] = useState(0);
   useEffect(
     () =>
-      installMobileBarRecovery(() => setViewportRevision((value) => value + 1)),
+      installMobileBarRecovery(
+        () => setViewportRevision((value) => value + 1),
+        window,
+        document,
+        () => barRef.current
+      ),
     []
   );
   const { hasPermission } = useUser();
@@ -183,7 +189,11 @@ const MobileMenu = ({
   );
 
   return (
-    <div key={viewportRevision} className="fixed bottom-0 left-0 right-0 z-50">
+    <div
+      key={viewportRevision}
+      ref={barRef}
+      className="fixed bottom-0 left-0 right-0 z-50"
+    >
       <Transition
         show={isOpen}
         as="div"
