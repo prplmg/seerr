@@ -1,0 +1,288 @@
+diff --git a/server/lib/mobileBarRecovery.test.ts b/server/lib/mobileBarRecovery.test.ts
+new file mode 100644
+index 00000000..e40caca6
+--- /dev/null
++++ b/server/lib/mobileBarRecovery.test.ts
+@@ -0,0 +1,169 @@
++import assert from 'node:assert/strict';
++import fs from 'node:fs';
++import path from 'node:path';
++import { it } from 'node:test';
++import ts from 'typescript';
++/* eslint-disable @typescript-eslint/no-explicit-any */
++const api: any = {};
++new Function(
++  'exports',
++  ts.transpileModule(
++    fs.readFileSync(
++      path.join(__dirname, '../../src/utils/mobileBarRecovery.ts'),
++      'utf8'
++    ),
++    { compilerOptions: { module: ts.ModuleKind.CommonJS } }
++  ).outputText
++)(api);
++function harness(ios = true, geometry = false) {
++  const events = new Map<string, (event: any) => void>();
++  let timer: (() => void) | undefined,
++    recovered = 0;
++  const target = {
++    addEventListener: (name: string, fn: any) => events.set(name, fn),
++    removeEventListener: (name: string) => events.delete(name),
++  };
++  const viewport = { ...target, height: 800, scale: 1, offsetTop: 0 };
++  const win = {
++    ...target,
++    navigator: {
++      userAgent: ios ? 'iPhone' : 'Android',
++      platform: '',
++      maxTouchPoints: 1,
++    },
++    visualViewport: viewport,
++    setTimeout: (fn: () => void) => {
++      timer = fn;
++      return 1;
++    },
++    clearTimeout: () => {
++      timer = undefined;
++    },
++  };
++  const rect = { bottom: 800, width: 390, height: 90 };
++  const cleanup = api.installMobileBarRecovery(
++    () => recovered++,
++    win,
++    target,
++    () => (geometry ? { getBoundingClientRect: () => rect } : null)
++  );
++  const editor = { matches: () => true };
++  return {
++    viewport,
++    rect,
++    doc: target as any,
++    scroll: () => events.get('scroll')?.({}),
++    events,
++    cleanup,
++    count: () => recovered,
++    focus: () => events.get('focusin')?.({ target: editor }),
++    blur: () =>
++      events.get('focusout')?.({ target: editor, relatedTarget: null }),
++    resize: () => events.get('resize')?.({}),
++    settle: () => {
++      const next = timer;
++      timer = undefined;
++      next?.();
++    },
++  };
++}
++it('iOS recovery waits for the keyboard to close, repaints once and never polls', () => {
++  const h = harness();
++  h.focus();
++  h.viewport.height = 450;
++  h.resize();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.blur();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.viewport.height = 800;
++  h.resize();
++  h.settle();
++  assert.equal(h.count(), 1);
++  h.resize();
++  h.settle();
++  assert.equal(h.count(), 1);
++});
++it('native picker dismissal recovers without requiring a resize; cleanup cancels pending work', () => {
++  const h = harness();
++  h.focus();
++  h.blur();
++  h.settle();
++  assert.equal(h.count(), 1);
++  h.focus();
++  h.blur();
++  h.cleanup();
++  h.settle();
++  assert.equal(h.count(), 1);
++  assert.equal(h.events.size, 0);
++});
++it('ordinary resize, non-iOS and zoom do not trigger recovery', () => {
++  const h = harness();
++  h.resize();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.focus();
++  h.viewport.scale = 2;
++  h.blur();
++  h.settle();
++  assert.equal(h.count(), 0);
++  const other = harness(false);
++  other.focus();
++  other.blur();
++  other.settle();
++  assert.equal(other.count(), 0);
++  assert.equal(other.events.size, 0);
++});
++
++it('scroll drift recovers in either direction, is bounded and resets only after alignment', () => {
++  const h = harness(true, true);
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.rect.bottom = 500;
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 1);
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 2);
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 2);
++  h.rect.bottom = 800;
++  h.scroll();
++  h.settle();
++  h.rect.bottom = 900;
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 3);
++});
++it('visual viewport offset is included; keyboard focus, zoom and hidden bars are untouched', () => {
++  const h = harness(true, true);
++  h.viewport.offsetTop = 40;
++  h.rect.bottom = 840;
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.rect.bottom = 500;
++  h.doc.activeElement = { matches: () => true };
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.doc.activeElement = null;
++  h.viewport.scale = 2;
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.viewport.scale = 1;
++  h.rect.width = 0;
++  h.scroll();
++  h.settle();
++  assert.equal(h.count(), 0);
++  h.rect.width = 390;
++  h.scroll();
++  h.cleanup();
++  h.settle();
++  assert.equal(h.count(), 0);
++});
+diff --git a/src/components/Layout/MobileMenu/index.tsx b/src/components/Layout/MobileMenu/index.tsx
+index 52f883c1..38776d05 100644
+--- a/src/components/Layout/MobileMenu/index.tsx
++++ b/src/components/Layout/MobileMenu/index.tsx
+@@ -56,13 +56,19 @@ const MobileMenu = ({
+   openIssuesCount,
+ }: MobileMenuProps) => {
+   const ref = useRef<HTMLDivElement>(null);
++  const barRef = useRef<HTMLDivElement>(null);
+   const intl = useIntl();
+   const { enabled: discovery } = useDiscovery();
+   const [isOpen, setIsOpen] = useState(false);
+   const [viewportRevision, setViewportRevision] = useState(0);
+   useEffect(
+     () =>
+-      installMobileBarRecovery(() => setViewportRevision((value) => value + 1)),
++      installMobileBarRecovery(
++        () => setViewportRevision((value) => value + 1),
++        window,
++        document,
++        () => barRef.current
++      ),
+     []
+   );
+   const { hasPermission } = useUser();
+@@ -183,7 +189,11 @@ const MobileMenu = ({
+   );
+ 
+   return (
+-    <div key={viewportRevision} className="fixed bottom-0 left-0 right-0 z-50">
++    <div
++      key={viewportRevision}
++      ref={barRef}
++      className="fixed bottom-0 left-0 right-0 z-50"
++    >
+       <Transition
+         show={isOpen}
+         as="div"
+diff --git a/src/utils/mobileBarRecovery.ts b/src/utils/mobileBarRecovery.ts
+index b8434cad..07663852 100644
+--- a/src/utils/mobileBarRecovery.ts
++++ b/src/utils/mobileBarRecovery.ts
+@@ -1,9 +1,10 @@
+-/** Bounded, event-driven repaint after iOS returns from a native editor.
++/** Bounded, event-driven recovery for native-editor and scroll viewport drift.
+  * Does not move the page, override viewport offsets, or poll geometry. */
+ export function installMobileBarRecovery(
+   recover: () => void,
+   win: Window = window,
+-  doc: Document = document
++  doc: Document = document,
++  bar: () => HTMLElement | null = () => null
+ ) {
+   const ios =
+     /iPad|iPhone|iPod/.test(win.navigator.userAgent) ||
+@@ -11,6 +12,7 @@ export function installMobileBarRecovery(
+   if (!ios || !win.visualViewport) return () => {};
+   const viewport = win.visualViewport;
+   let armed = false;
++  let driftRepairs = 0;
+   let baseline = viewport.height;
+   let timer: number | undefined;
+   const editor = (target: EventTarget | null) => {
+@@ -23,12 +25,29 @@ export function installMobileBarRecovery(
+   };
+   const schedule = () => {
+     win.clearTimeout(timer);
+-    if (!armed) return;
+     timer = win.setTimeout(() => {
+       // Do not remount while a keyboard is shrinking the visible area or zooming.
+-      if (!armed || viewport.scale !== 1 || viewport.height < baseline - 2)
++      if (viewport.scale !== 1 || editor(doc.activeElement)) return;
++      if (armed) {
++        if (viewport.height < baseline - 2) return;
++        armed = false;
++        driftRepairs = 0;
++        recover();
+         return;
+-      armed = false;
++      }
++      const element = bar();
++      if (!element) return;
++      const rect = element.getBoundingClientRect();
++      if (rect.width === 0 || rect.height === 0) return;
++      const bottom = viewport.offsetTop + viewport.height;
++      if (Math.abs(rect.bottom - bottom) <= 8) {
++        driftRepairs = 0;
++        return;
++      }
++      // At most two repairs until alignment is observed again. No scroll loop,
++      // continuous polling, guessed transforms, or document scroll changes.
++      if (driftRepairs >= 2) return;
++      driftRepairs++;
+       recover();
+     }, 350);
+   };
+@@ -44,10 +63,16 @@ export function installMobileBarRecovery(
+   doc.addEventListener('focusin', focus);
+   doc.addEventListener('focusout', blur);
+   viewport.addEventListener('resize', schedule);
++  viewport.addEventListener('scroll', schedule);
++  win.addEventListener('scroll', schedule, { passive: true });
++  win.addEventListener('pageshow', schedule);
+   return () => {
+     win.clearTimeout(timer);
+     doc.removeEventListener('focusin', focus);
+     doc.removeEventListener('focusout', blur);
+     viewport.removeEventListener('resize', schedule);
++    viewport.removeEventListener('scroll', schedule);
++    win.removeEventListener('scroll', schedule);
++    win.removeEventListener('pageshow', schedule);
+   };
+ }

@@ -1,3 +1,5 @@
+> Withdrawn October 31: archived as patches/mobile-nav-scroll-recovery-20261031.patch. The source was restored to its pre-workaround state. Mock recovery tests did not establish the cause or prove an iPhone fix. See mobile-nav-diagnosis-20261031.md.
+
 # Mobile navigation scroll recovery — October 31
 
 User reports iPhone bottom bar stuck mid-screen when scrolling down, returning to bottom when scrolling up. Prior workaround only armed on native editor focus, so scrolling without a focus cycle never triggered recovery. Exact physical-iPhone compositor failure not reproduced.

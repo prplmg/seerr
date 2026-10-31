@@ -1,10 +1,9 @@
-/** Bounded, event-driven recovery for native-editor and scroll viewport drift.
+/** Bounded, event-driven repaint after iOS returns from a native editor.
  * Does not move the page, override viewport offsets, or poll geometry. */
 export function installMobileBarRecovery(
   recover: () => void,
   win: Window = window,
-  doc: Document = document,
-  bar: () => HTMLElement | null = () => null
+  doc: Document = document
 ) {
   const ios =
     /iPad|iPhone|iPod/.test(win.navigator.userAgent) ||
@@ -12,7 +11,6 @@ export function installMobileBarRecovery(
   if (!ios || !win.visualViewport) return () => {};
   const viewport = win.visualViewport;
   let armed = false;
-  let driftRepairs = 0;
   let baseline = viewport.height;
   let timer: number | undefined;
   const editor = (target: EventTarget | null) => {
@@ -25,29 +23,12 @@ export function installMobileBarRecovery(
   };
   const schedule = () => {
     win.clearTimeout(timer);
+    if (!armed) return;
     timer = win.setTimeout(() => {
       // Do not remount while a keyboard is shrinking the visible area or zooming.
-      if (viewport.scale !== 1 || editor(doc.activeElement)) return;
-      if (armed) {
-        if (viewport.height < baseline - 2) return;
-        armed = false;
-        driftRepairs = 0;
-        recover();
+      if (!armed || viewport.scale !== 1 || viewport.height < baseline - 2)
         return;
-      }
-      const element = bar();
-      if (!element) return;
-      const rect = element.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
-      const bottom = viewport.offsetTop + viewport.height;
-      if (Math.abs(rect.bottom - bottom) <= 8) {
-        driftRepairs = 0;
-        return;
-      }
-      // At most two repairs until alignment is observed again. No scroll loop,
-      // continuous polling, guessed transforms, or document scroll changes.
-      if (driftRepairs >= 2) return;
-      driftRepairs++;
+      armed = false;
       recover();
     }, 350);
   };
@@ -63,16 +44,10 @@ export function installMobileBarRecovery(
   doc.addEventListener('focusin', focus);
   doc.addEventListener('focusout', blur);
   viewport.addEventListener('resize', schedule);
-  viewport.addEventListener('scroll', schedule);
-  win.addEventListener('scroll', schedule, { passive: true });
-  win.addEventListener('pageshow', schedule);
   return () => {
     win.clearTimeout(timer);
     doc.removeEventListener('focusin', focus);
     doc.removeEventListener('focusout', blur);
     viewport.removeEventListener('resize', schedule);
-    viewport.removeEventListener('scroll', schedule);
-    win.removeEventListener('scroll', schedule);
-    win.removeEventListener('pageshow', schedule);
   };
 }
