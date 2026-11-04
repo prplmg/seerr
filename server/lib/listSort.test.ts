@@ -40,7 +40,7 @@ it('score success is retained seven days and failed refresh keeps the known scor
   });
   assert.equal(
     refreshedListValue('runtime', undefined, 90, now).until,
-    now + 86400000
+    now + 30 * 86400000
   );
   assert.equal(refreshedListValue('rating', successful, 0, now).value, 0);
 });

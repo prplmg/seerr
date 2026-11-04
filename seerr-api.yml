@@ -2312,6 +2312,23 @@ paths:
       responses:
         '200':
           description: Feature availability
+  /discovery-lists/sort-progress/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Read private in-memory sort progress without rebuilding a list
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Checked and unavailable counts, or expired ticket
+        '404':
+          description: Progress belongs to another account or preview context
   /discovery-lists/imports/{id}:
     get:
       summary: Private status of a requested browser list import

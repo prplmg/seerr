@@ -32,6 +32,7 @@ import { shortWatchPage } from '@server/lib/discoveryShort';
 import { discoveryWatchlists } from '@server/lib/discoveryWatchlists';
 import { forYouLayout } from '@server/lib/forYouLayout';
 import { sortedList, type ListSort } from '@server/lib/listSort';
+import { sortProgress } from '@server/lib/listSortProgress';
 import { Permission } from '@server/lib/permissions';
 import { recentUnrated } from '@server/lib/recentUnrated';
 import { requestedUnwatched } from '@server/lib/requestedUnwatched';
@@ -174,6 +175,15 @@ router.put('/layout', (req, res, next) => {
   } catch (e) {
     next(e);
   }
+});
+router.get('/sort-progress/:id', (req, res) => {
+  const progress = sortProgress.read(
+    req.params.id,
+    req.user!.id,
+    res.locals.discoveryUserId
+  );
+  if (!progress) return res.sendStatus(404);
+  return res.json(progress);
 });
 router.get('/imports/:id', (req, res) => {
   const status = browserListStatus(req.params.id, req.user!.id);
@@ -670,6 +680,16 @@ router.get('/:id', async (req, res, next) => {
       watchlistsUpdating: virtual?.updating,
       watchlistsUnmatched: virtual?.unresolved,
       metadataUpdating: sorted.updating,
+      ...(sorted.updating
+        ? {
+            metadataProgress: sortProgress.register(
+              items,
+              sort,
+              req.user!.id,
+              res.locals.discoveryUserId
+            ),
+          }
+        : {}),
       results: sorted.updating ? [] : sorted.items.slice(offset, offset + 20),
       next: sorted.updating
         ? null

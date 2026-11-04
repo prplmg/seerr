@@ -63,11 +63,20 @@ type SectionMetadata = {
   lists?: Pick<List, 'id' | 'title'>[];
   historyAvailable?: boolean;
 };
+type SortProgress = {
+  id?: string;
+  field?: 'rating' | 'runtime';
+  state: 'pending' | 'ready' | 'expired';
+  completed?: number;
+  total?: number;
+  unavailable?: number;
+};
 type Page = Partial<List> &
   SectionMetadata & {
     results: Film[];
     next: number | null;
     metadataUpdating?: boolean;
+    metadataProgress?: SortProgress;
     watchlistsUpdating?: boolean;
     watchlistsUnmatched?: number;
   };
@@ -305,11 +314,50 @@ function FilmGrid({
         revalidateFirstPage: false,
       }
     );
+  const pendingSort = data?.[0]?.metadataUpdating
+    ? data[0].metadataProgress
+    : undefined;
+  const {
+    data: sortProgress,
+    error: progressError,
+    mutate: retryProgress,
+  } = useSWR<SortProgress>(
+    pendingSort?.id
+      ? [
+          `/api/v1/discovery-lists/sort-progress/${pendingSort.id}`,
+          user?.id,
+          previewUserId,
+        ]
+      : null,
+    read,
+    {
+      refreshInterval: (progress) => (progress?.state === 'pending' ? 5000 : 0),
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+    }
+  );
+  useEffect(() => {
+    if (
+      !pendingSort?.id ||
+      isValidating ||
+      error ||
+      !sortProgress ||
+      sortProgress.state === 'pending'
+    )
+      return;
+    // Fetch final results once. Expired/restarted tickets also return through
+    // the normal list endpoint so access and contents are checked again.
+    void mutate(data, { revalidate: (page) => !!page?.metadataUpdating }).catch(
+      () => undefined
+    );
+  }, [pendingSort?.id, sortProgress, isValidating, error, mutate, data]);
+  const displayedProgress =
+    sortProgress?.state === 'pending' ? sortProgress : pendingSort;
   useEffect(() => {
     if (
       isValidating ||
       error ||
-      !data?.some((p) => p.watchlistsUpdating || p.metadataUpdating)
+      !data?.some((p) => p.watchlistsUpdating && !p.metadataUpdating)
     )
       return;
     const timer = window.setInterval(() => {
@@ -318,7 +366,7 @@ function FilmGrid({
       // for pending pages. Ready pages retain their order and pagination cache.
       void mutate(data, {
         revalidate: (page) =>
-          !!(page?.metadataUpdating || page?.watchlistsUpdating),
+          !!page?.watchlistsUpdating && !page?.metadataUpdating,
       }).catch(() => undefined);
     }, 5000);
     return () => window.clearInterval(timer);
@@ -353,12 +401,29 @@ function FilmGrid({
         </p>
       )}
       {data?.[0]?.metadataUpdating && (
-        <p role="status" className="my-4">
-          {t(
-            'Loading sort information… The first lookup may take a while.',
-            'Cargando información para ordenar… La primera consulta puede tardar.'
+        <div role="status" className="my-4">
+          <p>
+            {displayedProgress?.total !== undefined
+              ? `${displayedProgress.field === 'runtime' ? t('Durations checked', 'Duraciones consultadas') : t('Ratings checked', 'Calificaciones consultadas')}: ${displayedProgress.completed ?? 0}/${displayedProgress.total}`
+              : t(
+                  'Loading sort information…',
+                  'Cargando información para ordenar…'
+                )}
+          </p>
+          {!!displayedProgress?.unavailable && (
+            <p className="text-sm text-gray-400">
+              {t(
+                `${displayedProgress.unavailable} unavailable; these appear last.`,
+                `${displayedProgress.unavailable} no disponibles; aparecen al final.`
+              )}
+            </p>
           )}
-        </p>
+          {progressError && (
+            <button className={style} onClick={() => void retryProgress()}>
+              {t('Retry progress check', 'Reintentar consulta de progreso')}
+            </button>
+          )}
+        </div>
       )}
       {!data?.[0]?.watchlistsUpdating && !!data?.[0]?.watchlistsUnmatched && (
         <p className="my-4 text-sm text-gray-400">
@@ -526,7 +591,7 @@ function Library({ explore = false }: { explore?: boolean }) {
             {[
               ['all', 'All', 'Todas'],
               ['watchlists', 'Watchlists', 'Listas de seguimiento'],
-              ['other', 'Other lists', 'Otras listas'],
+              ['other', 'Lists', 'Listas'],
               ['saved', 'Saved', 'Guardadas'],
               ['created', 'Created', 'Creadas'],
               ['liked', 'Liked on Letterboxd', 'Me gustan en Letterboxd'],

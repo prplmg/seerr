@@ -51,7 +51,7 @@ export function refreshedListValue(
       now +
       (value === null
         ? 15 * 60_000
-        : (field === 'rating' ? 7 : 1) * 24 * 3600_000),
+        : (field === 'rating' ? 7 : 30) * 24 * 3600_000),
   };
 }
 function pump() {
@@ -100,6 +100,27 @@ export function orderList<T>(
     if (y === null) return -1;
     return descending ? y - x : x - y;
   });
+}
+/** Read-only progress: never enqueue, fetch, sort, or touch the filesystem. */
+export function listSortReadiness(items: ListFilm[], sort: ListSort) {
+  const field = sort.startsWith('rating') ? 'rating' : 'runtime';
+  let completed = 0,
+    available = 0;
+  for (const film of items) {
+    const value = values.get(`${field}:${filmKey(film)}`);
+    if (value) {
+      completed++;
+      if (value.value !== null) available++;
+    }
+  }
+  return {
+    field,
+    state:
+      completed === items.length ? ('ready' as const) : ('pending' as const),
+    completed,
+    total: items.length,
+    unavailable: completed - available,
+  };
 }
 export function sortedList(items: ListFilm[], sort: ListSort) {
   if (sort === 'original') return { items, updating: false };

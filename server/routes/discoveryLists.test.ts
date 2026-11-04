@@ -46,6 +46,21 @@ async function harness(failImport = false, requester = 1, requestStatus = 2) {
     }
   ).outputText;
   new Function('require', 'exports', source)((name: string) => {
+    if (name === '@server/lib/listSortProgress')
+      return {
+        sortProgress: {
+          read: (_id: string, owner: number, viewer: number) =>
+            owner === 1 && viewer === 1
+              ? {
+                  field: 'rating',
+                  state: 'pending',
+                  completed: 4,
+                  total: 10,
+                  unavailable: 1,
+                }
+              : null,
+        },
+      };
     if (name === '@server/constants/media')
       return runtimeRequire('../constants/media');
     if (name === '@server/lib/discoveryDatabaseCache')
@@ -813,6 +828,37 @@ it('personal watchlist pages use only the authenticated user and remain read-onl
     );
     assert.equal((await h.request('/curated-test?sort=invalid')).status, 400);
     assert.equal((await h.request('/curated-test?sort=original')).status, 200);
+  } finally {
+    await h.close();
+  }
+});
+
+it('sort progress validates access without rebuilding discovery data or watchlists', async () => {
+  const h = await harness();
+  h.setEnabled(true);
+  const endpoint = '/sort-progress/fe7fe531-26d3-40a3-95b2-966c41b52938';
+  try {
+    const before = h.counts();
+    const response = await h.request(endpoint);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      field: 'rating',
+      state: 'pending',
+      completed: 4,
+      total: 10,
+      unavailable: 1,
+    });
+    assert.deepEqual(h.counts(), before);
+    assert.deepEqual(h.watchlistReads, []);
+    assert.equal(
+      (await h.request(endpoint, 'GET', undefined, true, '2', true)).status,
+      404
+    );
+    assert.equal(
+      (await h.request(endpoint, 'GET', undefined, false)).status,
+      401
+    );
+    assert.equal((await h.request('/sort-progress/invalid')).status, 400);
   } finally {
     await h.close();
   }
