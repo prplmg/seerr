@@ -820,6 +820,7 @@ it('personal watchlist pages use only the authenticated user and remain read-onl
       ['watchlist-plex', 'watchlist-letterboxd']
     );
     assert.ok(body.results.every((l: any) => l.virtual));
+    assert.ok(body.results.every((l: any) => l.description === ''));
     assert.equal((await h.request('/watchlist-plex')).status, 200);
     assert.ok(
       h.watchlistReads.every(

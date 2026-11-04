@@ -890,7 +890,9 @@ function Details() {
         · {data.progress.watched}/{data.progress.total} · {data.available}{' '}
         {t('available', 'disponibles')}
       </p>
-      <p className="my-3 whitespace-pre-wrap">{data.description}</p>
+      {data.description && (
+        <p className="my-3 whitespace-pre-wrap">{data.description}</p>
+      )}
       {!!data.unmatched?.length && (
         <div className="my-4 rounded-lg border border-gray-700 p-3 text-sm text-gray-400">
           <p>

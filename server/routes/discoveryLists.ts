@@ -284,7 +284,7 @@ async function watchlistView(userId: number, source: 'plex' | 'letterboxd') {
     id: `watchlist-${source}`,
     title: source === 'plex' ? 'Plex watchlist' : 'Letterboxd watchlist',
     creator: source === 'plex' ? 'Plex' : 'Letterboxd',
-    description: 'Your watchlist, kept in sync with its source.',
+    description: '',
     source: 'catalogue',
     ownerId: userId,
     visibility: 'private',
