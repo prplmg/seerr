@@ -26,3 +26,10 @@ Prepared for scoped release; completion receipt and live verification pending. E
 Initial deployment succeeded: build goGaEywcuav3qxnHzuby8, backup C:/ProgramData/Seerr/catalogue-20261104091438781-91004-release. Existing six linked publishing settings and account mappings unchanged. Eight read-only routes across users1/4 returned200; next read confirmed Plex data populated (11items for user1, at least20for user4), LB firstpages20each.
 
 Follow-up correction before completion: pending watchlists suppress the empty-state message;390/1440px fixtures now explicitly test pending-empty watchlists. The same explicit-unmapped handling also applies to owned list exports. Verified snapshots are retained between metadata retries but discarded after terminal third failure to bound retained job history.20focused import/browser tests passed, including new owned-export case; TypeScript/lint passed. Final follow-up receipt pending.
+
+
+## Final verified release
+
+Live build **-44OS71K1cO069TNYOSKQ**, source implementation checkpoint69c14ec1dd47c38b2951bdf28daa9d7b97ae66a3. Final rollback C:/ProgramData/Seerr/catalogue-20261104092709395-91826-release (previous goGaEywcuav3qxnHzuby8); original pre-feature rollback remains C:/ProgramData/Seerr/catalogue-20261104091438781-91004-release. Both deployment health/migration checks passed, all six publishing settings and account mappings unchanged. No activity logging or Git push.
+
+Final read-only eight endpoint checks across prplmg/ykrn all200. On the live11item Plex watchlist, both sorts completed: runtime ascending91,96,101,103,104,104,109,121,121,170minutes; LB rating descending4.43,4.33,4.30,4.07,3.82,3.71,3.69,3.68,3.59,3.54. One missing value stayed last. This verifies actual upstream metadata, caching completion and sorting, not just fixture ordering. No list/review mutations or publication were performed for this check.
