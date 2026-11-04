@@ -731,19 +731,29 @@ function ReviewCard({
         </div>
       </div>
       <ReviewBody review={review} compact />
-      <Link
-        href={reviewHref(review)}
-        className="mt-auto self-start text-sm text-purple-300 hover:underline"
-      >
-        {t('Read more', 'Leer más')}
-      </Link>
       <DiscoveryReviewFooter
         reviewId={review.id}
         viewerId={viewerId}
-        title={data?.title || data?.name}
+        author={review.user?.name}
+        title={[
+          data?.title || data?.name,
+          review.episodeNumber != null
+            ? `S${String(review.seasonNumber).padStart(2, '0')}E${String(review.episodeNumber).padStart(2, '0')}`
+            : '',
+          review.episodeName,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
         onChanged={onChanged}
         summary={summary}
-      />
+      >
+        <Link
+          href={reviewHref(review)}
+          className="mr-auto shrink-0 text-base text-purple-300 hover:underline"
+        >
+          {t('Read more', 'Leer más')}
+        </Link>
+      </DiscoveryReviewFooter>
     </article>
   );
 }

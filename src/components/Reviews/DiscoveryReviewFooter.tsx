@@ -8,18 +8,22 @@ import ReviewInteractions, {
 } from './ReviewInteractions';
 const EmojiPicker = lazy(() => import('./EmojiPicker'));
 const pill =
-  'shrink-0 rounded-full border border-gray-600 px-2 py-1 text-purple-200 disabled:opacity-50';
+  'shrink-0 rounded-full border border-gray-600 px-2 leading-5 text-purple-200 disabled:opacity-50';
 
 export default function DiscoveryReviewFooter({
   reviewId,
   viewerId,
   title,
+  author,
+  children,
   summary,
   onChanged,
 }: {
   reviewId: string;
   viewerId?: number;
   title?: string;
+  author?: string;
+  children: React.ReactNode;
   summary?: InteractionSummary;
   onChanged: () => unknown;
 }) {
@@ -51,8 +55,9 @@ export default function DiscoveryReviewFooter({
     }
   }
   return (
-    <div className="mt-auto flex-none pt-2 text-sm">
+    <div className="mt-auto flex-none pt-1 text-sm">
       <div className="flex items-center gap-1">
+        {children}
         <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
           {summary?.reactions.map((r) => (
             <button
@@ -80,7 +85,7 @@ export default function DiscoveryReviewFooter({
           aria-label={
             t('Comments', 'Comentarios') + ' · ' + (summary?.comments ?? 0)
           }
-          className={pill + ' ml-auto inline-flex items-center gap-1'}
+          className={pill + ' inline-flex items-center gap-1'}
           onClick={() => setSheet('comments')}
         >
           <ChatBubbleOvalLeftIcon className="h-4 w-4" />
@@ -99,9 +104,15 @@ export default function DiscoveryReviewFooter({
             <header className="flex items-center justify-between gap-2">
               <Dialog.Title className="text-lg font-semibold">
                 {sheet === 'comments'
-                  ? t('Comments', 'Comentarios')
+                  ? author
+                    ? t(`${author}’s review`, `Reseña de ${author}`)
+                    : t('Review comments', 'Comentarios de la reseña')
                   : t('React', 'Reaccionar')}
-                {title ? ' · ' + title : ''}
+                {title && (
+                  <span className="block break-words text-sm font-normal text-gray-300">
+                    {title}
+                  </span>
+                )}
               </Dialog.Title>
               <button
                 aria-label={t('Close', 'Cerrar')}
