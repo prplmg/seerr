@@ -56,3 +56,9 @@ Sorting preserves its existing 30-day runtime cache and failure backoff; base mo
 Raw sorting results: `runtime-lean-100-results-20261104.json`; short-filter results: `runtime-lean-short-results-20261104.json`; summary: `runtime-lean-summary-20261104.json`. Harness and fixed cohort are under `tools/benchmarks/runtime-lean-*`. The isolated sorting harness switches only the copied compiled lookup call and worker limit; limited-time harness uses the actual deployed pagination function with either lookup callback. This matches the local source behavior but is not a new production build or browser end-to-end test.
 
 Cleanup receipt: `runtime-lean-cleanup-20261104.json`. Production build/source, publishing settings/account mappings and live health verified; temporary D:/SeerrBenchmarks/runtime-lean-100-20261104 workspace and remote benchmark scripts removed. No deployment or remote Git push performed.
+
+## Subsequent approved concurrency policy — 2026-11-04 (not deployed)
+
+User approved four score lookups and two runtime lookups. The shared list-sort queue now allows four total concurrent tasks, with a runtime sublimit of two. It selects the earliest eligible task, allowing score work to use spare slots when queued runtime work is at its limit. This deliberately avoids six simultaneous tasks for mixed sorting traffic. Existing lightweight runtime lookups for list sorting and limited-time filtering remain included. Caches, retries, settings and account toggles are unchanged.
+
+Validation: 12 focused tests passed (sorting/cache, mixed queue limits in both enqueue orders, repeated-request deduplication, failure recovery, progress, limited-time pagination and base metadata contract). Server TypeScript and scoped ESLint passed. No additional benchmark or production deployment was performed; the preceding measurements remain measurements of their documented isolated variants.

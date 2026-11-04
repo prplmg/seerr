@@ -17,6 +17,8 @@ const values = new Map<string, Value>();
 const waiting = new Set<string>();
 const queue: { key: string; film: ListFilm; field: 'rating' | 'runtime' }[] =
   [];
+const activeByField = { rating: 0, runtime: 0 };
+const fieldLimits = { rating: 4, runtime: 2 };
 let loaded = false,
   active = 0,
   dirty = 0;
@@ -55,9 +57,15 @@ export function refreshedListValue(
   };
 }
 function pump() {
-  while (active < 2 && queue.length) {
-    const task = queue.shift()!;
+  // Share four slots overall, with no more than two runtime lookups.
+  while (active < 4 && queue.length) {
+    const index = queue.findIndex(
+      ({ field }) => activeByField[field] < fieldLimits[field]
+    );
+    if (index === -1) break;
+    const [task] = queue.splice(index, 1);
     active++;
+    activeByField[task.field]++;
     void (async () => {
       let value: number | null = null;
       try {
@@ -67,8 +75,8 @@ function pump() {
               ?.score ?? null;
         else if (task.film.type === 'movie')
           value =
-            (await new TheMovieDb().getListMovie(task.film.tmdbId))
-              .runtime || null;
+            (await new TheMovieDb().getListMovie(task.film.tmdbId)).runtime ||
+            null;
       } catch {
         /* Missing values stay last and are retried later. */
       }
@@ -82,6 +90,7 @@ function pump() {
       if (dirty >= 25) persist();
     })().finally(() => {
       active--;
+      activeByField[task.field]--;
       waiting.delete(task.key);
       pump();
       if (!active && !queue.length) persist();
