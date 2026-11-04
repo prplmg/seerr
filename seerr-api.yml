@@ -8581,9 +8581,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  listVideo:
-                    type: string
-                    format: uri
                   rating:
                     type: object
                     nullable: true

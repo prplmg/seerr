@@ -4,7 +4,6 @@ import { it } from 'node:test';
 import { curatedLists } from './curatedLists';
 import {
   cleanFilms,
-  noteVideo,
   listId,
   replaceList,
   setListSaved,
@@ -305,11 +304,4 @@ it('large lists have lower activity scores; diversity changes rank without dropp
     [1, 3, 2]
   );
   assert.deepEqual(diversify(ranked, [large]), ranked);
-});
-
-it('extracts a single YouTube watch URL and discards tracking and unrelated text', () => {
-  assert.equal(noteVideo('youtu.be/rPt-xdufDUs?si=abc'), 'https://www.youtube.com/watch?v=rPt-xdufDUs');
-  assert.equal(noteVideo('https://www.youtube.com/watch?v=rPt-xdufDUs'), 'https://www.youtube.com/watch?v=rPt-xdufDUs');
-  assert.equal(noteVideo('Trailer: youtu.be/rPt-xdufDUs'), undefined);
-  assert.equal(noteVideo('https://youtube.com.example/watch?v=rPt-xdufDUs'), undefined);
 });
