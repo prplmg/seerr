@@ -6,7 +6,6 @@ import { MediaType } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { Watchlist } from '@server/entity/Watchlist';
-import { listVideo } from '@server/lib/discoveryLists';
 import { getMappedLetterboxdRating } from '@server/lib/letterboxdRatingLookup';
 import logger from '@server/logger';
 import { mapMovieDetails } from '@server/models/Movie';
@@ -19,16 +18,7 @@ const movieRoutes = Router();
 movieRoutes.get('/:id/letterboxd', async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id <= 0) return res.sendStatus(400);
-  const rating = await getMappedLetterboxdRating(id, 'movie');
-  try {
-    return res.json({ rating, listVideo: listVideo(id, req.user!.id) });
-  } catch (error) {
-    logger.warn('Could not read streaming links from list notes', {
-      label: 'Lists',
-      error: String(error),
-    });
-    return res.json({ rating });
-  }
+  return res.json({ rating: await getMappedLetterboxdRating(id, 'movie') });
 });
 
 movieRoutes.get('/:id', async (req, res, next) => {
