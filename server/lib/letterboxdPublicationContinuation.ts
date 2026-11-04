@@ -89,11 +89,12 @@ let running = false;
 
 /** Explicit saves are the durable outbox; no debounce is needed. */
 async function prepareForUser(userId: number) {
-  if (running) return { queued: 0, issues: [] };
+  if (running) return { queued: 0, issues: [], pending: true };
   running = true;
   try {
     // Do not replace an in-flight observation ticket with a new broad scan.
-    if (readBatch(userId).tickets.length) return { queued: 0, issues: [] };
+    if (readBatch(userId).tickets.length)
+      return { queued: 0, issues: [], pending: true };
     // Snapshot before scanning: edits/new reviews during or after a scheduled run
     // cannot hitch a ride on its asynchronous observation results.
     const setting = { ...readWriteState().settings[userId] };
@@ -205,7 +206,7 @@ async function prepareForUser(userId: number) {
     saveBatch(userId, { version: 1, tickets, cursor });
     if (report.queued + tickets.length < 2)
       report.queued += (await prepareManualWatched(userId, allCandidates, 2 - report.queued - tickets.length)) || 0;
-    return report;
+    return { ...report, pending: eligible.length > 0 };
   } finally {
     running = false;
   }
@@ -522,17 +523,22 @@ export async function prepareLetterboxdPublications() {
       const result = await prepareForUser(userId);
       report.queued += result.queued;
       report.issues.push(...result.issues);
-      updateWriteState((s) =>
-        setPreparationFailure(
-          s,
-          userId,
-          setting.account,
-          'review-admission',
-          result.issues.some(
-            (i) => i.userId === userId && i.reason !== 'needs-baseline'
-          )
-        )
+      const failed = result.issues.some(
+        (i) => i.userId === userId && i.reason !== 'needs-baseline'
       );
+      // A pending read or a different candidate in this bounded batch is not
+      // proof that an earlier failure resolved. Preserve its original age until
+      // all eligible reviews settle (or are removed/opted out).
+      if (failed || !result.pending)
+        updateWriteState((s) =>
+          setPreparationFailure(
+            s,
+            userId,
+            setting.account,
+            'review-admission',
+            failed
+          )
+        );
     } catch {
       updateWriteState((s) =>
         setPreparationFailure(
