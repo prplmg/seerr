@@ -5,6 +5,7 @@ import { useInView } from 'react-intersection-observer';
 import useSWR from 'swr';
 
 export interface TmdbTitleCardProps {
+  posterBadge?: React.ReactNode;
   detailHref?: string;
   id: number;
   tmdbId: number;
@@ -23,6 +24,7 @@ const isMovie = (
 
 const TmdbTitleCard = ({
   detailHref,
+  posterBadge,
   id,
   tmdbId,
   tvdbId,
@@ -64,6 +66,7 @@ const TmdbTitleCard = ({
   return isMovie(title) ? (
     <TitleCard
       detailHref={detailHref}
+      posterBadge={posterBadge}
       key={title.id}
       id={title.id}
       isAddedToWatchlist={
@@ -82,6 +85,7 @@ const TmdbTitleCard = ({
   ) : (
     <TitleCard
       detailHref={detailHref}
+      posterBadge={posterBadge}
       key={title.id}
       id={title.id}
       isAddedToWatchlist={

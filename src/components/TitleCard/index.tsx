@@ -34,6 +34,7 @@ import { useIntl } from 'react-intl';
 import { mutate } from 'swr';
 
 interface TitleCardProps {
+  posterBadge?: React.ReactNode;
   detailHref?: string;
   id: number;
   image?: string;
@@ -61,6 +62,7 @@ const messages = defineMessages('components.TitleCard', {
 
 const TitleCard = ({
   detailHref,
+  posterBadge,
   id,
   image,
   summary,
@@ -382,6 +384,11 @@ const TitleCard = ({
         role="link"
         tabIndex={0}
       >
+        {posterBadge && !showDetail && (
+          <span className="pointer-events-none absolute bottom-2 right-2 z-20 rounded-md bg-gray-900/90 px-2 py-1 text-sm font-semibold text-white">
+            {posterBadge}
+          </span>
+        )}
         <div className="absolute inset-0 h-full w-full overflow-hidden">
           <CachedImage
             type="tmdb"

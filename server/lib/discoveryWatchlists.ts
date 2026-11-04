@@ -222,8 +222,10 @@ function plexInterests(userIds: number[]) {
 }
 export async function discoveryWatchlists(
   userIds: number[],
-  hints: FilmHint[] = []
+  hints: FilmHint[] = [],
+  source?: 'plex' | 'letterboxd'
 ) {
+  if (source === 'plex') return plexInterests(userIds);
   // Recheck current account bindings on every request, even with cached matches.
   const accounts = await getRepository(LetterboxdAccount).findBy({
     userId: In(userIds),
@@ -272,8 +274,9 @@ export async function discoveryWatchlists(
       initial
     );
   }
-  const letterboxd = matcher(snapshots, hints),
-    plex = plexInterests(userIds);
+  const letterboxd = matcher(snapshots, hints);
+  if (source === 'letterboxd') return letterboxd;
+  const plex = plexInterests(userIds);
   return {
     interests: [...letterboxd.interests, ...plex.interests],
     updating: letterboxd.updating || plex.updating,

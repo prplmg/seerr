@@ -9,13 +9,13 @@ import {
 import { discoveryData } from '@server/lib/discoveryData';
 import { discoveryRequests } from '@server/lib/discoveryDatabaseCache';
 import { exploreLists } from '@server/lib/discoveryExplore';
-import { importPublicList } from '@server/lib/discoveryListImport';
 import {
   discoveryEnabled,
   filmKey,
   readListStore,
   setListSaved,
   updateListStore,
+  type DiscoveryList,
 } from '@server/lib/discoveryLists';
 import { cachedDiscoveryRanking } from '@server/lib/discoveryRankingCache';
 import {
@@ -31,11 +31,13 @@ import {
 import { shortWatchPage } from '@server/lib/discoveryShort';
 import { discoveryWatchlists } from '@server/lib/discoveryWatchlists';
 import { forYouLayout } from '@server/lib/forYouLayout';
+import { sortedList, type ListSort } from '@server/lib/listSort';
 import { Permission } from '@server/lib/permissions';
 import { recentUnrated } from '@server/lib/recentUnrated';
 import { requestedUnwatched } from '@server/lib/requestedUnwatched';
 import { validEpisode } from '@server/lib/unfinishedSeries';
 import { unfinishedSeriesData } from '@server/lib/unfinishedSeriesData';
+import logger from '@server/logger';
 import { Router } from 'express';
 import catalogueLists from './catalogueLists';
 const router = Router();
@@ -147,8 +149,6 @@ router.use((req, res, next) => {
       : res.status(404).end()) as typeof res.json;
   next();
 });
-const importing = new Set<number>(),
-  attempts = new Map<number, number>();
 router.use('/created', catalogueLists);
 router.get('/layout', (_req, res, next) => {
   try {
@@ -238,34 +238,69 @@ router.put('/follow/:type/:id', async (req, res) => {
     return res.sendStatus(400);
   }
 });
-router.post('/import', async (req, res) => {
-  const id = req.user!.id;
-  if (importing.has(id) || Date.now() - (attempts.get(id) || 0) < 60000)
-    return res
-      .status(429)
-      .json({ message: 'Please wait before importing another list.' });
+router.post('/import', (req, res) => {
   if (typeof req.body.url !== 'string' || req.body.url.length > 500)
-    return res.sendStatus(400);
-  importing.add(id);
-  attempts.set(id, Date.now());
+    return res
+      .status(400)
+      .json({ message: 'Enter a public Letterboxd list URL.' });
   try {
-    const listId = await importPublicList(req.body.url);
-    if (!discoveryEnabled(id)) return res.sendStatus(404);
-    updateListStore((s) => setListSaved(s, id, listId, true));
-    return res.json({ id: listId });
-  } catch {
-    if (!discoveryEnabled(id)) return res.sendStatus(404);
-    try {
-      return res
-        .status(202)
-        .json({ jobId: queueBrowserList(req.body.url, id) });
-    } catch {
-      return res.status(422).json({
-        message: 'List could not be queued. Check the URL and retry.',
+    // Persist before replying. Repeated submissions subscribe to the same job;
+    // the browser fallback and film matching no longer hold an HTTP request open.
+    return res
+      .status(202)
+      .json({
+        jobId: queueBrowserList(req.body.url.trim(), req.user!.id, true),
       });
-    }
-  } finally {
-    importing.delete(id);
+  } catch (error) {
+    logger.warn('List import could not be queued', {
+      label: 'Discovery lists',
+      userId: req.user!.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return res
+      .status(422)
+      .json({ message: 'List could not be queued. Check the URL and retry.' });
+  }
+});
+async function watchlistView(userId: number, source: 'plex' | 'letterboxd') {
+  const snapshot = await discoveryWatchlists([userId], [], source);
+  const items = [
+    ...new Map(
+      snapshot.interests.map((f) => [
+        filmKey(f),
+        { type: f.type, tmdbId: f.tmdbId },
+      ])
+    ).values(),
+  ];
+  const list: DiscoveryList = {
+    id: `watchlist-${source}`,
+    title: source === 'plex' ? 'Plex watchlist' : 'Letterboxd watchlist',
+    creator: source === 'plex' ? 'Plex' : 'Letterboxd',
+    description: 'Your watchlist, kept in sync with its source.',
+    source: 'catalogue',
+    ownerId: userId,
+    visibility: 'private',
+    checkedAt: Date.now(),
+    items,
+    history: [],
+  };
+  return { list, updating: snapshot.updating, unresolved: snapshot.unresolved };
+}
+router.get('/watchlists', async (_req, res, next) => {
+  try {
+    const userId = res.locals.discoveryUserId;
+    const d = await discoveryData(userId);
+    const snapshots = await Promise.all([
+      watchlistView(userId, 'plex'),
+      watchlistView(userId, 'letterboxd'),
+    ]);
+    return res.json({
+      results: snapshots.map((s) => ({ ...d.summary(s.list), virtual: true })),
+      updating: snapshots.some((s) => s.updating),
+      unresolved: snapshots.some((s) => s.unresolved),
+    });
+  } catch (error) {
+    next(error);
   }
 });
 router.get('/', async (req, res, next) => {
@@ -576,14 +611,35 @@ router.put('/:id/save', (req, res) => {
       setListSaved(s, req.user!.id, req.params.id, req.body.saved)
     );
     return res.json({ saved: req.body.saved });
-  } catch {
-    return res.sendStatus(404);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'List unavailable')
+      return res
+        .status(404)
+        .json({ message: 'This list is no longer available.' });
+    logger.error('List save failed', {
+      label: 'Discovery lists',
+      userId: req.user!.id,
+      listId: req.params.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return res
+      .status(503)
+      .json({ message: 'Could not save the list right now. Please retry.' });
   }
 });
 router.get('/:id', async (req, res, next) => {
   try {
-    const d = await discoveryData(res.locals.discoveryUserId),
-      list = d.lists.find((l) => l.id === req.params.id);
+    const d = await discoveryData(res.locals.discoveryUserId);
+    const source =
+      req.params.id === 'watchlist-plex'
+        ? 'plex'
+        : req.params.id === 'watchlist-letterboxd'
+          ? 'letterboxd'
+          : undefined;
+    const virtual = source
+      ? await watchlistView(res.locals.discoveryUserId, source)
+      : undefined;
+    const list = virtual?.list || d.lists.find((l) => l.id === req.params.id);
     if (!list) return res.sendStatus(404);
     const offset = Number(req.query.offset || 0);
     if (!Number.isSafeInteger(offset) || offset < 0) return res.sendStatus(400);
@@ -592,10 +648,30 @@ router.get('/:id', async (req, res, next) => {
         (req.query.available !== 'true' || d.available.has(filmKey(f))) &&
         (req.query.unwatched !== 'true' || !d.seen.has(filmKey(f)))
     );
+    const sort = String(req.query.sort || 'original') as ListSort;
+    if (
+      ![
+        'original',
+        'rating-desc',
+        'rating-asc',
+        'runtime-asc',
+        'runtime-desc',
+      ].includes(sort)
+    )
+      return res.sendStatus(400);
+    const sorted = sortedList(items, sort);
     return res.json({
       ...d.summary(list),
-      results: items.slice(offset, offset + 20),
-      next: offset + 20 < items.length ? offset + 20 : null,
+      virtual: !!virtual,
+      watchlistsUpdating: virtual?.updating,
+      watchlistsUnmatched: virtual?.unresolved,
+      metadataUpdating: sorted.updating,
+      results: sorted.updating ? [] : sorted.items.slice(offset, offset + 20),
+      next: sorted.updating
+        ? null
+        : offset + 20 < items.length
+          ? offset + 20
+          : null,
     });
   } catch (e) {
     next(e);

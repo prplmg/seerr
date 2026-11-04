@@ -9,6 +9,7 @@ import { useUser } from '@app/hooks/useUser';
 import { Transition } from '@headlessui/react';
 import {
   ArrowRightCircleIcon,
+  BookmarkIcon,
   ClockIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
@@ -31,8 +32,11 @@ type Film = {
   supporters?: number[];
   matches?: { userId: number; overlap: number }[];
   watchlistCount?: number;
+  listRating?: number | null;
+  listRuntime?: number | null;
 };
 export type List = {
+  virtual?: boolean;
   visibility?: 'public' | 'private' | 'unknown';
   source?: 'curated' | 'letterboxd' | 'catalogue';
   unmatched?: { url: string; title: string; position: number }[];
@@ -62,6 +66,7 @@ type Page = Partial<List> &
   SectionMetadata & {
     results: Film[];
     next: number | null;
+    metadataUpdating?: boolean;
     watchlistsUpdating?: boolean;
     watchlistsUnmatched?: number;
   };
@@ -115,7 +120,7 @@ export function SaveList({
   const { enabled, readOnly } = useDiscovery(),
     [value, setValue] = useState(!!saved),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState(false),
+    [error, setError] = useState(''),
     t = usePartyText();
   const { user } = useUser();
   const { data, mutate } = useSWR<List>(
@@ -137,7 +142,7 @@ export function SaveList({
         aria-pressed={value}
         onClick={async () => {
           setBusy(true);
-          setError(false);
+          setError('');
           try {
             await axios.put(`/api/v1/discovery-lists/${id}/save`, {
               saved: !value,
@@ -145,18 +150,31 @@ export function SaveList({
             setValue(!value);
             if (data) void mutate({ ...data, saved: !value }, false);
             onChange?.();
-          } catch {
-            setError(true);
+          } catch (error) {
+            setError(
+              axios.isAxiosError(error)
+                ? error.response?.data?.message ||
+                    t(
+                      'Could not save. Please retry.',
+                      'No se pudo guardar. Intenta de nuevo.'
+                    )
+                : t(
+                    'Could not save. Please retry.',
+                    'No se pudo guardar. Intenta de nuevo.'
+                  )
+            );
           } finally {
             setBusy(false);
           }
         }}
       >
-        {value ? t('Saved ✓', 'Guardada ✓') : t('Save list', 'Guardar lista')}
+        {busy
+          ? t('Saving…', 'Guardando…')
+          : value
+            ? t('Saved ✓', 'Guardada ✓')
+            : t('Save list', 'Guardar lista')}
       </button>
-      {error && (
-        <span role="alert">{t('Could not save.', 'No se pudo guardar.')}</span>
-      )}
+      {error && <span role="alert">{error}</span>}
     </span>
   );
 }
@@ -174,7 +192,11 @@ export function ListCard({ list: l }: { list: List }) {
           <ArrowRightCircleIcon className="inline h-6 w-6" aria-hidden="true" />
         </Link>
       </h3>
-      <p className={`text-sm ${listAuthorStyle(l.source)}`}>{l.creator}</p>
+      <p
+        className={`text-sm ${l.virtual ? 'text-gray-400' : listAuthorStyle(l.source)}`}
+      >
+        {l.creator}
+      </p>
       <p>
         {l.progress.watched}/{l.progress.total} · {l.available}{' '}
         {t('available', 'disponibles')}
@@ -198,12 +220,27 @@ export function ListCard({ list: l }: { list: List }) {
               tmdbId={f.tmdbId}
               type={f.type}
               canExpand
+              posterBadge={
+                f.listRating != null ? (
+                  `★ ${f.listRating.toFixed(2)}`
+                ) : f.listRuntime != null ? (
+                  `${f.listRuntime} min`
+                ) : f.watchlistCount ? (
+                  <span
+                    className="inline-flex items-center gap-1"
+                    aria-label={`${f.watchlistCount} participant watchlists`}
+                  >
+                    <BookmarkIcon className="h-4 w-4" />
+                    {f.watchlistCount}
+                  </span>
+                ) : undefined
+              }
             />
           </div>
         ))}
       </div>
       <div className="pt-3">
-        <SaveList id={l.id} saved={l.saved} />
+        {!l.virtual && <SaveList id={l.id} saved={l.saved} />}
       </div>
     </article>
   );
@@ -265,7 +302,9 @@ function FilmGrid({
     {
       revalidateFirstPage: false,
       refreshInterval: (pages) =>
-        pages?.some((p) => p.watchlistsUpdating) ? 5000 : 0,
+        pages?.some((p) => p.watchlistsUpdating || p.metadataUpdating)
+          ? 5000
+          : 0,
     }
   );
   useEffect(() => {
@@ -297,6 +336,14 @@ function FilmGrid({
           )}
         </p>
       )}
+      {data?.[0]?.metadataUpdating && (
+        <p role="status" className="my-4">
+          {t(
+            'Loading sort information… The first lookup may take a while.',
+            'Cargando información para ordenar… La primera consulta puede tardar.'
+          )}
+        </p>
+      )}
       {!data?.[0]?.watchlistsUpdating && !!data?.[0]?.watchlistsUnmatched && (
         <p className="my-4 text-sm text-gray-400">
           {t(
@@ -318,17 +365,23 @@ function FilmGrid({
               tmdbId={f.tmdbId}
               type={f.type}
               canExpand
+              posterBadge={
+                f.listRating != null ? (
+                  `★ ${f.listRating.toFixed(2)}`
+                ) : f.listRuntime != null ? (
+                  `${f.listRuntime} min`
+                ) : f.watchlistCount ? (
+                  <span
+                    className="inline-flex items-center gap-1"
+                    aria-label={`${f.watchlistCount} participant watchlists`}
+                  >
+                    <BookmarkIcon className="h-4 w-4" />
+                    {f.watchlistCount}
+                  </span>
+                ) : undefined
+              }
             />
             {f.note && <p className="mt-2 text-sm text-gray-400">{f.note}</p>}
-            {!!f.watchlistCount && (
-              <p className="text-xs text-gray-400">
-                {t(
-                  'On participants’ watchlists: ',
-                  'En listas de seguimiento de participantes: '
-                )}
-                {f.watchlistCount}
-              </p>
-            )}
           </li>
         ))}
       </ul>
@@ -339,7 +392,7 @@ function FilmGrid({
         </button>
       ) : !data || isValidating ? (
         <LoadingState />
-      ) : films.length === 0 ? (
+      ) : films.length === 0 && !data?.[0]?.metadataUpdating ? (
         <p>
           {t(
             'No films match these filters.',
@@ -485,27 +538,34 @@ function Library({ explore = false }: { explore?: boolean }) {
               onSubmit={async (e) => {
                 e.preventDefault();
                 setBusy(true);
-                setStatus('');
+                setStatus(
+                  t(
+                    'Reading list and matching films…',
+                    'Leyendo lista e identificando películas…'
+                  )
+                );
                 try {
                   const r = await axios.post('/api/v1/discovery-lists/import', {
                     url,
                   });
-                  await mutate();
+                  void mutate();
                   if (r.data.jobId) {
                     setJobId(r.data.jobId);
                     setStatus(
                       t(
-                        'Import queued in the browser. It will be saved when verified.',
-                        'Importación en cola en el navegador. Se guardará al verificarse.'
+                        'Import in progress. It will be saved when verified.',
+                        'Importación en progreso. Se guardará al verificarse.'
                       )
                     );
                   } else void router.push(`/lists/${r.data.id}`);
-                } catch {
+                } catch (error) {
                   setStatus(
-                    t(
-                      'Could not import this public list.',
-                      'No se pudo importar esta lista pública.'
-                    )
+                    (axios.isAxiosError(error) &&
+                      error.response?.data?.message) ||
+                      t(
+                        'Could not import this public list.',
+                        'No se pudo importar esta lista pública.'
+                      )
                   );
                 } finally {
                   setBusy(false);
@@ -521,8 +581,18 @@ function Library({ explore = false }: { explore?: boolean }) {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://letterboxd.com/…/list/…/"
               />
-              <button className={style} disabled={busy}>
-                {t('Import from Letterboxd', 'Importar de Letterboxd')}
+              <button
+                className={style}
+                disabled={busy || (!!jobId && importJob?.state !== 'blocked')}
+              >
+                {busy || (!!jobId && importJob?.state !== 'blocked') ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-purple-300 border-t-transparent" />
+                    {t('Importing…', 'Importando…')}
+                  </span>
+                ) : (
+                  t('Import from Letterboxd', 'Importar de Letterboxd')
+                )}
               </button>
               <p role="status">{status}</p>
             </form>
@@ -541,7 +611,8 @@ function Library({ explore = false }: { explore?: boolean }) {
           }}
         />
       )}
-      <p role="status">{status}</p>
+      {!importOpen && <p role="status">{status}</p>}
+      {!explore && filter === 'all' && <MyWatchlists />}
       {!!data?.unresolvedLiked && (
         <p className="text-gray-400">
           {data.unresolvedLiked}{' '}
@@ -579,6 +650,51 @@ function Library({ explore = false }: { explore?: boolean }) {
         </p>
       )}
     </>
+  );
+}
+function MyWatchlists() {
+  const { read, previewUserId } = useDiscovery();
+  const { user } = useUser();
+  const t = usePartyText();
+  const { data, error, mutate } = useSWR<{
+    results: List[];
+    updating: boolean;
+    unresolved: boolean;
+  }>(['/api/v1/discovery-lists/watchlists', user?.id, previewUserId], read, {
+    refreshInterval: (data) => (data?.updating ? 5000 : 0),
+  });
+  if (error)
+    return (
+      <button className={style} onClick={() => void mutate()}>
+        {t('Retry watchlists', 'Reintentar listas de seguimiento')}
+      </button>
+    );
+  return (
+    <section className="my-6">
+      <h2 className="mb-4 text-2xl font-bold">
+        {t('Watchlists', 'Listas de seguimiento')}
+      </h2>
+      {!data ? (
+        <LoadingState />
+      ) : (
+        <>
+          <ListCards lists={data.results} />
+          {data.updating && (
+            <p role="status">
+              {t('Updating watchlists…', 'Actualizando listas…')}
+            </p>
+          )}
+          {data.unresolved && (
+            <p>
+              {t(
+                'Some watchlist entries are temporarily unavailable.',
+                'Algunas entradas no están disponibles temporalmente.'
+              )}
+            </p>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 export function MyListsPage() {
@@ -654,7 +770,8 @@ function Details() {
     [available, setAvailable] = useState(false),
     [unwatched, setUnwatched] = useState(false),
     [editOpen, setEditOpen] = useState(false),
-    [editVersion, setEditVersion] = useState(0);
+    [editVersion, setEditVersion] = useState(0),
+    [sort, setSort] = useState('original');
   const base = `/api/v1/discovery-lists/${encodeURIComponent(String(query.id))}`;
   const { data, error, mutate } = useSWR<List>(
     enabled && query.id ? [base, user?.id, previewUserId] : null,
@@ -679,8 +796,14 @@ function Details() {
         </p>
       )}
       <p className="text-gray-400">
-        <span className={listAuthorStyle(data.source)}>{data.creator}</span> ·{' '}
-        {data.progress.watched}/{data.progress.total} · {data.available}{' '}
+        <span
+          className={
+            data.virtual ? 'text-gray-400' : listAuthorStyle(data.source)
+          }
+        >
+          {data.creator}
+        </span>{' '}
+        · {data.progress.watched}/{data.progress.total} · {data.available}{' '}
         {t('available', 'disponibles')}
       </p>
       <p className="my-3 whitespace-pre-wrap">{data.description}</p>
@@ -709,16 +832,21 @@ function Details() {
         </div>
       )}
       <div className="mb-6 flex flex-wrap items-center gap-4">
-        {!readOnly && data.owned && data.source === 'catalogue' && (
-          <button className={style} onClick={() => setEditOpen(true)}>
-            {t('Edit list', 'Editar lista')}
-          </button>
+        {!readOnly &&
+          !data.virtual &&
+          data.owned &&
+          data.source === 'catalogue' && (
+            <button className={style} onClick={() => setEditOpen(true)}>
+              {t('Edit list', 'Editar lista')}
+            </button>
+          )}
+        {!data.virtual && (
+          <SaveList
+            id={data.id}
+            saved={data.saved}
+            onChange={() => void mutate()}
+          />
         )}
-        <SaveList
-          id={data.id}
-          saved={data.saved}
-          onChange={() => void mutate()}
-        />
         {data.url && (
           <a
             className="text-green-400"
@@ -748,9 +876,35 @@ function Details() {
           </label>
         </div>
       </div>
+      <select
+        aria-label={t('Sort list', 'Ordenar lista')}
+        className={`${style} mb-4`}
+        value={sort}
+        onChange={(e) => setSort(e.target.value)}
+      >
+        <option value="original">{t('List order', 'Orden de la lista')}</option>
+        <option value="rating-desc">
+          {t(
+            'Letterboxd rating: highest first',
+            'Calificación Letterboxd: mayor primero'
+          )}
+        </option>
+        <option value="rating-asc">
+          {t(
+            'Letterboxd rating: lowest first',
+            'Calificación Letterboxd: menor primero'
+          )}
+        </option>
+        <option value="runtime-asc">
+          {t('Runtime: shortest first', 'Duración: menor primero')}
+        </option>
+        <option value="runtime-desc">
+          {t('Runtime: longest first', 'Duración: mayor primero')}
+        </option>
+      </select>
       <FilmGrid
-        key={`${data.id}:${available}:${unwatched}:${editVersion}`}
-        endpoint={`${base}?available=${available}&unwatched=${unwatched}&revision=${editVersion}`}
+        key={`${data.id}:${available}:${unwatched}:${editVersion}:${sort}`}
+        endpoint={`${base}?available=${available}&unwatched=${unwatched}&revision=${editVersion}&sort=${sort}`}
       />
       {!readOnly && user && editOpen && (
         <ListEditor

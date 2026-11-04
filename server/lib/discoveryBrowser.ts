@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import {
   applyPublicList,
+  importPublicList,
   safeListUrl,
   type parseOwnedList,
 } from './discoveryListImport';
@@ -16,13 +17,21 @@ type Job = {
   url: string;
   users: number[];
   created: number;
-  state: 'queued' | 'running' | 'received' | 'succeeded' | 'blocked';
+  state:
+    | 'fetching'
+    | 'queued'
+    | 'running'
+    | 'received'
+    | 'succeeded'
+    | 'blocked';
   instance?: string;
   account?: string;
   token?: string;
   snapshot?: Snapshot;
   listId?: string;
   error?: string;
+  attempts?: number;
+  retryAt?: number;
 };
 const filename = () => path.join(appDataPath(), 'discovery-browser.json');
 function read(): Job[] {
@@ -43,18 +52,33 @@ function update(fn: (jobs: Job[]) => void) {
     if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
   }
 }
-export function queueBrowserList(value: string, userId?: number) {
+export function queueBrowserList(
+  value: string,
+  userId?: number,
+  direct = false
+) {
   const url = safeListUrl(value, true);
   let id = '';
   update((jobs) => {
     let job = jobs.find(
       (j) =>
-        j.url === url && ['queued', 'running', 'received'].includes(j.state)
+        j.url === url &&
+        ['fetching', 'queued', 'running', 'received'].includes(j.state)
     );
     if (!job) {
       if (
-        jobs.filter((j) => ['queued', 'running', 'received'].includes(j.state))
-          .length >= 40
+        userId &&
+        jobs.filter(
+          (j) =>
+            j.users.includes(userId) &&
+            ['fetching', 'queued', 'running', 'received'].includes(j.state)
+        ).length >= 3
+      )
+        throw Error('You already have three list imports pending.');
+      if (
+        jobs.filter((j) =>
+          ['fetching', 'queued', 'running', 'received'].includes(j.state)
+        ).length >= 40
       )
         throw Error('List import queue full');
       // Retain at most 200 recent terminal records; outstanding imports are never evicted.
@@ -67,14 +91,46 @@ export function queueBrowserList(value: string, userId?: number) {
         url,
         users: [],
         created: Date.now(),
-        state: 'queued',
+        state: direct ? 'fetching' : 'queued',
       };
       jobs.push(job);
     }
     if (userId && !job.users.includes(userId)) job.users.push(userId);
     id = job.id;
   });
+  if (direct) setImmediate(() => void fetchDirect(id));
   return id;
+}
+const directPending = new Set<string>();
+async function fetchDirect(id: string) {
+  if (directPending.has(id) || directPending.size >= 2) return;
+  const job = read().find((j) => j.id === id && j.state === 'fetching');
+  if (!job) return;
+  directPending.add(id);
+  try {
+    const listId = await importPublicList(job.url);
+    const current = read().find((j) => j.id === id)!;
+    updateListStore((s) => {
+      for (const user of current.users) setListSaved(s, user, listId, true);
+    });
+    update((jobs) => {
+      const j = jobs.find((j) => j.id === id)!;
+      j.state = 'succeeded';
+      j.listId = listId;
+    });
+  } catch (error) {
+    logger.warn('Direct list import deferred to browser', {
+      label: 'Discovery lists',
+      jobId: id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    update((jobs) => {
+      const j = jobs.find((j) => j.id === id)!;
+      j.state = 'queued';
+    });
+  } finally {
+    directPending.delete(id);
+  }
 }
 function expire() {
   if (!fs.existsSync(filename())) return;
@@ -93,13 +149,20 @@ function expire() {
 export function browserListStatus(id: string, userId: number) {
   expire();
   const job = read().find((j) => j.id === id && j.users.includes(userId));
-  if (job?.state === 'received') setImmediate(() => void finish(job.id));
+  if (job?.state === 'fetching') setImmediate(() => void fetchDirect(job.id));
+  if (job?.state === 'received' && (job.retryAt || 0) <= Date.now())
+    setImmediate(() => void finish(job.id));
   return job
     ? { id: job.id, state: job.state, listId: job.listId, error: job.error }
     : undefined;
 }
 export function pendingBrowserList(instance: string) {
   expire();
+  for (const job of read()) {
+    if (job.state === 'fetching') setImmediate(() => void fetchDirect(job.id));
+    if (job.state === 'received' && (job.retryAt || 0) <= Date.now())
+      setImmediate(() => void finish(job.id));
+  }
   const bindings = readBrowserState().bindings.filter((b) => b.enabled);
   if (!bindings.some((b) => b.instance === instance)) return { pending: false };
   const job =
@@ -196,9 +259,15 @@ async function finish(id: string) {
     });
     update((jobs) => {
       const j = jobs.find((j) => j.id === id)!;
-      j.state = 'blocked';
-      j.error = 'List metadata could not be resolved. Retry the import.';
-      delete j.snapshot;
+      j.attempts = (j.attempts || 0) + 1;
+      j.state = j.attempts < 3 ? 'received' : 'blocked';
+      j.retryAt = Date.now() + 30_000 * j.attempts;
+      j.error =
+        j.state === 'blocked'
+          ? 'List metadata could not be resolved after three attempts. Please retry.'
+          : 'Retrying film metadata lookup…';
+      // Retain the verified snapshot: transient lookup failures must not require
+      // scraping the whole list again. Terminal retries can reuse it too.
     });
   } finally {
     processing.delete(id);

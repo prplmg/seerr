@@ -28,7 +28,8 @@ const snapshot = {
 function harness() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'list-browser-'));
   const tasks: (() => void)[] = [];
-  let applied = 0;
+  let applied = 0,
+    failures = 0;
   const saves: number[] = [];
   const load = () => {
     const api: any = {};
@@ -60,8 +61,10 @@ function harness() {
         if (name === './discoveryListImport')
           return {
             safeListUrl,
+            importPublicList: async () => 'direct-list',
             applyPublicList: async () => {
               applied++;
+              if (failures-- > 0) throw Error('Temporary lookup timeout');
               return 'saved-list';
             },
           };
@@ -82,6 +85,9 @@ function harness() {
     saves,
     tasks,
     applied: () => applied,
+    fail: (count: number) => {
+      failures = count;
+    },
     dir,
     close: () => fs.rmSync(dir, { recursive: true, force: true }),
   };
@@ -262,6 +268,55 @@ it('distinguishes a retired job from a wrong token or account', () => {
         ),
       (e: any) => e.message === 'Wrong list delivery' && !e.code
     );
+  } finally {
+    h.close();
+  }
+});
+
+it('direct import replies as a durable job, survives restart and deduplicates subscribers', async () => {
+  const h = harness();
+  try {
+    let api = h.load();
+    const id = api.queueBrowserList(url, 1, true);
+    assert.equal(api.queueBrowserList(url, 2, true), id);
+    assert.equal(api.browserListStatus(id, 1).state, 'fetching');
+    assert.deepEqual(h.saves, []);
+    h.tasks.length = 0;
+    api = h.load();
+    api.browserListStatus(id, 1);
+    for (const task of h.tasks.splice(0)) task();
+    await new Promise((r) => setTimeout(r, 10));
+    assert.equal(api.browserListStatus(id, 1).state, 'succeeded');
+    assert.deepEqual(h.saves, [1, 2]);
+  } finally {
+    h.close();
+  }
+});
+it('metadata retry preserves verified snapshot and stops after three failures', async () => {
+  const h = harness();
+  try {
+    const api = h.load(),
+      id = api.queueBrowserList(url, 1);
+    const job = api.exchangeBrowserLists('one', undefined, true);
+    h.fail(3);
+    api.exchangeBrowserLists(
+      'one',
+      { id, token: job.token, outcome: 'succeeded', snapshot },
+      true
+    );
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      for (const task of h.tasks.splice(0)) task();
+      await new Promise((r) => setTimeout(r, 10));
+      const filename = path.join(h.dir, 'discovery-browser.json');
+      const rows = JSON.parse(fs.readFileSync(filename, 'utf8'));
+      assert.ok(rows[0].snapshot);
+      assert.equal(rows[0].attempts, attempt);
+      assert.equal(rows[0].state, attempt < 3 ? 'received' : 'blocked');
+      rows[0].retryAt = 0;
+      fs.writeFileSync(filename, JSON.stringify(rows));
+      api.browserListStatus(id, 1);
+    }
+    assert.deepEqual(h.saves, []);
   } finally {
     h.close();
   }

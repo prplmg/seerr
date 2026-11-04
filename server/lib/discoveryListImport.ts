@@ -122,7 +122,10 @@ async function resolveFilms(
       const html = await fetchLetterboxd(row.url);
       if (
         !/cf-chl-|Just a moment/i.test(html) &&
-        /themoviedb\.org\/(?:movie|tv)\/0\//i.test(html)
+        (/themoviedb\.org\/(?:movie|tv)\/0\//i.test(html) ||
+          /data-tmdb-type=["'](?:movie|tv)["']\s+data-tmdb-id=["']["']/i.test(
+            html
+          ))
       ) {
         unmatched.push({ ...row, position: rows.indexOf(row) + 1 });
         continue;
