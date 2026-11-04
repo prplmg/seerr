@@ -1,0 +1,43 @@
+{
+  "buildId": "moKy4UU8ntkn_SPxP3ica",
+  "sourceHashesVerified": 7,
+  "publishingSettingsUnchanged": true,
+  "progressEndpoint": true,
+  "unauthorizedRejected": true,
+  "invalidTicketRejected": true,
+  "lists": 3,
+  "watchlists": 2,
+  "runtimeResults": 11,
+  "progressTicketVerified": false,
+  "backup": "C:/ProgramData/Seerr/catalogue-20261104135754812-1043-release",
+  "manifest": [
+    {
+      "file": "seerr-api.yml",
+      "afterHash": "6c2b7f9b9f1085b232ff33ade6bd16165d9a3d2df0d40f87eb979328a4f7f009"
+    },
+    {
+      "file": "server/api/rating/letterboxd.ts",
+      "afterHash": "ecf49e70f7b2ed973d2f3ec25118dad474a196b446e8862147ec55966446f2e4"
+    },
+    {
+      "file": "server/lib/discoveryShort.ts",
+      "afterHash": "06eaf019fc1418e099fad2b538188dd4ae995512ffe7b38fe10656654f4f84b0"
+    },
+    {
+      "file": "server/lib/listSort.ts",
+      "afterHash": "a3b67669a6c5ba3a8b84c0aba92b8c748e517a500f32ab5dfbb880e305cb0adb"
+    },
+    {
+      "file": "server/lib/listSortProgress.ts",
+      "afterHash": "ce132d2ecf320dcad841f801966989b1b05299bd6a7f1446ca3f171794764fc4"
+    },
+    {
+      "file": "server/routes/discoveryLists.ts",
+      "afterHash": "a2707bd5b56c6eb78509bedb31d0e4190ce4b97719a19f08a6e6bc3dee975963"
+    },
+    {
+      "file": "src/components/Discover/ListLibrary.tsx",
+      "afterHash": "da17e9f8d006b5222a1a2b77894a32ea5af5eb0283cbd4cb3e9d88a4a7acf2bc"
+    }
+  ]
+}

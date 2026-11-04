@@ -1,6 +1,6 @@
 # List controls and score-cache follow-up — 2026-11-04
 
-**Local implementation only. Do not deploy without a new instruction.** Live remains -44OS71K1cO069TNYOSKQ (9887c1f5 source/receipt checkpoint). No production requests, settings changes or deployment in this task.
+**Deployed after explicit user authorization on 2026-11-04.** Build `moKy4UU8ntkn_SPxP3ica`, implementation checkpoint `f39cf4d683f94d66a2f80226f194a7b3ec66ea80`. Previous build `-44OS71K1cO069TNYOSKQ` is retained for rollback. See deployment receipt below.
 
 ## Requested scope
 
@@ -23,3 +23,15 @@ Local warmed sorting-only benchmark (actual sortedList implementation, cached fi
 ## Verification
 
 29focused tests passed: private progress snapshots, owner/preview isolation, expiry/eviction/restart, actual progress-route access/schema and no discovery/watchlist assembly, 30-day runtime TTL, ordering, seven-day TTL, preserve-zero/known-score on failure, fresh-versus-stale upstream cache, duration-decoration without extra calls, and actual OpenAPI list routes. Server/client TypeScript and focused lint passed. Actual list-page components in isolated browser fixtures at390/1440px passed: wait on the same highest-first selection while only progress requests repeat, display checked counts without intermediate posters, fetch final results once, stop subsequent checks, expired-ticket recovery with exactly one final list fetch (both widths), hidden-tab suppression (390px), funnel alignment/radio selection/Escape, Watchlists/Lists filtering, no redundant heading, limited-time runtime badge, no JS errors or horizontal overflow. Fixture APIs/poster/modal boundaries are mocked; not claimed as live-browser verification. Temporary fixture retained outside repository at /tmp/list-controls-20261104/harness.
+
+## Deployment receipt — 2026-11-04
+
+Released only seven application files from the tested scoped checkpoint. Build/deploy launched once and awaited process-exit notification, without build-status/log polling. Initial filesystem notification hit local EMFILE; switched to process-exit notification, without restarting the deployment. Build and migration/public health checks passed.
+
+- Build: `moKy4UU8ntkn_SPxP3ica`
+- Rollback artifacts: `C:/ProgramData/Seerr/catalogue-20261104135754812-1043-release`
+- Previous build: `-44OS71K1cO069TNYOSKQ`
+- All seven deployed source hashes match the release manifest.
+- Existing six-user publishing settings and account mappings unchanged (deployment wrapper comparison); verification independently compares publishing settings to the pre-swap backup.
+- GET-only live checks passed: list categories, both personal watchlist cards, progress-expiry response, authentication rejection, invalid ticket validation. Initial watchlist contents were still warming after restart. The subsequent read returned 11 titles in verified runtime order. A new cold progress ticket was not needed on this cached live list; pending-to-ready behavior and cross-user ticket isolation were verified in isolated tests.
+- No unrelated dirty files, archived activity logging, or Git push included.
