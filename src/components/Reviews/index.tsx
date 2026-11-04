@@ -258,6 +258,7 @@ export function MovieReviews({
       date: string;
       source: 'catalogue' | 'letterboxd';
       suggested?: boolean;
+      inProgress?: boolean;
     } | null;
     publishing?: {
       enabled: boolean;
@@ -420,7 +421,9 @@ export function MovieReviews({
                 )}
                 {mine?.latestViewing && (
                   <option value={mine.latestViewing.id}>
-                    {t('Latest viewing', 'Última visualización')} ·{' '}
+                    {mine.latestViewing.inProgress
+                      ? t('Watching now · mark watched', 'Viendo ahora · marcar como vista')
+                      : t('Latest viewing', 'Última visualización')} ·{' '}
                     {mine.latestViewing.date} ·{' '}
                     {mine.latestViewing.source === 'letterboxd'
                       ? 'Letterboxd'

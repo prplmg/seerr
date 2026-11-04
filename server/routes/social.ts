@@ -1,3 +1,4 @@
+import { earlyViewing, saveEarlyViewings, type EarlyViewing } from '@server/lib/earlyReviewViewing';
 import logger from '@server/logger';
 import { readHistoryHealth, saveHistoryHealth, historyResult } from '@server/lib/letterboxdHistoryHealth';
 import PlexAPI from '@server/api/plexapi';
@@ -19,6 +20,8 @@ import { getSettings } from '@server/lib/settings';
 import type { SessionIdentity } from '@server/lib/viewingAttribution';
 import {
   historyViewers,
+  attributedViewers,
+  sessionIdentity,
   readAttributions,
 } from '@server/lib/viewingAttribution';
 import { appDataPath } from '@server/utils/appDataVolume';
@@ -345,13 +348,26 @@ export async function refreshRecentMoviePlayback() {
   playbackRefreshAt = Date.now();
   let stage = 'history-fetch';
   playbackRefreshPending = (async () => {
+    const activityPromise = axios.get(`${p.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
+      timeout: 5000, params: { apikey: p.tautulliKey, cmd: 'get_activity' },
+    }).then(r => r.data.response?.result === 'success' ? r.data.response.data.sessions : [])
+      .catch(() => []);
     const response = await axios.get(`${p.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
       timeout: 10000,
-      params: { apikey: p.tautulliKey, cmd: 'get_history', grouping: 0,
+      params: { apikey: p.tautulliKey, cmd: 'get_history', grouping: 0, include_activity: 1,
         media_type: 'movie', length: 50, start: 0, order_column: 'date', order_dir: 'desc' },
     });
     const payload = response.data.response;
     if (payload?.result !== 'success' || !Array.isArray(payload.data?.data)) throw Error('Invalid playback history response');
+    const sessions = await activityPromise;
+    const active = (Array.isArray(sessions) ? sessions : []).flatMap(row => {
+      const history = payload.data.data.find((h: Record<string, unknown>) => h.session_key != null &&
+        String(h.session_key) === String(row.session_key) &&
+        String(h.user_id) === String(row.user_id) && String(h.rating_key) === String(row.rating_key) &&
+        h.machine_id === row.machine_id);
+      return history ? [{ ...row, started: Number(history.started), plexId: String(row.user_id),
+        key: String(row.rating_key), type: 'movie' }] : [];
+    });
     stage = 'history-validation-and-import';
     await collectCompletedLetterboxdPlayback(payload.data.data
       .filter((row: Record<string, unknown>) => row.media_type === 'movie' && Number(row.stopped) > 0 && row.rating_key)
@@ -359,7 +375,7 @@ export async function refreshRecentMoviePlayback() {
         stopped: Number(row.stopped), stamp: Number(row.stopped),
         plexId: String(row.user_id), user_id: String(row.user_id),
         key: String(row.rating_key), rating_key: String(row.rating_key), type: 'movie',
-        machine_id: row.machine_id, started: Number(row.started), watched_status: Number(row.watched_status)})));
+        machine_id: row.machine_id, started: Number(row.started), watched_status: Number(row.watched_status)})), active);
     playbackRefreshFailure(false);
     saveHistoryHealth(historyResult(readHistoryHealth()));
   })().catch((error) => {
@@ -376,7 +392,9 @@ export async function refreshRecentMoviePlayback() {
 }
 
 // Collection only: the publication layer must obtain browser baselines later.
-export async function collectCompletedLetterboxdPlayback(rows: RecentWatch[]) {
+export async function collectCompletedLetterboxdPlayback(rows: RecentWatch[], active?: (RecentWatch & {
+  media_type: string; state: string; duration: unknown; view_offset: unknown;
+})[]) {
   const settings = readWriteState().settings;
   if (!Object.values(settings).some(s => s.enabled)) return;
   const users = await getRepository(User).find();
@@ -415,6 +433,7 @@ export async function collectCompletedLetterboxdPlayback(rows: RecentWatch[]) {
   }
   const attribution = readAttributions();
   const results = [];
+  const early: EarlyViewing[] = [];
   for (const account of accounts) {
     const userId = account.userId;
     const fresh = readWriteState().settings[userId];
@@ -422,6 +441,13 @@ export async function collectCompletedLetterboxdPlayback(rows: RecentWatch[]) {
         p.hiddenWatchers.includes(userId) || !users.some(u => u.id === userId) ||
         fresh.enabledSince !== settings[userId]?.enabledSince ||
         fresh.account !== settings[userId]?.account) continue;
+    for (const row of active || []) {
+      const session = sessionIdentity(row);
+      if (!session || !attributedViewers(mapped.get(row.plexId), attribution[session]).includes(userId)) continue;
+      const candidate = earlyViewing(row, p.letterboxdPlayback?.sourceId, userId,
+        byKey.get(row.key)?.tmdbId ?? 0, p.letterboxdPlayback?.timezone);
+      if (candidate) early.push(candidate);
+    }
     results.push(persistPlaybackEvents(
     path.join(appDataPath(), 'letterboxd-playback-events.json'),
     rows.map((row) => ({
@@ -438,6 +464,7 @@ export async function collectCompletedLetterboxdPlayback(rows: RecentWatch[]) {
     }
     ));
   }
+  if (active) saveEarlyViewings(early);
   return results;
 }
 

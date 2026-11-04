@@ -1,3 +1,4 @@
+import { readEarlyViewing } from './earlyReviewViewing';
 import { getRepository } from '@server/datasource';
 import { MovieReview } from '@server/entity/MovieReview';
 import { appDataPath } from '@server/utils/appDataVolume';
@@ -29,6 +30,8 @@ export type ViewingChoice = {
   entryId: string | null;
   occurredAt?: number;
   suggested?: boolean;
+  inProgress?: boolean;
+  sessionId?: string;
 };
 export async function latestReviewViewing(
   userId: number,
@@ -74,10 +77,11 @@ export async function latestReviewViewing(
               (r) =>
                 r.userId === userId && r.originId === e.id && r.diaryBaseline
             );
-            const linkedReview = reviews.find(r => r.source === 'local' && r.viewingEventId === e.id && r.externalEntryId);
+            const linkedReview = reviews.find(r => r.source === 'local' && (r.viewingEventId === e.id || (e.sessionId && r.viewingEventId === e.sessionId)) && r.externalEntryId);
             const entryId = receipt?.entryId || linkedReview?.externalEntryId || null;
             choices.push({
               id: e.id,
+              sessionId: e.sessionId,
               date: e.watchedDate,
               occurredAt: e.occurredAt,
               source: entryId ? 'letterboxd' : 'catalogue',
@@ -88,11 +92,15 @@ export async function latestReviewViewing(
         if (error.code !== 'ENOENT') throw error;
       }
     }
+  const active = mediaType === 'movie' ? readEarlyViewing(userId, tmdbId) : undefined;
+  if (active && !reviews.some(r => r.source === 'local' && r.viewingEventId === active.id))
+    return { id: active.id, date: active.date, source: 'catalogue', entryId: null,
+      suggested: true, inProgress: true };
   const latest = (
     choices.sort(
       (a, b) =>
         b.date.localeCompare(a.date) || (b.occurredAt || 0) - (a.occurredAt || 0) || (a.source === 'letterboxd' ? -1 : 1)
     )[0] || null
   );
-  return latest ? { ...latest, suggested: !reviews.some(r => r.rating !== null && r.viewingEventId === latest.id) && recentUnratedViewing(latest, reviews) } : null;
+  return latest ? { ...latest, suggested: !reviews.some(r => r.rating !== null && (r.viewingEventId === latest.id || (!!latest.sessionId && r.viewingEventId === latest.sessionId))) && recentUnratedViewing(latest, reviews) } : null;
 }

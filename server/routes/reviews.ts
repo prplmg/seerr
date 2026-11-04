@@ -407,7 +407,7 @@ router.put(
               tmdbId,
               reviewType(req)
             );
-            if (!latest || latest.id !== req.body.viewingId || scope)
+            if (!latest || (latest.id !== req.body.viewingId && latest.sessionId !== req.body.viewingId) || scope)
               throw Error('Viewing changed');
             if (latest.source === 'catalogue')
               updateWriteState((state) => {

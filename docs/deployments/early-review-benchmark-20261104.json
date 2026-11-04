@@ -1,0 +1,183 @@
+{
+  "fixtureRows": 1066,
+  "results": [
+    {
+      "scenario": "missing",
+      "concurrent": 1,
+      "applicationColdMedianMs": {
+        "before": 0.14241600000002563,
+        "after": 0.17270800000005693
+      },
+      "requestsEach": 1000,
+      "before": {
+        "medianMs": 0.0402729499999964,
+        "p95BatchMeanMs": 0.06545624999999973,
+        "cpuMs": 58.87,
+        "readBytes": 4146000
+      },
+      "after": {
+        "medianMs": 0.04889580000000251,
+        "p95BatchMeanMs": 0.05572710000000143,
+        "cpuMs": 58.10200000000001,
+        "readBytes": 4146000
+      },
+      "medianDeltaMs": 0.008622850000006108
+    },
+    {
+      "scenario": "missing",
+      "concurrent": 8,
+      "applicationColdMedianMs": {
+        "before": 0.14241600000002563,
+        "after": 0.17270800000005693
+      },
+      "requestsEach": 8000,
+      "before": {
+        "medianMs": 0.037624737500000546,
+        "p95BatchMeanMs": 0.05211562499999971,
+        "cpuMs": 350.40599999999995,
+        "readBytes": 33168000
+      },
+      "after": {
+        "medianMs": 0.04629114374999972,
+        "p95BatchMeanMs": 0.060313025000000665,
+        "cpuMs": 415.23299999999983,
+        "readBytes": 33168000
+      },
+      "medianDeltaMs": 0.008666406249999176
+    },
+    {
+      "scenario": "empty",
+      "concurrent": 1,
+      "applicationColdMedianMs": {
+        "before": 0.11420799999996234,
+        "after": 0.13345800000001873
+      },
+      "requestsEach": 1000,
+      "before": {
+        "medianMs": 0.0396541999999954,
+        "p95BatchMeanMs": 0.04266460000000052,
+        "cpuMs": 54.56200000000001,
+        "readBytes": 4146000
+      },
+      "after": {
+        "medianMs": 0.05097500000000536,
+        "p95BatchMeanMs": 0.0524041499999953,
+        "cpuMs": 51.955999999999996,
+        "readBytes": 4148000
+      },
+      "medianDeltaMs": 0.011320800000009963
+    },
+    {
+      "scenario": "empty",
+      "concurrent": 8,
+      "applicationColdMedianMs": {
+        "before": 0.11420799999996234,
+        "after": 0.13345800000001873
+      },
+      "requestsEach": 8000,
+      "before": {
+        "medianMs": 0.0375653624999984,
+        "p95BatchMeanMs": 0.04165129999999806,
+        "cpuMs": 334.924,
+        "readBytes": 33168000
+      },
+      "after": {
+        "medianMs": 0.04815494375000071,
+        "p95BatchMeanMs": 0.05909557500000062,
+        "cpuMs": 447.5130000000001,
+        "readBytes": 33184000
+      },
+      "medianDeltaMs": 0.010589581250002311
+    },
+    {
+      "scenario": "active",
+      "concurrent": 1,
+      "applicationColdMedianMs": {
+        "before": 0.11333400000012261,
+        "after": 0.12504100000023755
+      },
+      "requestsEach": 1000,
+      "before": {
+        "medianMs": 0.03937500000001819,
+        "p95BatchMeanMs": 0.040227100000015524,
+        "cpuMs": 51.49899999999999,
+        "readBytes": 4146000
+      },
+      "after": {
+        "medianMs": 0.049158349999993335,
+        "p95BatchMeanMs": 0.05203124999998181,
+        "cpuMs": 49.748000000000005,
+        "readBytes": 4254000
+      },
+      "medianDeltaMs": 0.009783349999975148
+    },
+    {
+      "scenario": "active",
+      "concurrent": 8,
+      "applicationColdMedianMs": {
+        "before": 0.11333400000012261,
+        "after": 0.12504100000023755
+      },
+      "requestsEach": 8000,
+      "before": {
+        "medianMs": 0.037442443749998236,
+        "p95BatchMeanMs": 0.04170468749999827,
+        "cpuMs": 317.515,
+        "readBytes": 33168000
+      },
+      "after": {
+        "medianMs": 0.048981768749999335,
+        "p95BatchMeanMs": 0.05267083749999983,
+        "cpuMs": 404.39899999999994,
+        "readBytes": 34032000
+      },
+      "medianDeltaMs": 0.0115393250000011
+    },
+    {
+      "scenario": "busy",
+      "concurrent": 1,
+      "applicationColdMedianMs": {
+        "before": 0.10904200000004494,
+        "after": 0.15208300000040254
+      },
+      "requestsEach": 1000,
+      "before": {
+        "medianMs": 0.03854790000000321,
+        "p95BatchMeanMs": 0.04032919999999649,
+        "cpuMs": 48.373999999999995,
+        "readBytes": 4146000
+      },
+      "after": {
+        "medianMs": 0.06808750000000145,
+        "p95BatchMeanMs": 0.07141040000001339,
+        "cpuMs": 68.63,
+        "readBytes": 14337000
+      },
+      "medianDeltaMs": 0.029539599999998244
+    },
+    {
+      "scenario": "busy",
+      "concurrent": 8,
+      "applicationColdMedianMs": {
+        "before": 0.10904200000004494,
+        "after": 0.15208300000040254
+      },
+      "requestsEach": 8000,
+      "before": {
+        "medianMs": 0.036690099999998435,
+        "p95BatchMeanMs": 0.03770728749999534,
+        "cpuMs": 295.50100000000003,
+        "readBytes": 33168000
+      },
+      "after": {
+        "medianMs": 0.06647995000000151,
+        "p95BatchMeanMs": 0.06999896250000007,
+        "cpuMs": 545.544,
+        "readBytes": 114696000
+      },
+      "medianDeltaMs": 0.029789850000003074
+    }
+  ],
+  "rssBytes": 382222336,
+  "scope": "actual lookup + SQLite fixture, batch means, not full browser navigation; OS file cache warm"
+}

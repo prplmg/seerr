@@ -1,3 +1,4 @@
+import { playbackClaimed } from './earlyReviewViewing';
 import { appDataPath } from '@server/utils/appDataVolume';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -238,7 +239,7 @@ async function prepareForUser(
           })
         )
           .map((r) => r.viewingEventId)
-          .filter(Boolean)
+          .filter((id): id is string => !!id)
       );
       const report = await planPendingPlaybackPublications({
         userId,
@@ -259,11 +260,11 @@ async function prepareForUser(
             )
               throw Error('Invalid playback store');
             return [...store.events, ...party]
-              .filter((e) => !claimed.has(e.id))
+              .filter((e) => !playbackClaimed(e, claimed))
               .sort((a, b) => a.occurredAt - b.occurredAt);
           } catch (error) {
             if (error.code === 'ENOENT')
-              return party.filter((e) => !claimed.has(e.id));
+              return party.filter((e) => !playbackClaimed(e, claimed));
             throw error;
           }
         },

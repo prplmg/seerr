@@ -1,3 +1,4 @@
+import { reviewSessionId } from './earlyReviewViewing';
 import { createHash, randomUUID } from 'crypto';
 import fs from 'fs';
 
@@ -8,6 +9,7 @@ export type PlaybackRow = {
   reference_id?: unknown;
   stopped?: number;
   started?: number;
+  machine_id?: string;
   user_id: string | number;
   rating_key: string | number;
   viewers: number[];
@@ -24,6 +26,7 @@ export type PlaybackEvent = {
   timezone: string;
   rowId: string;
   referenceId?: string;
+  sessionId?: string;
 };
 export type PlaybackStore = { version: 1; events: PlaybackEvent[] };
 export type PlaybackIssue = { reason: string; rowId?: string };
@@ -151,6 +154,7 @@ export function collectPlaybackEvents(
       timezone: config.timezone!,
       rowId,
       referenceId,
+      sessionId: reviewSessionId(row, config.sourceId, config.userId),
     });
     result.added++;
   }
