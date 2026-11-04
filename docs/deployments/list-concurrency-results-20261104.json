@@ -1,0 +1,6827 @@
+{
+  "build": "moKy4UU8ntkn_SPxP3ica",
+  "sourceHash": "96b0c9222aed3a067d82d30ef4bbdeb941a4a7904c69dd2d7b16fae26a5741b4",
+  "order": [
+    2,
+    4,
+    4,
+    2,
+    4,
+    2,
+    2,
+    4
+  ],
+  "routes": [
+    "/discover/movies?page=1",
+    "/discovery-lists/feed?section=recommendations&offset=0",
+    "/movie/329865",
+    "/tv/87108"
+  ],
+  "results": [
+    {
+      "limit": 2,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 3985.294900000001,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 2703,
+      "peakRssBytes": 250322944,
+      "eventLoopP95Ms": 33.816575,
+      "warmSortMs": 0.37635699999998906,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 3723.061600000001
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 6704.3375000000015
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 1158.4395000000004
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 935.3127000000022
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.22370000000228
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 217.3961000000054
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 72.68150000000605
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 103.5593000000008
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 33.69669999999314
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 217.46639999999752
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 67.92689999999857
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 97.9806000000026
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 23.848100000002887
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 209.13040000000183
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 57.63259999999718
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 87.84230000000389
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 48.42760000000271
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 218.54069999999774
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 83.69279999999708
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 118.43420000000333
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 39.35410000000411
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 227.31140000000596
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 59.77429999999731
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 107.30370000000403
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 27.70339999999851
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 245.01410000000033
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 83.46710000000166
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 110.14880000000267
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 24.073499999998603
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 224.1765000000014
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 59.54320000000007
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 114.40580000000045
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 51.54809999999998
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 225.72750000000087
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 311.7429000000011,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 69.89839999999822,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 69.05869999999413,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 39.40060000000085,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 305.4372000000003,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 95.29620000000432,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 468.68910000000324,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 492.4887999999992,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 337.56409999999596,
+          "bytes": 34798
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 341.3159000000014,
+          "bytes": 31057
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 116.92480000000069,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.76450000000477,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 467.834299999995,
+          "bytes": 40593
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 553.0564000000013,
+          "bytes": 35063
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.36509999999544,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 130.1797000000006,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 596.9192000000039,
+          "bytes": 33997
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 545.2163,
+          "bytes": 35384
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.55580000000191,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.65810000000056,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 324.2379000000001,
+          "bytes": 32415
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 439.5014999999985,
+          "bytes": 40659
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 118.73129999999946,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 289.03489999999874,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 598.0547000000006,
+          "bytes": 35127
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 429.2811999999976,
+          "bytes": 35930
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.48249999999825,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 120.62579999999434,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 378.2187999999951,
+          "bytes": 39470
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 410.25960000000487,
+          "bytes": 36949
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 2488.3850999999995,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 1719,
+      "peakRssBytes": 229535744,
+      "eventLoopP95Ms": 45.187071,
+      "warmSortMs": 0.2806000000000131,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2983.2538000000004
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2046.066899999998
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 446.22149999999965
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 308.4321000000018
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 34.988499999999476
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 226.50570000000153
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 71.89349999999831
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 108.96140000000014
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 35.707000000002154
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 209.82589999999982
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.42719999999827
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 106.5672999999988
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 27.358200000002398
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 212.19620000000214
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 62.344199999999546
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 83.66639999999825
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 65.53680000000168
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 292.83940000000075
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 75.28060000000187
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 123.71019999999771
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 27.07709999999861
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 246.5027999999984
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 94.49790000000212
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 129.36609999999928
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 38.220900000000256
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 247.6166000000012
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 295.83469999999943,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 87.26889999999912,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 65.33169999999882,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 46.921800000000076,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 90.89899999999761,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 92.8244999999988,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 395.4815000000017,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 418.1519999999982,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 437.8080999999984,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 430.7429000000011,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 467.3371999999981,
+          "bytes": 31050
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 493.6131999999998,
+          "bytes": 35005
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 525.6752000000015,
+          "bytes": 40633
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 524.5557999999983,
+          "bytes": 34811
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.76160000000164,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.16189999999915,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 117.40130000000136,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.56269999999859,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 527.1494000000021,
+          "bytes": 32416
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 586.6772999999994,
+          "bytes": 33957
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 570.0830000000024,
+          "bytes": 35430
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 576.6990000000005,
+          "bytes": 40552
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 142.33710000000065,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 138.7953000000016,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 153.81230000000141,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 147.21359999999913,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 548.9118999999992,
+          "bytes": 37001
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 579.1781999999985,
+          "bytes": 35030
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 553.3894,
+          "bytes": 39489
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 600.8515000000007,
+          "bytes": 35832
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 3861.3533000000025,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 1626,
+      "peakRssBytes": 255287296,
+      "eventLoopP95Ms": 39.616511,
+      "warmSortMs": 0.31698899999999414,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 4518.000999999998
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2563.8387000000002
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 1053.6640000000007
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 290.42259999999806
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.21340000000055
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 207.73370000000068
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 73.13829999999871
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 110.76720000000205
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 34.92069999999876
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 210.34039999999732
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 67.00539999999819
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 106.39050000000134
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 23.95130000000063
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 214.16319999999905
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 56.945599999999104
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 84.27609999999913
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 60.07519999999931
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 297.82720000000336
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 68.21459999999934
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 116.93709999999919
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 56.70720000000074
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 216.04949999999735
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 66.76889999999912
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 109.23790000000008
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 48.92729999999938
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 235.27289999999994
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 268.4811000000009,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 63.28019999999742,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 61.295600000001286,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 40.20400000000154,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 80.72450000000026,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 87.54769999999917,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 406.0460000000021,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 408.8660999999993,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 429.47399999999834,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 444.6244999999981,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 428.4434000000001,
+          "bytes": 31073
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 462.3461000000025,
+          "bytes": 35032
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 456.1493999999984,
+          "bytes": 40671
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 478.1399999999994,
+          "bytes": 34717
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 115.53800000000047,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.95939999999973,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.27079999999842,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 119.482600000003,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 522.4241999999977,
+          "bytes": 40604
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 522.4997000000003,
+          "bytes": 32415
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 569.5799000000006,
+          "bytes": 34037
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 561.8965000000026,
+          "bytes": 35356
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.4346000000005,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 118.58169999999882,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 119.48860000000059,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.80169999999998,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 547.0339000000022,
+          "bytes": 35790
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 557.482600000003,
+          "bytes": 36966
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 551.8912999999993,
+          "bytes": 39557
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 586.4383999999991,
+          "bytes": 35019
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 3738.2379,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 2359,
+      "peakRssBytes": 265142272,
+      "eventLoopP95Ms": 33.914879,
+      "warmSortMs": 0.19686399999998686,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 3005.4762999999984
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2042.3319999999985
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 327.15819999999803
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 328.45620000000054
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 38.51009999999951
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 240.54629999999815
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 84.0405000000028
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 114.44969999999739
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 37.72850000000108
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 237.82500000000073
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 71.34310000000187
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 123.19170000000304
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 26.75170000000071
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 238.47559999999794
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.41070000000036
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 87.07239999999729
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 48.67890000000261
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 239.69740000000093
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 75.01770000000033
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 143.76900000000023
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 47.65610000000015
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 212.1173000000017
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 70.22649999999703
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 104.29840000000331
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 26.509799999999814
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 223.4617999999973
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 82.11549999999988
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 105.02919999999722
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.884399999999005
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 207.5004000000008
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 66.97119999999995
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 120.94989999999962
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 47.383200000000215
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 250.12869999999748,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 69.37569999999687,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 62.81079999999929,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 41.25600000000122,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 81.57450000000244,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 86.78900000000067,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 488.58959999999934,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 504.0440000000017,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 330.3662000000004,
+          "bytes": 31057
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 369.59110000000146,
+          "bytes": 34717
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 127.91480000000229,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 137.19510000000082,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 531.1375000000007,
+          "bytes": 35036
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 520.7642999999989,
+          "bytes": 40722
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 145.13839999999982,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 141.65999999999985,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 538.7347000000009,
+          "bytes": 33958
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 542.9656000000032,
+          "bytes": 35340
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.3315999999977,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 130.64879999999903,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 305.45820000000094,
+          "bytes": 40609
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 279.0619000000006,
+          "bytes": 32281
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 107.30209999999715,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.2387000000017,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 493.45920000000115,
+          "bytes": 35069
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 505.78189999999813,
+          "bytes": 35759
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 128.82140000000072,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 126.04669999999896,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 294.6911999999975,
+          "bytes": 39523
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 308.0650999999998,
+          "bytes": 36918
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 1563.3594000000012,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 735,
+      "peakRssBytes": 217436160,
+      "eventLoopP95Ms": 25.772031,
+      "warmSortMs": 0.25081099999999423,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2795.1543999999994
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1978.2618000000002
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 392.29509999999937
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 304.21770000000106
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 31.167499999999563
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 216.44710000000123
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 71.90309999999954
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 103.05709999999817
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 35.27349999999933
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 208.0131999999976
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 62.688099999999395
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 95.54620000000068
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 22.856599999999162
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 204.0008999999991
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 58.04400000000169
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 87.9438999999984
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 46.17499999999927
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 246.02349999999933
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 92.34549999999945
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 91.15470000000278
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 44.89260000000286
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 310.5597999999991,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 65.79110000000219,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 57.910400000000664,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 38.910799999997835,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 91.13409999999931,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 96.0673999999999,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 70.6948999999986,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 279.6972999999998,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 359.2282000000014,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 79.30400000000009,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 100.16630000000077,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 97.69810000000143,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 95.54330000000118,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 78.16410000000178,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 125.54130000000077,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 82.76139999999941,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.44320000000153,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 104.2400000000016,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 790.0116999999991,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 593,
+      "peakRssBytes": 243863552,
+      "eventLoopP95Ms": 39.878655,
+      "warmSortMs": 0.21203099999998812,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2891.866900000001
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1988.8292000000001
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 300.14890000000014
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 344.48159999999916
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 35.09109999999782
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 213.38550000000032
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 76.4839000000029
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 110.47470000000249
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 37.45140000000174
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 217.8026000000027
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 62.96979999999894
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 104.30279999999766
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 27.183099999998376
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 220.3814999999995
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 55.78429999999935
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 84.0070999999989
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 76.60429999999906
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 238.21900000000096
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 211.02369999999792
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 251.16209999999774,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 81.68739999999889,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 66.02839999999924,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 39.616000000001804,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 91.89389999999912,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 103.80110000000059,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.3051000000014,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.53110000000015,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 203.4271000000008,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 366.6688000000031,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 383.9868000000024,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 428.6759999999995,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.72780000000057,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.1916999999994,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 165.61049999999886,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 99.49799999999959,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 96.3060000000005,
+          "bytes": 15612
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 209.11629999999786,
+          "bytes": 20761
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 917.9575000000004,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 687,
+      "peakRssBytes": 244187136,
+      "eventLoopP95Ms": 42.270719,
+      "warmSortMs": 0.20461600000002364,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2995.8755999999994
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2001.1091000000015
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 318.91129999999976
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 303.8719000000019
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 33.17749999999796
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 226.575499999999
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 75.61579999999958
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 117.86229999999705
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 36.347600000000966
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 228.98340000000098
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 63.518199999998615
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 102.42069999999876
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 29.439699999998993
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 226.52309999999852
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 60.40060000000085
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 88.88509999999951
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 66.4327000000012
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 254.51499999999942
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 135.15020000000004
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 300.35869999999886,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 67.15610000000015,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 70.19759999999951,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 40.10979999999836,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 94.17329999999856,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 92.3711000000003,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 69.21909999999843,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.767399999997,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 380.3221000000012,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 376.14120000000185,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 423.0725999999995,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.05969999999797,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 69.20110000000204,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 91.15899999999965,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 124.94499999999971,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 103.40220000000045,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 154.0822999999982,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 84.29880000000048,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 1366.0751000000018,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 968,
+      "peakRssBytes": 236810240,
+      "eventLoopP95Ms": 28.819455,
+      "warmSortMs": 0.21351199999997333,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 3270.767999999998
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1888.137499999997
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 285.34430000000066
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 294.7082999999984
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 33.480100000000675
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 210.37590000000273
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 70.89170000000013
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 102.10599999999977
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 33.314400000002934
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 214.35280000000057
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 58.631099999998696
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 93.31089999999676
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 26.376200000002427
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 218.048700000003
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 62.19000000000233
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 174.83840000000055
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 171.8126000000011
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 226.64229999999952
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 96.63240000000224
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 135.74159999999756
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 46.2528999999995
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 255.89750000000276,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 69.56860000000233,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 57.0599000000002,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 39.04950000000099,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 72.88030000000072,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.8192999999992,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 117.91449999999895,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 140.65390000000116,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 483.97569999999905,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 72.10610000000088,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 56.89040000000023,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 56.69590000000244,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 124.54320000000007,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 122.80270000000019,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 83.935300000001,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 65.93089999999938,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 119.80149999999776,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 115.24620000000141,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 3466.457299999998,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 1422,
+      "peakRssBytes": 223522816,
+      "eventLoopP95Ms": 45.940735,
+      "warmSortMs": 0.2264680000000226,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2962.9260999999988
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2045.5455999999976
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 315.38270000000193
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 296.3280999999988
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 37.34449999999924
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 240.6311999999998
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 77.96689999999944
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 293.4112000000023
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 42.76560000000245
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 250.71970000000147
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 66.3150999999998
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 105.16129999999976
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 24.879899999999907
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 231.42540000000008
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 59.268299999999726
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 89.0593000000008
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 60.29240000000209
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 270.09070000000065
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 63.344099999998434
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 121.59200000000055
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 22.430499999998574
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 209.82890000000043
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 63.660399999997026
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 141.16859999999724
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 74.05719999999928
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 275.39830000000075,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 65.34019999999873,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 57.53650000000198,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 38.43119999999908,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.22669999999925,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.90919999999824,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 384.52850000000035,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 399.1260000000002,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 394.84879999999976,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 399.71919999999955,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 447.27280000000246,
+          "bytes": 31016
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 463.3646000000008,
+          "bytes": 35036
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 458.336299999999,
+          "bytes": 40627
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 485.36789999999746,
+          "bytes": 34720
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 123.15120000000024,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 116.2052999999978,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 117.71110000000044,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 120.41849999999977,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 465.10089999999764,
+          "bytes": 33959
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 468.9544999999998,
+          "bytes": 35385
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 476.3789999999972,
+          "bytes": 32331
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 492.36919999999736,
+          "bytes": 40606
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 129.16259999999966,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 121.68120000000272,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 118.86059999999998,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 119.33770000000004,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 313.2998000000007,
+          "bytes": 35027
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 325.32910000000265,
+          "bytes": 35813
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 315.8152000000009,
+          "bytes": 36913
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 307.1741000000002,
+          "bytes": 39520
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 4016.662400000001,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 2328,
+      "peakRssBytes": 252665856,
+      "eventLoopP95Ms": 30.162943,
+      "warmSortMs": 0.20363500000003115,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 3041.4545
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2018.5040000000008
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 303.0744999999988
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 296.3390999999974
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.93970000000263
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 235.64940000000206
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 76.44280000000072
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 126.14060000000245
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 37.09910000000309
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 234.61749999999665
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.28900000000067
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 120.5012999999999
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 25.12670000000071
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 211.39670000000115
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 61.014100000000326
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 90.7094999999972
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 57.37350000000151
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 262.39350000000195
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 72.56559999999808
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 109.91820000000007
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 51.56869999999981
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 215.77720000000045
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 73.29199999999764
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 117.6964999999982
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 58.418399999998655
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 243.22309999999925
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 63.51599999999962
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 115.84920000000056
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 25.54439999999886
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 212.4938000000002
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.9246000000021
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 109.14129999999932
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 46.14539999999761
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 232.112000000001,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 68.20930000000226,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 57.676400000000285,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 42.003600000000006,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.94680000000153,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 72.80529999999999,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 395.4887999999992,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 499.98549999999886,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 327.7608,
+          "bytes": 31068
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 330.7947000000022,
+          "bytes": 34797
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.0448000000033,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 119.13589999999749,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 366.59709999999905,
+          "bytes": 34965
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 127.03640000000087,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 520.6970000000001,
+          "bytes": 40599
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 133.3494000000028,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 281.59140000000116,
+          "bytes": 34027
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.52779999999984,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 286.3653000000013,
+          "bytes": 35313
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 282.90020000000004,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 518.8581000000013,
+          "bytes": 40602
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 289.77960000000166,
+          "bytes": 32412
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.78519999999844,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 125.97279999999955,
+          "bytes": 35160
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.90320000000065,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 268.97459999999774,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 519.6175999999978,
+          "bytes": 36961
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 433.64719999999943,
+          "bytes": 35931
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.0206999999973,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 246.95920000000115,
+          "bytes": 39468
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 3739.7128999999986,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 2546,
+      "peakRssBytes": 267055104,
+      "eventLoopP95Ms": 33.226751,
+      "warmSortMs": 0.4459790000000066,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2794.6373999999996
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2005.8473000000013
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 340.50930000000153
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 291.3017
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.85559999999896
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 230.80359999999928
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 68.58710000000065
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 112.25890000000072
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 38.499299999999494
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 233.50500000000102
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.0795999999973
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 105.95679999999993
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 25.025300000001153
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 230.63860000000204
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 60.177599999999074
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 87.19380000000092
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 51.48979999999938
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 235.3322999999982
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.49419999999736
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 117.3060000000005
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 23.948899999999412
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 213.58650000000125
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 61.13810000000012
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 103.12650000000212
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 23.31159999999727
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 241.4362000000001
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 60.51299999999901
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 108.84110000000146
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 56.63790000000154
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 234.28840000000127
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 74.96870000000126
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 139.61699999999837
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 33.418900000000576
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 261.2508999999991,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 63.301799999997456,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 57.33520000000135,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 64.94070000000283,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.19970000000103,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.24169999999867,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 372.4926000000014,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 486.4824000000008,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 416.77110000000175,
+          "bytes": 34743
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 311.71230000000287,
+          "bytes": 31057
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 117.54790000000139,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 118.28980000000229,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 450.053100000001,
+          "bytes": 34964
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 493.663700000001,
+          "bytes": 40514
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.42069999999876,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 110.09479999999894,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 302.6647000000012,
+          "bytes": 34028
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 302.717099999998,
+          "bytes": 35314
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 234.73010000000068,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 229.42109999999957,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 399.6252999999997,
+          "bytes": 32414
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 418.6837000000014,
+          "bytes": 40607
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 119.70490000000063,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 135.15929999999935,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 551.7242000000006,
+          "bytes": 35759
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 546.0528999999988,
+          "bytes": 35077
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 141.8280999999988,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 144.99209999999948,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 287.4868999999999,
+          "bytes": 36937
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 310.05409999999756,
+          "bytes": 39444
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "rating",
+      "titles": 12,
+      "elapsedMs": 3587.647100000002,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 1672,
+      "peakRssBytes": 257736704,
+      "eventLoopP95Ms": 40.534015,
+      "warmSortMs": 0.20245100000000094,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2795.5692
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1845.2551000000003
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 327.6720000000023
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 309.5769
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.858399999997346
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 241.03210000000036
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 75.65629999999874
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 126.55070000000342
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 38.43089999999938
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 225.28229999999894
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.86869999999908
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 108.40509999999995
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 29.468999999997322
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 209.0672999999988
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 60.06339999999909
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 86.95669999999882
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 62.42079999999987
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 314.2329000000027
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 65.25049999999828
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 125.45789999999761
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 58.00329999999667
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 215.42029999999795
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 83.46879999999874
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 127.20219999999972
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 27.14089999999851
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 222.65910000000076
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 384.2466999999997,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 66.88100000000122,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 58.60540000000037,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 41.28819999999905,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 90.73089999999866,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 94.55340000000069,
+          "bytes": 40259
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 427.06289999999717,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 447.15719999999783,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 451.22409999999945,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 448.02839999999924,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 345.9995000000017,
+          "bytes": 31018
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 397.056700000001,
+          "bytes": 34728
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 463.53640000000087,
+          "bytes": 40632
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 502.3974999999991,
+          "bytes": 35054
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 125.61919999999736,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 123.6993999999977,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.27350000000297,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 121.73159999999916,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 514.3449999999975,
+          "bytes": 32492
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 559.2703999999976,
+          "bytes": 33990
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 551.4595999999983,
+          "bytes": 35314
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 557.5138000000006,
+          "bytes": 40669
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 139.43120000000272,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 141.61929999999847,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 140.3117999999995,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 158.27209999999832,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 554.2741000000024,
+          "bytes": 35830
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 548.5067999999992,
+          "bytes": 36917
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 521.2775000000001,
+          "bytes": 39519
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 577.9174999999996,
+          "bytes": 35072
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 1543.2890000000007,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 906,
+      "peakRssBytes": 236920832,
+      "eventLoopP95Ms": 142.082047,
+      "warmSortMs": 0.20941500000000815,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2724.0165000000015
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1987.9853000000003
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 320.94100000000253
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 315.03269999999975
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.920600000001286
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 237.28620000000228
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 73.00089999999909
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 121.22259999999733
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 37.111400000001595
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 232.68930000000182
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 64.8172999999988
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 103.58139999999912
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 24.400300000001153
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 232.84519999999975
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 62.440999999998894
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 169.03869999999733
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 198.49659999999858
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 245.9459999999999
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 105.91670000000158
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 262.1928000000007,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 62.83760000000257,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 56.68920000000071,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 45.48219999999856,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 91.8077000000012,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 91.65100000000166,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 145.98669999999765,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 70.29740000000311,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 518.449700000001,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 259.0760999999984,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 485.9327000000012,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 535.766599999999,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 69.57969999999841,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 86.11039999999775,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 130.62710000000152,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 162.44040000000314,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 100.25880000000325,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 74.08430000000226,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 936.2035999999971,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 688,
+      "peakRssBytes": 216113152,
+      "eventLoopP95Ms": 27.574271,
+      "warmSortMs": 0.19989900000000488,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2868.496900000002
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 2052.448199999999
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 350.35269999999946
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 291.9292000000023
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 32.380300000000716
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 215.23549999999886
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 91.4945000000007
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 102.6179000000011
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 34.526599999997416
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 231.95590000000084
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 63.64590000000317
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 114.98980000000302
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 25.006799999999203
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 230.7487000000001
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 65.51150000000052
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 87.02149999999892
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 50.00020000000222
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 240.1202000000012
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 88.50539999999819
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 99.27219999999943
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 62.82300000000032
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 296.86149999999907,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 64.94349999999758,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 56.81450000000041,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 39.12879999999859,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 94.89199999999983,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 94.19820000000254,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 70.84760000000097,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 278.2358999999997,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 360.04199999999764,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 69.7641999999978,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 127.68399999999747,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 81.54169999999795,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 86.96740000000136,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 85.98599999999715,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 79.33050000000003,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 98.58480000000054,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 72.89849999999933,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 80.42580000000089,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 1717.1132000000034,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 703,
+      "peakRssBytes": 244187136,
+      "eventLoopP95Ms": 43.253759,
+      "warmSortMs": 0.21973399999998947,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2760.7902999999988
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1976.2685999999994
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 302.31730000000243
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 305.6332000000002
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 40.85109999999986
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 258.72910000000047
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 79.45809999999983
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 137.24919999999838
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 43.58499999999913
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 239.6791000000012
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 96.49789999999848
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 106.87029999999868
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 26.568299999999
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 240.6198000000004
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 65.89570000000094
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 106.8230999999978
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 50.88009999999849
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 258.3650000000016
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 124.70499999999811
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 123.75500000000102
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 27.365899999997055
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 289.4403999999995,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 70.7570999999989,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 85.37459999999919,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 42.47220000000016,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 94.68599999999788,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 91.91510000000198,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 74.61429999999746,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 299.42459999999846,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 384.83250000000044,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.72039999999834,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 89.82269999999698,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 82.63520000000062,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 88.41770000000179,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 69.23730000000069,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 96.97809999999663,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 127.4561999999969,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.38870000000315,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 77.67920000000231,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 4,
+      "field": "runtime",
+      "titles": 12,
+      "elapsedMs": 1347.0661,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 594,
+      "peakRssBytes": 244764672,
+      "eventLoopP95Ms": 191.234047,
+      "warmSortMs": 0.4689350000000195,
+      "warmup": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 2827.413700000001
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 1893.4222000000009
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 312.8127999999997
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 307.22079999999914
+        }
+      ],
+      "baseline": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 31.049299999998766
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 208.47899999999936
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 69.60440000000017
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 98.85220000000118
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 34.67569999999978
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 203.11469999999827
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 57.840800000001764
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 95.80100000000311
+        },
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 22.595799999999144
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 209.6863000000012
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 59.54790000000139
+        },
+        {
+          "route": "/tv/87108",
+          "status": 200,
+          "ms": 83.23259999999937
+        }
+      ],
+      "samples": [
+        {
+          "route": "/discover/movies?page=1",
+          "status": 200,
+          "ms": 65.03129999999874
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "status": 200,
+          "ms": 268.52330000000075
+        },
+        {
+          "route": "/movie/329865",
+          "status": 200,
+          "ms": 118.50849999999991
+        }
+      ],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 326.9193000000014,
+          "bytes": 5552
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 80.71399999999994,
+          "bytes": 54827
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 63.52530000000115,
+          "bytes": 51166
+        },
+        {
+          "host": "100.72.204.19",
+          "status": 200,
+          "ms": 49.851299999998446,
+          "bytes": 21338
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 92.17350000000079,
+          "bytes": 39428
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 98.1961999999985,
+          "bytes": 40259
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.82649999999921,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 81.70360000000073,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 390.7850999999973,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 389.33380000000034,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 426.40409999999974,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.40039999999863,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 71.01529999999912,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 93.31520000000091,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 126.87380000000121,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 88.37159999999858,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 161.45650000000023,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 78.47999999999956,
+          "bytes": 15612
+        }
+      ],
+      "browsing": true
+    },
+    {
+      "limit": 2,
+      "field": "rating",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 6173.137599999998,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 3297,
+      "peakRssBytes": 148385792,
+      "eventLoopP95Ms": 27.754495,
+      "warmSortMs": 0.5079400000000169,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2512.712699999998,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2488.714100000001,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 317.6860000000015,
+          "bytes": 34759
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 339.5358000000015,
+          "bytes": 31111
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 116.12289999999848,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 115.14689999999973,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 321.4785000000011,
+          "bytes": 34971
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 406.33929999999964,
+          "bytes": 40672
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.42380000000048,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 127.61200000000099,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 368.14689999999973,
+          "bytes": 34006
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 343.97869999999966,
+          "bytes": 35306
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 116.61909999999989,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.69040000000314,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 290.52980000000025,
+          "bytes": 40656
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 307.0025999999998,
+          "bytes": 32366
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 111.55259999999907,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 111.77260000000024,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 412.4991999999984,
+          "bytes": 35069
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 341.8909999999996,
+          "bytes": 35762
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.96940000000177,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 108.32789999999659,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 302.7489000000023,
+          "bytes": 39522
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 382.8850999999995,
+          "bytes": 36867
+        }
+      ]
+    },
+    {
+      "limit": 4,
+      "field": "rating",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 3970.534599999999,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 3343,
+      "peakRssBytes": 148312064,
+      "eventLoopP95Ms": 40.796159,
+      "warmSortMs": 0.32458399999999527,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2374.5041999999994,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2425.527000000002,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2398.240700000002,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2491.7668999999987,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 342.6095999999998,
+          "bytes": 31072
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 366.72290000000066,
+          "bytes": 34961
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 347.09340000000157,
+          "bytes": 34750
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 301.5891999999985,
+          "bytes": 40615
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 129.05869999999777,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 126.73899999999776,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 123.78900000000067,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 122.21540000000095,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 294.16079999999783,
+          "bytes": 32328
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 360.9136000000035,
+          "bytes": 35485
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 350.60749999999825,
+          "bytes": 40607
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 397.59820000000036,
+          "bytes": 33966
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 127.45149999999921,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 129.57300000000032,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 131.86449999999968,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 124.61880000000019,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 330.59389999999985,
+          "bytes": 35765
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 346.97169999999824,
+          "bytes": 35040
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 316.45930000000226,
+          "bytes": 36935
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 364.78180000000066,
+          "bytes": 39545
+        }
+      ]
+    },
+    {
+      "limit": 4,
+      "field": "rating",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 3989.3175999999985,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 3468,
+      "peakRssBytes": 150188032,
+      "eventLoopP95Ms": 34.275327,
+      "warmSortMs": 0.3365330000000176,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2422.5887000000002,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2387.7945,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2388.375100000001,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2407.7885000000006,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 404.6790000000001,
+          "bytes": 30990
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 422.04179999999906,
+          "bytes": 35012
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 419.4995999999992,
+          "bytes": 40585
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 422.58290000000125,
+          "bytes": 34716
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 113.38780000000042,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 140.2338000000018,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 121.05749999999898,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 118.2554999999993,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 318.70100000000093,
+          "bytes": 32328
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 368.869200000001,
+          "bytes": 33993
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 380.4268000000011,
+          "bytes": 35311
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 359.4267,
+          "bytes": 40544
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.98400000000038,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 115.75410000000193,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 115.37479999999778,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 112.17319999999745,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 324.8250999999982,
+          "bytes": 35020
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 309.5479000000014,
+          "bytes": 36920
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 305.0128000000004,
+          "bytes": 39517
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 348.77549999999974,
+          "bytes": 35757
+        }
+      ]
+    },
+    {
+      "limit": 2,
+      "field": "rating",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 5502.1903,
+      "successful": 12,
+      "values": [
+        {
+          "id": 531428,
+          "value": 4.43
+        },
+        {
+          "id": 949,
+          "value": 4.33
+        },
+        {
+          "id": 9693,
+          "value": 4.3
+        },
+        {
+          "id": 62,
+          "value": 4.23
+        },
+        {
+          "id": 845,
+          "value": 4.07
+        },
+        {
+          "id": 46633,
+          "value": 3.82
+        },
+        {
+          "id": 170,
+          "value": 3.73
+        },
+        {
+          "id": 429191,
+          "value": 3.71
+        },
+        {
+          "id": 399057,
+          "value": 3.69
+        },
+        {
+          "id": 1327819,
+          "value": 3.68
+        },
+        {
+          "id": 145197,
+          "value": 3.59
+        },
+        {
+          "id": 435615,
+          "value": 3.54
+        }
+      ],
+      "cpuMs": 3516,
+      "peakRssBytes": 150048768,
+      "eventLoopP95Ms": 24.494079,
+      "warmSortMs": 0.19989199999999982,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2485.2942999999996,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 2534.0713000000014,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 318.91400000000067,
+          "bytes": 31063
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 360.07810000000245,
+          "bytes": 34765
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 125.0025999999998,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 119.98919999999998,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 289.15899999999965,
+          "bytes": 35078
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 293.41110000000117,
+          "bytes": 40500
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 114.79669999999896,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 111.38379999999961,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 304.79119999999966,
+          "bytes": 35332
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 318.95839999999953,
+          "bytes": 33960
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 130.8283999999985,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 131.60039999999935,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 295.5015999999996,
+          "bytes": 32415
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 310.7050999999992,
+          "bytes": 40606
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 125.28289999999834,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 123.70309999999881,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 274.65109999999913,
+          "bytes": 35071
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 295.510199999997,
+          "bytes": 35832
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 109.84929999999804,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 302,
+          "ms": 118.92950000000201,
+          "bytes": 0
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 283.9528999999966,
+          "bytes": 36918
+        },
+        {
+          "host": "letterboxd.com",
+          "status": 200,
+          "ms": 281.5535999999993,
+          "bytes": 39519
+        }
+      ]
+    },
+    {
+      "limit": 2,
+      "field": "runtime",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 6589.599600000001,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 3094,
+      "peakRssBytes": 150568960,
+      "eventLoopP95Ms": 30.375935,
+      "warmSortMs": 0.2232930000000124,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2357.7317000000003,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2403.7037999999993,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 87.04559999999765,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 119.40730000000258,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 75.65380000000005,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.91189999999915,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 87.7563999999984,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 70.38750000000073,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.53139999999985,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 79.97949999999764,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.24079999999958,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 72.91400000000067,
+          "bytes": 15612
+        }
+      ]
+    },
+    {
+      "limit": 4,
+      "field": "runtime",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 3643.096099999999,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 3172,
+      "peakRssBytes": 150323200,
+      "eventLoopP95Ms": 33.259519,
+      "warmSortMs": 0.23744799999996757,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2306.8561999999984,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2294.587599999999,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2308.5154999999977,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2344.7438999999977,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.28809999999794,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 80.10440000000017,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 72.10039999999935,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 110.86230000000069,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 81.98050000000148,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 82.73890000000029,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 90.54360000000088,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 87.72989999999845,
+          "bytes": 15612
+        }
+      ]
+    },
+    {
+      "limit": 4,
+      "field": "runtime",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 4843.970499999999,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 3063,
+      "peakRssBytes": 150282240,
+      "eventLoopP95Ms": 81.788927,
+      "warmSortMs": 0.2498899999999776,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2455.4938,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2503.0673000000006,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2504.3377999999993,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2509.8080999999984,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 79.45170000000144,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 76.53090000000157,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 101.71979999999894,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 87.7605999999978,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 80.06790000000183,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 85.22009999999864,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 82.63830000000235,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 83.44870000000083,
+          "bytes": 15612
+        }
+      ]
+    },
+    {
+      "limit": 2,
+      "field": "runtime",
+      "browsing": false,
+      "titles": 12,
+      "elapsedMs": 3080.531500000001,
+      "successful": 12,
+      "values": [
+        {
+          "id": 46633,
+          "value": 91
+        },
+        {
+          "id": 145197,
+          "value": 96
+        },
+        {
+          "id": 845,
+          "value": 101
+        },
+        {
+          "id": 435615,
+          "value": 103
+        },
+        {
+          "id": 429191,
+          "value": 104
+        },
+        {
+          "id": 1327819,
+          "value": 104
+        },
+        {
+          "id": 9693,
+          "value": 109
+        },
+        {
+          "id": 170,
+          "value": 113
+        },
+        {
+          "id": 531428,
+          "value": 121
+        },
+        {
+          "id": 399057,
+          "value": 121
+        },
+        {
+          "id": 62,
+          "value": 149
+        },
+        {
+          "id": 949,
+          "value": 170
+        }
+      ],
+      "cpuMs": 3172,
+      "peakRssBytes": 148393984,
+      "eventLoopP95Ms": 61.538303,
+      "warmSortMs": 0.3583420000000115,
+      "warmup": [],
+      "baseline": [],
+      "samples": [],
+      "upstream": [
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2372.3174,
+          "bytes": 4430
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 2345.557499999999,
+          "bytes": 12783
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 73.54839999999967,
+          "bytes": 32335
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 133.63130000000092,
+          "bytes": 14693
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 59.55620000000272,
+          "bytes": 11320
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 62.20190000000002,
+          "bytes": 10740
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 70.94289999999819,
+          "bytes": 32216
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 64.57670000000144,
+          "bytes": 6421
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 65.2622999999985,
+          "bytes": 16125
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 83.90330000000176,
+          "bytes": 20761
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 61.54460000000108,
+          "bytes": 15456
+        },
+        {
+          "host": "api.themoviedb.org",
+          "status": 200,
+          "ms": 58.98040000000037,
+          "bytes": 15612
+        }
+      ]
+    }
+  ],
+  "productionSourceUnchanged": true
+}

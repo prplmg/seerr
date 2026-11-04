@@ -1,0 +1,208 @@
+{
+  "build": "moKy4UU8ntkn_SPxP3ica",
+  "trials": 24,
+  "titlesPerTrial": 12,
+  "lookups": 288,
+  "missingResults": 0,
+  "httpFailures": 0,
+  "productionSourceUnchanged": true,
+  "groups": [
+    {
+      "browsing": true,
+      "field": "rating",
+      "limit": 2,
+      "trials": 4,
+      "medianMs": 3862.5038999999997,
+      "minMs": 3738.2379,
+      "maxMs": 4016.662400000001,
+      "warmSortMedianMs": 0.28999600000001013,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "samples": 20,
+          "baselineMedianMs": 32.897650000000795,
+          "loadedMedianMs": 46.76429999999891,
+          "loadedP95Ms": 57.37350000000151
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "samples": 17,
+          "baselineMedianMs": 232.15430000000015,
+          "loadedMedianMs": 225.72750000000087,
+          "loadedP95Ms": 262.39350000000195
+        },
+        {
+          "route": "/movie/329865",
+          "samples": 16,
+          "baselineMedianMs": 66.16879999999946,
+          "loadedMedianMs": 68.59884999999849,
+          "loadedP95Ms": 83.69279999999708
+        },
+        {
+          "route": "/tv/87108",
+          "samples": 16,
+          "baselineMedianMs": 104.75805000000037,
+          "loadedMedianMs": 112.27730000000156,
+          "loadedP95Ms": 143.76900000000023
+        }
+      ]
+    },
+    {
+      "browsing": true,
+      "field": "rating",
+      "limit": 4,
+      "trials": 4,
+      "medianMs": 3527.0522,
+      "minMs": 2488.3850999999995,
+      "maxMs": 3861.3533000000025,
+      "warmSortMedianMs": 0.25353400000001786,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "samples": 12,
+          "baselineMedianMs": 33.88954999999805,
+          "loadedMedianMs": 57.355249999998705,
+          "loadedP95Ms": 74.05719999999928
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "samples": 11,
+          "baselineMedianMs": 219.722749999999,
+          "loadedMedianMs": 246.5027999999984,
+          "loadedP95Ms": 314.2329000000027
+        },
+        {
+          "route": "/movie/329865",
+          "samples": 8,
+          "baselineMedianMs": 65.59189999999944,
+          "loadedMedianMs": 67.49174999999923,
+          "loadedP95Ms": 94.49790000000212
+        },
+        {
+          "route": "/tv/87108",
+          "samples": 8,
+          "baselineMedianMs": 106.47890000000007,
+          "loadedMedianMs": 124.58404999999766,
+          "loadedP95Ms": 141.16859999999724
+        }
+      ]
+    },
+    {
+      "browsing": true,
+      "field": "runtime",
+      "limit": 2,
+      "trials": 4,
+      "medianMs": 1464.7172500000015,
+      "minMs": 936.2035999999971,
+      "maxMs": 1717.1132000000034,
+      "warmSortMedianMs": 0.2166229999999814,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "samples": 8,
+          "baselineMedianMs": 32.847350000001825,
+          "loadedMedianMs": 48.12655000000086,
+          "loadedP95Ms": 171.8126000000011
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "samples": 4,
+          "baselineMedianMs": 217.24790000000212,
+          "loadedMedianMs": 243.07185000000027,
+          "loadedP95Ms": 258.3650000000016
+        },
+        {
+          "route": "/movie/329865",
+          "samples": 4,
+          "baselineMedianMs": 65.70360000000073,
+          "loadedMedianMs": 94.48895000000084,
+          "loadedP95Ms": 124.70499999999811
+        },
+        {
+          "route": "/tv/87108",
+          "samples": 4,
+          "baselineMedianMs": 102.83749999999964,
+          "loadedMedianMs": 111.51360000000022,
+          "loadedP95Ms": 135.74159999999756
+        }
+      ]
+    },
+    {
+      "browsing": true,
+      "field": "runtime",
+      "limit": 4,
+      "trials": 4,
+      "medianMs": 1132.5118000000002,
+      "minMs": 790.0116999999991,
+      "maxMs": 1543.2890000000007,
+      "warmSortMedianMs": 0.21072299999999813,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "samples": 4,
+          "baselineMedianMs": 33.049049999999625,
+          "loadedMedianMs": 71.51850000000013,
+          "loadedP95Ms": 198.49659999999858
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "samples": 4,
+          "baselineMedianMs": 223.452299999999,
+          "loadedMedianMs": 250.23049999999967,
+          "loadedP95Ms": 268.52330000000075
+        },
+        {
+          "route": "/movie/329865",
+          "samples": 4,
+          "baselineMedianMs": 63.24399999999878,
+          "loadedMedianMs": 126.82934999999998,
+          "loadedP95Ms": 211.02369999999792
+        }
+      ]
+    },
+    {
+      "browsing": false,
+      "field": "rating",
+      "limit": 2,
+      "trials": 2,
+      "medianMs": 5837.663949999999,
+      "minMs": 5502.1903,
+      "maxMs": 6173.137599999998,
+      "warmSortMedianMs": 0.3539160000000084,
+      "routes": []
+    },
+    {
+      "browsing": false,
+      "field": "rating",
+      "limit": 4,
+      "trials": 2,
+      "medianMs": 3979.9260999999988,
+      "minMs": 3970.534599999999,
+      "maxMs": 3989.3175999999985,
+      "warmSortMedianMs": 0.3305585000000064,
+      "routes": []
+    },
+    {
+      "browsing": false,
+      "field": "runtime",
+      "limit": 2,
+      "trials": 2,
+      "medianMs": 4835.065550000001,
+      "minMs": 3080.531500000001,
+      "maxMs": 6589.599600000001,
+      "warmSortMedianMs": 0.29081750000001194,
+      "routes": []
+    },
+    {
+      "browsing": false,
+      "field": "runtime",
+      "limit": 4,
+      "trials": 2,
+      "medianMs": 4243.533299999999,
+      "minMs": 3643.096099999999,
+      "maxMs": 4843.970499999999,
+      "warmSortMedianMs": 0.2436689999999726,
+      "routes": []
+    }
+  ]
+}
