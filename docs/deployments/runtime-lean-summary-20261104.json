@@ -1,0 +1,618 @@
+{
+  "build": "T0OFnmdW2SldlD1rCsYZ4",
+  "trials": 24,
+  "groups": [
+    {
+      "browsing": true,
+      "variant": "full",
+      "limit": 2,
+      "trials": 4,
+      "medianMs": 9873.379399999998,
+      "minMs": 9564.066700000003,
+      "maxMs": 14180.528000000002,
+      "medianUpstreamBytes": 1333770.5,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 35,
+          "medianMs": 40.07839999999851,
+          "p95Ms": 134.79190000000017,
+          "maxMs": 230.125,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 35,
+          "medianMs": 216.88260000000082,
+          "p95Ms": 764.9372999999978,
+          "maxMs": 1502.2088000000003,
+          "over1000": 1
+        },
+        {
+          "route": "/movie/329865",
+          "count": 35,
+          "medianMs": 74.46949999999924,
+          "p95Ms": 102.54669999999896,
+          "maxMs": 105.68049999999857,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 33,
+          "medianMs": 107.14359999999942,
+          "p95Ms": 932.0757999999987,
+          "maxMs": 1245.9518999999964,
+          "over1000": 1
+        }
+      ]
+    },
+    {
+      "browsing": true,
+      "variant": "full",
+      "limit": 4,
+      "trials": 4,
+      "medianMs": 9407.279750000002,
+      "minMs": 3438.8220999999976,
+      "maxMs": 10348.467399999998,
+      "medianUpstreamBytes": 1333770.5,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 16,
+          "medianMs": 65.76015000000007,
+          "p95Ms": 1694.3627000000015,
+          "maxMs": 1694.3627000000015,
+          "over1000": 1
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 16,
+          "medianMs": 239.44530000000123,
+          "p95Ms": 1445.2321999999986,
+          "maxMs": 1445.2321999999986,
+          "over1000": 1
+        },
+        {
+          "route": "/movie/329865",
+          "count": 15,
+          "medianMs": 123.34189999999944,
+          "p95Ms": 304.5635000000002,
+          "maxMs": 304.5635000000002,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 14,
+          "medianMs": 143.08694999999898,
+          "p95Ms": 246.3846999999987,
+          "maxMs": 246.3846999999987,
+          "over1000": 0
+        }
+      ]
+    },
+    {
+      "browsing": true,
+      "variant": "lean",
+      "limit": 2,
+      "trials": 4,
+      "medianMs": 9944.113450000003,
+      "minMs": 8673.683399999998,
+      "maxMs": 13430.5785,
+      "medianUpstreamBytes": 295122.0,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 28,
+          "medianMs": 38.46214999999938,
+          "p95Ms": 55.46249999999782,
+          "maxMs": 64.72960000000239,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 28,
+          "medianMs": 220.22249999999804,
+          "p95Ms": 298.3156999999992,
+          "maxMs": 772.0771000000022,
+          "over1000": 0
+        },
+        {
+          "route": "/movie/329865",
+          "count": 26,
+          "medianMs": 81.4648500000003,
+          "p95Ms": 111.08139999999912,
+          "maxMs": 336.2978000000003,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 25,
+          "medianMs": 108.26829999999973,
+          "p95Ms": 289.35359999999855,
+          "maxMs": 2297.183200000003,
+          "over1000": 1
+        }
+      ]
+    },
+    {
+      "browsing": true,
+      "variant": "lean",
+      "limit": 4,
+      "trials": 4,
+      "medianMs": 6235.790949999999,
+      "minMs": 4178.488799999999,
+      "maxMs": 10796.919299999998,
+      "medianUpstreamBytes": 295133.5,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 18,
+          "medianMs": 39.57155000000057,
+          "p95Ms": 69.54409999999916,
+          "maxMs": 69.54409999999916,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 16,
+          "medianMs": 228.20539999999892,
+          "p95Ms": 288.8826999999983,
+          "maxMs": 288.8826999999983,
+          "over1000": 0
+        },
+        {
+          "route": "/movie/329865",
+          "count": 15,
+          "medianMs": 92.50190000000293,
+          "p95Ms": 1076.9879,
+          "maxMs": 1076.9879,
+          "over1000": 1
+        },
+        {
+          "route": "/tv/87108",
+          "count": 15,
+          "medianMs": 134.38160000000062,
+          "p95Ms": 3312.6553999999996,
+          "maxMs": 3312.6553999999996,
+          "over1000": 1
+        }
+      ]
+    },
+    {
+      "browsing": false,
+      "variant": "full",
+      "limit": 2,
+      "trials": 2,
+      "medianMs": 11676.026699999999,
+      "minMs": 10975.811299999998,
+      "maxMs": 12376.2421,
+      "medianUpstreamBytes": 1120795.5,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/movie/329865",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        }
+      ]
+    },
+    {
+      "browsing": false,
+      "variant": "full",
+      "limit": 4,
+      "trials": 2,
+      "medianMs": 7928.8602,
+      "minMs": 7171.510200000002,
+      "maxMs": 8686.210199999998,
+      "medianUpstreamBytes": 1120757.0,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/movie/329865",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        }
+      ]
+    },
+    {
+      "browsing": false,
+      "variant": "lean",
+      "limit": 2,
+      "trials": 2,
+      "medianMs": 11282.941299999999,
+      "minMs": 10391.5629,
+      "maxMs": 12174.319699999998,
+      "medianUpstreamBytes": 82257.0,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/movie/329865",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        }
+      ]
+    },
+    {
+      "browsing": false,
+      "variant": "lean",
+      "limit": 4,
+      "trials": 2,
+      "medianMs": 9907.645950000002,
+      "minMs": 6813.141300000001,
+      "maxMs": 13002.1506,
+      "medianUpstreamBytes": 82257.0,
+      "routes": [
+        {
+          "route": "/discover/movies?page=1",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/discovery-lists/feed?section=recommendations&offset=0",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/movie/329865",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        },
+        {
+          "route": "/tv/87108",
+          "count": 0,
+          "medianMs": null,
+          "p95Ms": null,
+          "maxMs": null,
+          "over1000": 0
+        }
+      ]
+    }
+  ],
+  "valuesIdentical": true,
+  "shortGroups": [
+    {
+      "variant": "full",
+      "trials": 4,
+      "medianMs": 11541.0706,
+      "medianFirstPageMs": 7971.292649999999,
+      "medianBytes": 1120650.0
+    },
+    {
+      "variant": "lean",
+      "trials": 4,
+      "medianMs": 9892.91025,
+      "medianFirstPageMs": 7037.3674999999985,
+      "medianBytes": 82037.0
+    }
+  ],
+  "shortPagesIdentical": true,
+  "httpErrors": [
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "lean",
+      "limit": 4,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    },
+    {
+      "variant": "full",
+      "limit": 2,
+      "status": 404
+    }
+  ]
+}
