@@ -1,0 +1,1518 @@
+{
+  "date": "2026-11-04",
+  "readOnly": true,
+  "cTotalBytes": 60714643456,
+  "cFreeBytes": 4439605248,
+  "pagefileAllocatedBytes": 1251823616,
+  "hibernationBytes": 2513313792,
+  "catalogueDirectoryBytes": 9417929018,
+  "todayBuildAndReleaseBytes": 246070707,
+  "note": "File-size inventory skips reparse links; hardlinks in this allocation scan are not globally deduplicated. Counts are approximate occupied payload, not guaranteed reclaimable bytes. No deletion; no before-date baseline proving the complete recent free-space delta.",
+  "catalogueDirectories": [
+    {
+      "Path": "C:\\ProgramData\\Seerr\\app",
+      "Logical": 887121106,
+      "Allocated": 887121106,
+      "Files": 86621,
+      "Skipped": 5293
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\performance-capture-cvPXC8",
+      "Logical": 714539574,
+      "Allocated": 714539574,
+      "Files": 27,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-NsqwSA",
+      "Logical": 303300545,
+      "Allocated": 303300545,
+      "Files": 16484,
+      "Skipped": 3
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-4z6I9k",
+      "Logical": 303300545,
+      "Allocated": 303300545,
+      "Files": 16484,
+      "Skipped": 3
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-QdSVbA",
+      "Logical": 292743493,
+      "Allocated": 292743493,
+      "Files": 15601,
+      "Skipped": 3
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-deferral-MzPL5g",
+      "Logical": 165260486,
+      "Allocated": 165260486,
+      "Files": 6532,
+      "Skipped": 38
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-20261023-b",
+      "Logical": 145531173,
+      "Allocated": 145531173,
+      "Files": 6308,
+      "Skipped": 64
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-20261023-a",
+      "Logical": 144687588,
+      "Allocated": 144687588,
+      "Files": 6306,
+      "Skipped": 64
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-stage",
+      "Logical": 104428252,
+      "Allocated": 104428252,
+      "Files": 5937,
+      "Skipped": 62
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\node",
+      "Logical": 99511443,
+      "Allocated": 99511443,
+      "Files": 2032,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\logs",
+      "Logical": 86304625,
+      "Allocated": 86317406,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\twoway-release-20261018",
+      "Logical": 73032444,
+      "Allocated": 73032444,
+      "Files": 2108,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022220515258-15153-release",
+      "Logical": 72760965,
+      "Allocated": 72760965,
+      "Files": 2174,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-DUirHy",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-fvMX26",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-PmyXy9",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-cJnDdy",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-mFQqHH",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-QTJX1B",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-jVWw82",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-gHdHDm",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-benchmark-current-IWt4rr",
+      "Logical": 72715480,
+      "Allocated": 72715480,
+      "Files": 3164,
+      "Skipped": 4
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022171348513-4390-native",
+      "Logical": 72444618,
+      "Allocated": 72444618,
+      "Files": 3072,
+      "Skipped": 32
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021224821737-66521-release",
+      "Logical": 71086153,
+      "Allocated": 71086153,
+      "Files": 2105,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\tools",
+      "Logical": 69358371,
+      "Allocated": 69358371,
+      "Files": 1342,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022193053463-9646-native",
+      "Logical": 69166421,
+      "Allocated": 69166421,
+      "Files": 2719,
+      "Skipped": 32
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episode-copy-native-20261018",
+      "Logical": 67628852,
+      "Allocated": 67628852,
+      "Files": 2633,
+      "Skipped": 32
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023154856923-53874-release",
+      "Logical": 66793652,
+      "Allocated": 66793652,
+      "Files": 2192,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261104091438781-91004-release",
+      "Logical": 66137807,
+      "Allocated": 66137807,
+      "Files": 2231,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261104135754812-1043-release",
+      "Logical": 65880380,
+      "Allocated": 65880380,
+      "Files": 2223,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261028151812836-9475-release",
+      "Logical": 65452042,
+      "Allocated": 65452042,
+      "Files": 2224,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261104092709395-91826-release",
+      "Logical": 65279913,
+      "Allocated": 65279913,
+      "Files": 2219,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261031000821803-89029-release",
+      "Logical": 65010755,
+      "Allocated": 65010755,
+      "Files": 2220,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261030080745105-62238-release",
+      "Logical": 64902380,
+      "Allocated": 64902380,
+      "Files": 2216,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261030085121390-64776-release",
+      "Logical": 64887568,
+      "Allocated": 64887568,
+      "Files": 2216,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261030082030846-62763-release",
+      "Logical": 64860569,
+      "Allocated": 64860569,
+      "Files": 2214,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261028171130859-12079-release",
+      "Logical": 64620566,
+      "Allocated": 64620566,
+      "Files": 2213,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025173634436-7575-release",
+      "Logical": 64012795,
+      "Allocated": 64012795,
+      "Files": 2209,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025110410964-94562-release",
+      "Logical": 63893323,
+      "Allocated": 63893323,
+      "Files": 2211,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025080442391-81955-release",
+      "Logical": 63807059,
+      "Allocated": 63807059,
+      "Files": 2205,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261028000636651-90188-release",
+      "Logical": 63707071,
+      "Allocated": 63707071,
+      "Files": 2213,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025063215846-77855-release",
+      "Logical": 63564738,
+      "Allocated": 63564738,
+      "Files": 2206,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261026033201274-24680-release",
+      "Logical": 63269690,
+      "Allocated": 63269690,
+      "Files": 2202,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024155802816-47428-release",
+      "Logical": 63178547,
+      "Allocated": 63178547,
+      "Files": 2204,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025175745422-8615-release",
+      "Logical": 63157093,
+      "Allocated": 63157093,
+      "Files": 2201,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261026151944684-42770-release",
+      "Logical": 63152707,
+      "Allocated": 63152707,
+      "Files": 2201,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025191047550-11299-release",
+      "Logical": 63141522,
+      "Allocated": 63141522,
+      "Files": 2202,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025182619367-10109-release",
+      "Logical": 63091113,
+      "Allocated": 63091113,
+      "Files": 2200,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024083137964-33267-release",
+      "Logical": 63034920,
+      "Allocated": 63034920,
+      "Files": 2204,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023131850671-45926-release",
+      "Logical": 62802736,
+      "Allocated": 62802736,
+      "Files": 2180,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024144915591-43608-release",
+      "Logical": 62795981,
+      "Allocated": 62795981,
+      "Files": 2194,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023015607028-23852-release",
+      "Logical": 62784384,
+      "Allocated": 62784384,
+      "Files": 2152,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022210853328-12838-release",
+      "Logical": 62768106,
+      "Allocated": 62768106,
+      "Files": 2155,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023082715530-36003-release",
+      "Logical": 62346944,
+      "Allocated": 62346944,
+      "Files": 2166,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022212754946-13592-release",
+      "Logical": 62242263,
+      "Allocated": 62242263,
+      "Files": 2150,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023053352362-30401-release",
+      "Logical": 62172965,
+      "Allocated": 62172965,
+      "Files": 2160,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022232448521-18055-release",
+      "Logical": 62167350,
+      "Allocated": 62167350,
+      "Files": 2148,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022174625127-6030-release",
+      "Logical": 62122091,
+      "Allocated": 62122091,
+      "Files": 2146,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022172208816-4903-release",
+      "Logical": 62092513,
+      "Allocated": 62092513,
+      "Files": 2114,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024033000187-80237-release",
+      "Logical": 62081531,
+      "Allocated": 62081531,
+      "Files": 2195,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022180106349-6770-release",
+      "Logical": 61978583,
+      "Allocated": 61978583,
+      "Files": 2144,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\reconciliation-release-20261019",
+      "Logical": 61897706,
+      "Allocated": 61897706,
+      "Files": 2121,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023152551015-52986-release",
+      "Logical": 61806500,
+      "Allocated": 61806500,
+      "Files": 2176,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023141038108-48835-release",
+      "Logical": 61668629,
+      "Allocated": 61668629,
+      "Files": 2173,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023143600138-49975-release",
+      "Logical": 61586334,
+      "Allocated": 61586334,
+      "Files": 2169,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020233155129-24261-release",
+      "Logical": 60984594,
+      "Allocated": 60984594,
+      "Files": 2096,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021062745875-38270-release",
+      "Logical": 60917382,
+      "Allocated": 60917382,
+      "Files": 2088,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021072932298-42607-release",
+      "Logical": 60788410,
+      "Allocated": 60788410,
+      "Files": 2083,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021052756519-34730-release",
+      "Logical": 60779359,
+      "Allocated": 60779359,
+      "Files": 2082,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020160823115-9880-release",
+      "Logical": 60679366,
+      "Allocated": 60679366,
+      "Files": 2084,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020070120422-1437-release",
+      "Logical": 59662991,
+      "Allocated": 59662991,
+      "Files": 2085,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020050222957-97443-release",
+      "Logical": 59612473,
+      "Allocated": 59612473,
+      "Files": 2081,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episodes-release-20261018",
+      "Logical": 58854281,
+      "Allocated": 58854281,
+      "Files": 2064,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020044545095-96987-release",
+      "Logical": 58597161,
+      "Allocated": 58597161,
+      "Files": 2081,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\playback-latency-release-20261019",
+      "Logical": 58431965,
+      "Allocated": 58431965,
+      "Files": 2092,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020042700864-96400-release",
+      "Logical": 57907129,
+      "Allocated": 57907129,
+      "Files": 2083,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\sync-recovery-release-20261019",
+      "Logical": 57695658,
+      "Allocated": 57695658,
+      "Files": 2091,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020003233691-92345-release",
+      "Logical": 57597432,
+      "Allocated": 57597432,
+      "Files": 2080,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-entry-release-20261019",
+      "Logical": 57586815,
+      "Allocated": 57586815,
+      "Files": 2079,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-footer-release-20261019",
+      "Logical": 57556630,
+      "Allocated": 57556630,
+      "Files": 2079,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\profiles-release-20261018",
+      "Logical": 56568343,
+      "Allocated": 56568343,
+      "Files": 2020,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-episode-release-20261018",
+      "Logical": 56014890,
+      "Allocated": 56014890,
+      "Files": 2057,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\automation-release-20261018",
+      "Logical": 55678736,
+      "Allocated": 55678736,
+      "Files": 2008,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-left-release-20261018",
+      "Logical": 52724762,
+      "Allocated": 52724762,
+      "Files": 1683,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-spacing-release-20261018",
+      "Logical": 52724256,
+      "Allocated": 52724256,
+      "Files": 1684,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episode-scroll-release-20261018",
+      "Logical": 52722514,
+      "Allocated": 52722514,
+      "Files": 1684,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-grid-release-20261018",
+      "Logical": 52708419,
+      "Allocated": 52708419,
+      "Files": 1687,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-tight-release-20261018",
+      "Logical": 52705273,
+      "Allocated": 52705273,
+      "Files": 1685,
+      "Skipped": 31
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\data",
+      "Logical": 21600158,
+      "Allocated": 21624585,
+      "Files": 153,
+      "Skipped": 2
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261104135754812-1043-native",
+      "Logical": 16263699,
+      "Allocated": 16263699,
+      "Files": 1043,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261104092709395-91826-native",
+      "Logical": 16254511,
+      "Allocated": 16254511,
+      "Files": 1042,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261104091438781-91004-native",
+      "Logical": 16254397,
+      "Allocated": 16254397,
+      "Files": 1042,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261031000821803-89029-native",
+      "Logical": 16233247,
+      "Allocated": 16233247,
+      "Files": 1040,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261030085121390-64776-native",
+      "Logical": 16229038,
+      "Allocated": 16229038,
+      "Files": 1039,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261030082030846-62763-native",
+      "Logical": 16227427,
+      "Allocated": 16227427,
+      "Files": 1038,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261030080745105-62238-native",
+      "Logical": 16226538,
+      "Allocated": 16226538,
+      "Files": 1038,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261028171130859-12079-native",
+      "Logical": 16221206,
+      "Allocated": 16221206,
+      "Files": 1038,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261028151812836-9475-native",
+      "Logical": 16220737,
+      "Allocated": 16220737,
+      "Files": 1037,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261028000636651-90188-native",
+      "Logical": 16197253,
+      "Allocated": 16197253,
+      "Files": 1031,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261026151944684-42770-native",
+      "Logical": 16189489,
+      "Allocated": 16189489,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261026033201274-24680-native",
+      "Logical": 16188638,
+      "Allocated": 16188638,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025182619367-10109-native",
+      "Logical": 16187773,
+      "Allocated": 16187773,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025191047550-11299-native",
+      "Logical": 16187661,
+      "Allocated": 16187661,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025175745422-8615-native",
+      "Logical": 16187635,
+      "Allocated": 16187635,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025173634436-7575-native",
+      "Logical": 16187127,
+      "Allocated": 16187127,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025110410964-94562-native",
+      "Logical": 16182215,
+      "Allocated": 16182215,
+      "Files": 1029,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025080442391-81955-native",
+      "Logical": 16171355,
+      "Allocated": 16171355,
+      "Files": 1026,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261025063215846-77855-native",
+      "Logical": 16170394,
+      "Allocated": 16170394,
+      "Files": 1026,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024155802816-47428-native",
+      "Logical": 16120480,
+      "Allocated": 16120480,
+      "Files": 1019,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024144915591-43608-native",
+      "Logical": 16117352,
+      "Allocated": 16117352,
+      "Files": 1018,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024083137964-33267-native",
+      "Logical": 16117265,
+      "Allocated": 16117265,
+      "Files": 1018,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261024033000187-80237-native",
+      "Logical": 16092916,
+      "Allocated": 16092916,
+      "Files": 1014,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023154856923-53874-native",
+      "Logical": 16062395,
+      "Allocated": 16062395,
+      "Files": 1004,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023152551015-52986-native",
+      "Logical": 16059427,
+      "Allocated": 16059427,
+      "Files": 1004,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023143600138-49975-native",
+      "Logical": 16057702,
+      "Allocated": 16057702,
+      "Files": 1004,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023141038108-48835-native",
+      "Logical": 16056079,
+      "Allocated": 16056079,
+      "Files": 1003,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023131850671-45926-native",
+      "Logical": 16053287,
+      "Allocated": 16053287,
+      "Files": 1002,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023082715530-36003-native",
+      "Logical": 16025683,
+      "Allocated": 16025683,
+      "Files": 998,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023053352362-30401-native",
+      "Logical": 15744607,
+      "Allocated": 15744607,
+      "Files": 995,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261023015607028-23852-native",
+      "Logical": 15743455,
+      "Allocated": 15743455,
+      "Files": 995,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022232448521-18055-native",
+      "Logical": 15738665,
+      "Allocated": 15738665,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022220515258-15153-native",
+      "Logical": 15737206,
+      "Allocated": 15737206,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022212754946-13592-native",
+      "Logical": 15736504,
+      "Allocated": 15736504,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022210853328-12838-native",
+      "Logical": 15734370,
+      "Allocated": 15734370,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022180106349-6770-native",
+      "Logical": 15718788,
+      "Allocated": 15718788,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022174625127-6030-native",
+      "Logical": 15717977,
+      "Allocated": 15717977,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022172208816-4903-native",
+      "Logical": 15717888,
+      "Allocated": 15717888,
+      "Files": 994,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021224821737-66521-native",
+      "Logical": 15599927,
+      "Allocated": 15599927,
+      "Files": 977,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021072932298-42607-native",
+      "Logical": 15070654,
+      "Allocated": 15070654,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021062745875-38270-native",
+      "Logical": 15069651,
+      "Allocated": 15069651,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261021052756519-34730-native",
+      "Logical": 15064829,
+      "Allocated": 15064829,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020233155129-24261-native",
+      "Logical": 15063763,
+      "Allocated": 15063763,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020160823115-9880-native",
+      "Logical": 15050674,
+      "Allocated": 15050674,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020070120422-1437-native",
+      "Logical": 15048485,
+      "Allocated": 15048485,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020050222957-97443-native",
+      "Logical": 15046028,
+      "Allocated": 15046028,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020044545095-96987-native",
+      "Logical": 15046007,
+      "Allocated": 15046007,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020042700864-96400-native",
+      "Logical": 15045990,
+      "Allocated": 15045990,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261020003233691-92345-native",
+      "Logical": 15045531,
+      "Allocated": 15045531,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\playback-latency-native-20261019",
+      "Logical": 15045513,
+      "Allocated": 15045513,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-footer-native-20261019",
+      "Logical": 15039399,
+      "Allocated": 15039399,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\sync-recovery-native-20261019",
+      "Logical": 15037872,
+      "Allocated": 15037872,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\reconciliation-native-20261019",
+      "Logical": 15035703,
+      "Allocated": 15035703,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-entry-native-20261019",
+      "Logical": 15035490,
+      "Allocated": 15035490,
+      "Files": 975,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episode-scroll-native-20261018",
+      "Logical": 14960824,
+      "Allocated": 14960824,
+      "Files": 954,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-spacing-native-20261018",
+      "Logical": 14960565,
+      "Allocated": 14960565,
+      "Files": 954,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-left-native-20261018",
+      "Logical": 14960555,
+      "Allocated": 14960555,
+      "Files": 954,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-grid-native-20261018",
+      "Logical": 14960487,
+      "Allocated": 14960487,
+      "Files": 954,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-episode-native-20261018",
+      "Logical": 14960399,
+      "Allocated": 14960399,
+      "Files": 954,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\avatar-tight-native-20261018",
+      "Logical": 14960285,
+      "Allocated": 14960285,
+      "Files": 954,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episode-links-native-20261018",
+      "Logical": 14956135,
+      "Allocated": 14956135,
+      "Files": 950,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episodes-native-20261018",
+      "Logical": 14956070,
+      "Allocated": 14956070,
+      "Files": 950,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\verified-deletions-native-20261018",
+      "Logical": 14931564,
+      "Allocated": 14931564,
+      "Files": 943,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\write-recovery-native-20261018",
+      "Logical": 14929974,
+      "Allocated": 14929974,
+      "Files": 942,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\twoway-native-20261018",
+      "Logical": 14923700,
+      "Allocated": 14923700,
+      "Files": 941,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\social-stage",
+      "Logical": 14823735,
+      "Allocated": 14823735,
+      "Files": 853,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\writepilot-native-20261018",
+      "Logical": 14785042,
+      "Allocated": 14785042,
+      "Files": 921,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\recovery-native-20261018",
+      "Logical": 14767026,
+      "Allocated": 14767026,
+      "Files": 919,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\profiles-native-20261018",
+      "Logical": 14765099,
+      "Allocated": 14765099,
+      "Files": 919,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\automation-native-20261018",
+      "Logical": 14756287,
+      "Allocated": 14756287,
+      "Files": 918,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\attribution-menu-native-20261016",
+      "Logical": 14591147,
+      "Allocated": 14591147,
+      "Files": 882,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\attribution-native-20261016",
+      "Logical": 14590437,
+      "Allocated": 14590437,
+      "Files": 882,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\profiles-series-native-20261016",
+      "Logical": 14573737,
+      "Allocated": 14573737,
+      "Files": 880,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\profiles-native-20261016",
+      "Logical": 14573163,
+      "Allocated": 14573163,
+      "Files": 880,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\letterboxd-native-20261016",
+      "Logical": 14560181,
+      "Allocated": 14560181,
+      "Files": 877,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-native",
+      "Logical": 14539180,
+      "Allocated": 14539180,
+      "Files": 875,
+      "Skipped": 1
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\power-recovery-20261024173403639",
+      "Logical": 11279933,
+      "Allocated": 11279933,
+      "Files": 44,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\series-feed-benchmark-gkAYvw",
+      "Logical": 9847093,
+      "Allocated": 9847093,
+      "Files": 930,
+      "Skipped": 6
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\series-feed-benchmark-GOoPHi",
+      "Logical": 9817970,
+      "Allocated": 9817970,
+      "Files": 926,
+      "Skipped": 6
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-relay",
+      "Logical": 7877528,
+      "Allocated": 7877528,
+      "Files": 2224,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\export-diagnostic-F3gAqM",
+      "Logical": 5838567,
+      "Allocated": 5838567,
+      "Files": 46,
+      "Skipped": 2
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\export-diagnostic-4V02GG",
+      "Logical": 5368971,
+      "Allocated": 5368971,
+      "Files": 30,
+      "Skipped": 2
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\export-diagnostic-1792472446388",
+      "Logical": 4049199,
+      "Allocated": 4049199,
+      "Files": 17,
+      "Skipped": 2
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\writepilot-release-20261018",
+      "Logical": 3379908,
+      "Allocated": 3379908,
+      "Files": 346,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\recovery-release-20261018",
+      "Logical": 3360440,
+      "Allocated": 3360440,
+      "Files": 343,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\write-recovery-release-20261018",
+      "Logical": 3101438,
+      "Allocated": 3101438,
+      "Files": 367,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episode-links-fix-20261018",
+      "Logical": 3062110,
+      "Allocated": 3062110,
+      "Files": 370,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-007",
+      "Logical": 3032293,
+      "Allocated": 3032293,
+      "Files": 23,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\verified-deletions-release-20261018",
+      "Logical": 3026470,
+      "Allocated": 3026470,
+      "Files": 369,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\qbit-before-deduplicate-20261021-150421",
+      "Logical": 2711603,
+      "Allocated": 2711603,
+      "Files": 106,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-003",
+      "Logical": 1813509,
+      "Allocated": 1813509,
+      "Files": 24,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\discovery-parser-10",
+      "Logical": 1731585,
+      "Allocated": 1731585,
+      "Files": 327,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-002",
+      "Logical": 1690609,
+      "Allocated": 1690609,
+      "Files": 14,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\release-009",
+      "Logical": 1338983,
+      "Allocated": 1338983,
+      "Files": 20,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\release-008",
+      "Logical": 1337493,
+      "Allocated": 1337493,
+      "Files": 20,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\release-012",
+      "Logical": 1197012,
+      "Allocated": 1197012,
+      "Files": 11,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022171348513-4390-release",
+      "Logical": 1123746,
+      "Allocated": 1123746,
+      "Files": 32,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\expanded-reviews-release-20261017",
+      "Logical": 968875,
+      "Allocated": 968875,
+      "Files": 19,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\profiles-release-20261016",
+      "Logical": 887336,
+      "Allocated": 887336,
+      "Files": 24,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\watch-party-detection-fix",
+      "Logical": 822138,
+      "Allocated": 822138,
+      "Files": 7,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\letterboxd-release-20261016",
+      "Logical": 726695,
+      "Allocated": 726695,
+      "Files": 11,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\reviews-approval-release-20261016b",
+      "Logical": 715871,
+      "Allocated": 715871,
+      "Files": 36,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\reviews-approval-release-20261016",
+      "Logical": 714129,
+      "Allocated": 714129,
+      "Files": 35,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\profiles-series-release-20261016",
+      "Logical": 451380,
+      "Allocated": 451380,
+      "Files": 7,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\polish-release-20261017",
+      "Logical": 399488,
+      "Allocated": 399488,
+      "Files": 18,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\attribution-release-20261016",
+      "Logical": 307144,
+      "Allocated": 307144,
+      "Files": 10,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\party-history-recovery-1792872592399",
+      "Logical": 106576,
+      "Allocated": 106576,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\reconciliation-recovery-1792864013803",
+      "Logical": 85448,
+      "Allocated": 85448,
+      "Files": 2,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-20261022193053463-9646-release",
+      "Logical": 51782,
+      "Allocated": 51782,
+      "Files": 4,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\attribution-menu-release-20261016",
+      "Logical": 48535,
+      "Allocated": 48535,
+      "Files": 7,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\admin-viewer-release-20261017",
+      "Logical": 46512,
+      "Allocated": 46512,
+      "Files": 4,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\party-completions-20261018",
+      "Logical": 43733,
+      "Allocated": 43733,
+      "Files": 1,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\episode-copy-release-20261018",
+      "Logical": 38815,
+      "Allocated": 38815,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-flow-release-20261017",
+      "Logical": 34171,
+      "Allocated": 34171,
+      "Files": 5,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-header-release-20261017",
+      "Logical": 15015,
+      "Allocated": 15015,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-spacing-release-20261017",
+      "Logical": 14960,
+      "Allocated": 14960,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-copy-release-20261017",
+      "Logical": 14918,
+      "Allocated": 14918,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-natural-release-20261017",
+      "Logical": 14886,
+      "Allocated": 14886,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-measured-release-20261017",
+      "Logical": 14883,
+      "Allocated": 14883,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\review-wrap-release-20261017",
+      "Logical": 14711,
+      "Allocated": 14711,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\source-icons-release-20261017",
+      "Logical": 7933,
+      "Allocated": 7933,
+      "Files": 3,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\catalogue-deploy.lock.powercut-20261022-2127",
+      "Logical": 125,
+      "Allocated": 125,
+      "Files": 1,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\app-unpacked",
+      "Logical": 0,
+      "Allocated": 0,
+      "Files": 0,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\node-unpacked",
+      "Logical": 0,
+      "Allocated": 0,
+      "Files": 0,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\performance-capture-89pJnl",
+      "Logical": 0,
+      "Allocated": 0,
+      "Files": 0,
+      "Skipped": 0
+    },
+    {
+      "Path": "C:\\ProgramData\\Seerr\\backups",
+      "Logical": 0,
+      "Allocated": 0,
+      "Files": 0,
+      "Skipped": 0
+    }
+  ]
+}
