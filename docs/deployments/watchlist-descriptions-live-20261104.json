@@ -1,0 +1,24 @@
+{
+  "buildId": "T0OFnmdW2SldlD1rCsYZ4",
+  "sourceHashesVerified": 2,
+  "publishingSettingsUnchanged": true,
+  "watchlistDescriptionsRemoved": true,
+  "progressEndpoint": true,
+  "unauthorizedRejected": true,
+  "invalidTicketRejected": true,
+  "lists": 3,
+  "watchlists": 2,
+  "runtimeResults": 0,
+  "progressTicketVerified": false,
+  "backup": "C:/ProgramData/Seerr/catalogue-20261104151401864-5372-release",
+  "manifest": [
+    {
+      "file": "server/routes/discoveryLists.ts",
+      "afterHash": "1f4845e7674bd7307cfae0d2fec1dd27bc758c16ff8305f8883b52f18ad145ef"
+    },
+    {
+      "file": "src/components/Discover/ListLibrary.tsx",
+      "afterHash": "0e410368172a3cd04271581830ccf13fd1227afcd9f6392ce18f543d89a1a9d6"
+    }
+  ]
+}
