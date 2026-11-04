@@ -266,8 +266,8 @@ async function finish(id: string) {
         j.state === 'blocked'
           ? 'List metadata could not be resolved after three attempts. Please retry.'
           : 'Retrying film metadata lookup…';
-      // Retain the verified snapshot: transient lookup failures must not require
-      // scraping the whole list again. Terminal retries can reuse it too.
+      // Retain snapshots between retries, but bound terminal history size.
+      if (j.state === 'blocked') delete j.snapshot;
     });
   } finally {
     processing.delete(id);

@@ -11,7 +11,7 @@ Public imports previously held the POST open while reading pages and serially ma
 - Save errors distinguish unavailable lists404 from storage/service503, with user/list/error context logged. Existing mutations remain idempotent. Past intermittent saves are not claimed fixed without evidence; future failures are diagnosable.
 - Whole-list Letterboxd rating ascending/descending and movie runtime ascending/descending, stable ties/missing values last, then20item pagination. Shared two-worker metadata queue, opt-in only, persisted cache24h successes/15m missing values, bounded30kentries. First uncached sort waits visibly for values. No extra sorting work for original order. TV runtime deliberately unknown rather than misrepresented as series duration.
 - Bottom-right poster badges for active sort and bookmark/count for Watch Together. No new row footer text. Context-specific badges only.
-- Separate lazy request for private Plex/Letterboxd watchlist cards in My lists/All. Read-only virtual lists use existing source snapshots/matching/cache; no source writes, copies, or save/edit controls. No addition to other discovery rankings. Existing authenticated-user/admin-preview scoping retained.
+- Separate independent request for private Plex/Letterboxd watchlist cards in My lists/All. Read-only virtual lists use existing source snapshots/matching/cache; no source writes, copies, or save/edit controls. No addition to other discovery rankings. Existing authenticated-user/admin-preview scoping retained.
 - Includes tested ten-minute exact-session review association and pending publication-alert persistence fix; see early-review-20261104.md. No activity logging.
 
 ## Validation
@@ -21,3 +21,8 @@ Public imports previously held the POST open while reading pages and serially ma
 ## Deployment
 
 Prepared for scoped release; completion receipt and live verification pending. Existing settings/toggles must remain unchanged. Previous live build/source preserved by deployment wrapper; no Git push.
+
+
+Initial deployment succeeded: build goGaEywcuav3qxnHzuby8, backup C:/ProgramData/Seerr/catalogue-20261104091438781-91004-release. Existing six linked publishing settings and account mappings unchanged. Eight read-only routes across users1/4 returned200; next read confirmed Plex data populated (11items for user1, at least20for user4), LB firstpages20each.
+
+Follow-up correction before completion: pending watchlists suppress the empty-state message;390/1440px fixtures now explicitly test pending-empty watchlists. The same explicit-unmapped handling also applies to owned list exports. Verified snapshots are retained between metadata retries but discarded after terminal third failure to bound retained job history.20focused import/browser tests passed, including new owned-export case; TypeScript/lint passed. Final follow-up receipt pending.

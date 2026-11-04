@@ -287,6 +287,8 @@ export async function importDiscoveryExport(
   const next: DiscoveryList[] = [];
   for (const raw of parsed) {
     const p = await canonicalOwnedList(raw, account);
+    const unmatched: UnmatchedListFilm[] = [];
+    const items = await resolveFilms(p.items, unmatched);
     next.push({
       id: listId(p.url),
       url: p.url,
@@ -297,7 +299,8 @@ export async function importDiscoveryExport(
       source: 'letterboxd',
       visibility: 'unknown',
       checkedAt: capturedAt,
-      items: await resolveFilms(p.items),
+      items,
+      unmatched,
       history: [],
     });
   }

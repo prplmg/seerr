@@ -392,7 +392,9 @@ function FilmGrid({
         </button>
       ) : !data || isValidating ? (
         <LoadingState />
-      ) : films.length === 0 && !data?.[0]?.metadataUpdating ? (
+      ) : films.length === 0 &&
+        !data?.[0]?.metadataUpdating &&
+        !data?.[0]?.watchlistsUpdating ? (
         <p>
           {t(
             'No films match these filters.',

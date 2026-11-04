@@ -359,3 +359,13 @@ it('explicit empty TMDB identity retains unmatched entries, but challenge pages 
   await assert.rejects(h.api.applyPublicList(parsed.url, parsed));
   assert.equal(JSON.stringify(h.store), previous);
 });
+
+it('owned list export also retains explicitly unmapped titles rather than blocking the account import', async () => {
+  const h = harness();
+  h.setResolve(false);
+  h.setFilmHtml('<div data-tmdb-type="movie" data-tmdb-id="">');
+  await h.api.importDiscoveryExport(1, 'alice', 'zip', 100);
+  assert.equal(h.store.lists[0].ownerId, 1);
+  assert.equal(h.store.lists[0].unmatched?.length, 1);
+  assert.equal(h.store.lists[0].items.length, 0);
+});

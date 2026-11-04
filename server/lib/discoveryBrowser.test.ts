@@ -309,7 +309,7 @@ it('metadata retry preserves verified snapshot and stops after three failures', 
       await new Promise((r) => setTimeout(r, 10));
       const filename = path.join(h.dir, 'discovery-browser.json');
       const rows = JSON.parse(fs.readFileSync(filename, 'utf8'));
-      assert.ok(rows[0].snapshot);
+      assert.equal(!!rows[0].snapshot, attempt < 3);
       assert.equal(rows[0].attempts, attempt);
       assert.equal(rows[0].state, attempt < 3 ? 'received' : 'blocked');
       rows[0].retryAt = 0;
