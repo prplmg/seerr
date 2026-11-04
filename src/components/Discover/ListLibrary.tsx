@@ -6,11 +6,12 @@ import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import useDiscovery from '@app/hooks/useDiscovery';
 import { useUser } from '@app/hooks/useUser';
-import { Transition } from '@headlessui/react';
+import { Popover, Transition } from '@headlessui/react';
 import {
   ArrowRightCircleIcon,
   BookmarkIcon,
   ClockIcon,
+  FunnelIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
@@ -289,24 +290,39 @@ function FilmGrid({
     { enabled, read, previewUserId } = useDiscovery(),
     { ref, inView } = useInView(),
     t = usePartyText();
-  const { data, error, size, setSize, isValidating } = useSWRInfinite<Page>(
-    (index, previous) =>
-      !enabled || previous?.next === null
-        ? null
-        : [
-            `${endpoint}${endpoint.includes('?') ? '&' : '?'}offset=${index === 0 ? 0 : previous!.next}`,
-            user?.id,
-            previewUserId,
-          ],
-    read,
-    {
-      revalidateFirstPage: false,
-      refreshInterval: (pages) =>
-        pages?.some((p) => p.watchlistsUpdating || p.metadataUpdating)
-          ? 5000
-          : 0,
-    }
-  );
+  const { data, error, size, setSize, isValidating, mutate } =
+    useSWRInfinite<Page>(
+      (index, previous) =>
+        !enabled || previous?.next === null
+          ? null
+          : [
+              `${endpoint}${endpoint.includes('?') ? '&' : '?'}offset=${index === 0 ? 0 : previous!.next}`,
+              user?.id,
+              previewUserId,
+            ],
+      read,
+      {
+        revalidateFirstPage: false,
+      }
+    );
+  useEffect(() => {
+    if (
+      isValidating ||
+      error ||
+      !data?.some((p) => p.watchlistsUpdating || p.metadataUpdating)
+    )
+      return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+      // Explicit per-page revalidation bypasses revalidateFirstPage:false only
+      // for pending pages. Ready pages retain their order and pagination cache.
+      void mutate(data, {
+        revalidate: (page) =>
+          !!(page?.metadataUpdating || page?.watchlistsUpdating),
+      }).catch(() => undefined);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [data, error, isValidating, mutate]);
   useEffect(() => {
     if (data?.[0]) onMetadata?.(data[0]);
   }, [data, onMetadata]);
@@ -449,9 +465,9 @@ function Library({ explore = false }: { explore?: boolean }) {
     unavailable: string[];
     unresolvedLiked: number;
   }>(
-    enabled
+    enabled && (explore || filter !== 'watchlists')
       ? [
-          `/api/v1/discovery-lists?filter=${explore ? 'discover' : filter}`,
+          `/api/v1/discovery-lists?filter=${explore ? 'discover' : filter === 'other' ? 'all' : filter}`,
           user?.id,
           previewUserId,
         ]
@@ -503,11 +519,14 @@ function Library({ explore = false }: { explore?: boolean }) {
         <div className="flex items-center gap-3">
           <select
             className={`${style} min-w-0 max-w-xs flex-1`}
+            aria-label={t('List category', 'Categoría de listas')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
             {[
               ['all', 'All', 'Todas'],
+              ['watchlists', 'Watchlists', 'Listas de seguimiento'],
+              ['other', 'Other lists', 'Otras listas'],
               ['saved', 'Saved', 'Guardadas'],
               ['created', 'Created', 'Creadas'],
               ['liked', 'Liked on Letterboxd', 'Me gustan en Letterboxd'],
@@ -614,8 +633,8 @@ function Library({ explore = false }: { explore?: boolean }) {
         />
       )}
       {!importOpen && <p role="status">{status}</p>}
-      {!explore && filter === 'all' && <MyWatchlists />}
-      {!!data?.unresolvedLiked && (
+      {!explore && ['all', 'watchlists'].includes(filter) && <MyWatchlists />}
+      {filter !== 'watchlists' && !!data?.unresolvedLiked && (
         <p className="text-gray-400">
           {data.unresolvedLiked}{' '}
           {t(
@@ -624,18 +643,19 @@ function Library({ explore = false }: { explore?: boolean }) {
           )}
         </p>
       )}
-      {data?.unavailable?.map((id) => (
-        <div key={id} className="my-3 flex items-center gap-3">
-          <span>
-            {t(
-              'A saved list is unavailable or private.',
-              'Una lista guardada no está disponible o es privada.'
-            )}
-          </span>
-          <SaveList id={id} saved={true} onChange={() => void mutate()} />
-        </div>
-      ))}
-      {error ? (
+      {filter !== 'watchlists' &&
+        data?.unavailable?.map((id) => (
+          <div key={id} className="my-3 flex items-center gap-3">
+            <span>
+              {t(
+                'A saved list is unavailable or private.',
+                'Una lista guardada no está disponible o es privada.'
+              )}
+            </span>
+            <SaveList id={id} saved={true} onChange={() => void mutate()} />
+          </div>
+        ))}
+      {filter === 'watchlists' ? null : error ? (
         <p role="alert">{t('Lists unavailable.', 'Listas no disponibles.')}</p>
       ) : !data ? (
         <LoadingState />
@@ -673,9 +693,6 @@ function MyWatchlists() {
     );
   return (
     <section className="my-6">
-      <h2 className="mb-4 text-2xl font-bold">
-        {t('Watchlists', 'Listas de seguimiento')}
-      </h2>
       {!data ? (
         <LoadingState />
       ) : (
@@ -876,34 +893,67 @@ function Details() {
             />{' '}
             {t('Unwatched', 'Sin ver')}
           </label>
+          <Popover className="relative ml-auto">
+            <Popover.Button
+              aria-label={t('Sort list', 'Ordenar lista')}
+              title={t('Sort list', 'Ordenar lista')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg border focus-visible:ring-2 focus-visible:ring-purple-400 ${sort === 'original' ? 'border-gray-600 text-purple-300' : 'border-purple-400 bg-purple-900 text-purple-100'}`}
+            >
+              <FunnelIcon className="h-5 w-5" aria-hidden="true" />
+            </Popover.Button>
+            <Popover.Panel className="absolute right-0 z-30 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-xl border border-gray-600 bg-gray-800 p-2 shadow-xl">
+              {({ close }) => (
+                <fieldset>
+                  <legend className="px-2 py-1 font-semibold">
+                    {t('Sort list', 'Ordenar lista')}
+                  </legend>
+                  {[
+                    ['original', 'List order', 'Orden de la lista'],
+                    [
+                      'rating-desc',
+                      'Letterboxd rating: highest first',
+                      'Calificación Letterboxd: mayor primero',
+                    ],
+                    [
+                      'rating-asc',
+                      'Letterboxd rating: lowest first',
+                      'Calificación Letterboxd: menor primero',
+                    ],
+                    [
+                      'runtime-asc',
+                      'Runtime: shortest first',
+                      'Duración: menor primero',
+                    ],
+                    [
+                      'runtime-desc',
+                      'Runtime: longest first',
+                      'Duración: mayor primero',
+                    ],
+                  ].map(([value, en, es]) => (
+                    <label
+                      key={value}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-3 hover:bg-gray-700"
+                    >
+                      <input
+                        type="radio"
+                        name="list-sort"
+                        value={value}
+                        checked={sort === value}
+                        onChange={() => {
+                          setSort(value);
+                          close();
+                        }}
+                        className="text-purple-500 focus:ring-purple-400"
+                      />
+                      <span>{t(en, es)}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              )}
+            </Popover.Panel>
+          </Popover>
         </div>
       </div>
-      <select
-        aria-label={t('Sort list', 'Ordenar lista')}
-        className={`${style} mb-4`}
-        value={sort}
-        onChange={(e) => setSort(e.target.value)}
-      >
-        <option value="original">{t('List order', 'Orden de la lista')}</option>
-        <option value="rating-desc">
-          {t(
-            'Letterboxd rating: highest first',
-            'Calificación Letterboxd: mayor primero'
-          )}
-        </option>
-        <option value="rating-asc">
-          {t(
-            'Letterboxd rating: lowest first',
-            'Calificación Letterboxd: menor primero'
-          )}
-        </option>
-        <option value="runtime-asc">
-          {t('Runtime: shortest first', 'Duración: menor primero')}
-        </option>
-        <option value="runtime-desc">
-          {t('Runtime: longest first', 'Duración: mayor primero')}
-        </option>
-      </select>
       <FilmGrid
         key={`${data.id}:${available}:${unwatched}:${editVersion}:${sort}`}
         endpoint={`${base}?available=${available}&unwatched=${unwatched}&revision=${editVersion}&sort=${sort}`}

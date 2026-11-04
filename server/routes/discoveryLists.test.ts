@@ -571,6 +571,7 @@ it('section pages skip unrelated rankings and send controls only on the first pa
       await h.request('/feed?section=short&runtime=90&offset=20')
     ).json();
     assert.equal(short.results.length, 15);
+    assert.ok(short.results.every((film: any) => film.listRuntime === 80));
     assert.equal(short.next, null);
     assert.equal(short.sections, undefined);
     assert.equal(short.users, undefined);

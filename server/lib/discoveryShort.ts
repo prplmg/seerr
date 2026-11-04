@@ -4,7 +4,8 @@ export async function shortWatchPage<T>(
   candidates: T[],
   offset: number,
   maximum: number,
-  runtime: (item: T) => Promise<number | null | undefined>
+  runtime: (item: T) => Promise<number | null | undefined>,
+  decorate?: (item: T, minutes: number) => T
 ) {
   const results: T[] = [];
   let cursor = offset;
@@ -15,7 +16,8 @@ export async function shortWatchPage<T>(
   ) {
     const item = candidates[cursor++];
     const minutes = await runtime(item);
-    if (minutes && minutes <= maximum) results.push(item);
+    if (minutes && minutes <= maximum)
+      results.push(decorate ? decorate(item, minutes) : item);
   }
   return { results, next: cursor < candidates.length ? cursor : null };
 }

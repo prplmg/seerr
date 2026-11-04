@@ -246,11 +246,9 @@ router.post('/import', (req, res) => {
   try {
     // Persist before replying. Repeated submissions subscribe to the same job;
     // the browser fallback and film matching no longer hold an HTTP request open.
-    return res
-      .status(202)
-      .json({
-        jobId: queueBrowserList(req.body.url.trim(), req.user!.id, true),
-      });
+    return res.status(202).json({
+      jobId: queueBrowserList(req.body.url.trim(), req.user!.id, true),
+    });
   } catch (error) {
     logger.warn('List import could not be queued', {
       label: 'Discovery lists',
@@ -530,10 +528,16 @@ router.get('/feed', async (req, res, next) => {
       if (!Number.isInteger(runtime) || runtime < 30 || runtime > 240)
         return res.sendStatus(400);
       const tmdb = new TheMovieDb();
-      shortPage = await shortWatchPage(items, offset, runtime, async (item) => {
-        const m = await tmdb.getMovie({ movieId: item.tmdbId });
-        return m.runtime;
-      });
+      shortPage = await shortWatchPage(
+        items,
+        offset,
+        runtime,
+        async (item) => {
+          const m = await tmdb.getMovie({ movieId: item.tmdbId });
+          return m.runtime;
+        },
+        (item, listRuntime) => ({ ...item, listRuntime })
+      );
     }
     if (!res.locals.discoveryPreview && !discoveryEnabled(req.user!.id))
       return res.sendStatus(404);

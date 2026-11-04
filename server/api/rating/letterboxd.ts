@@ -55,7 +55,7 @@ export function parseLetterboxdRating(
 
 const cache = new Map<
   string,
-  { value: LetterboxdRating | null; expires: number }
+  { value: LetterboxdRating | null; expires: number; verifiedAt: number }
 >();
 const pending = new Map<string, Promise<LetterboxdRating | null>>();
 
@@ -80,6 +80,7 @@ export function getLetterboxdRating(
   const request = (async () => {
     const deadline = Date.now() + 10000;
     let value = previous?.value ?? null;
+    let verifiedAt = previous?.verifiedAt ?? 0;
     let ttl = 60 * 60 * 1000;
     let known: string | null = null;
     try {
@@ -128,6 +129,7 @@ export function getLetterboxdRating(
         }
         if (rating) {
           value = rating;
+          verifiedAt = Date.now();
           ttl = 24 * 60 * 60 * 1000;
           break;
         }
@@ -138,9 +140,21 @@ export function getLetterboxdRating(
     }
     if (cache.size >= 1000 && !cache.has(key))
       cache.delete(cache.keys().next().value!);
-    cache.set(key, { value, expires: Date.now() + ttl });
+    cache.set(key, { value, expires: Date.now() + ttl, verifiedAt });
     return value;
   })().finally(() => pending.delete(key));
   pending.set(key, request);
   return request;
+}
+
+/** List refreshes must not mistake a stale fallback for a newly verified score. */
+export async function getFreshLetterboxdRating(
+  id: number,
+  mediaType: 'movie' | 'tv' = 'movie'
+) {
+  const value = await getLetterboxdRating(id, mediaType);
+  const verifiedAt = cache.get(`${mediaType}:${id}`)?.verifiedAt;
+  return verifiedAt && Date.now() - verifiedAt < 24 * 60 * 60 * 1000
+    ? value
+    : null;
 }

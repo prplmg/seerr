@@ -1,7 +1,11 @@
 import axios from 'axios';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { getLetterboxdRating, parseLetterboxdRating } from './letterboxd';
+import {
+  getFreshLetterboxdRating,
+  getLetterboxdRating,
+  parseLetterboxdRating,
+} from './letterboxd';
 
 const movie = {
   '@type': 'Movie',
@@ -149,4 +153,22 @@ test('rejects mapped page for the wrong media identity and ignores unsafe mapped
     null
   );
   assert(!calls.some((c) => c.includes('localhost')));
+});
+
+test('list refresh distinguishes fresh scores from preserved stale fallback after a network failure', async (t) => {
+  let now = 1_800_000_000_000;
+  let failed = false;
+  t.mock.method(Date, 'now', () => now);
+  t.mock.method(axios, 'get', async () => {
+    if (failed) throw Error('offline');
+    return { data: html(movie) };
+  });
+  assert.equal((await getFreshLetterboxdRating(990031))?.score, 3.91);
+  now += 7 * 86400000;
+  failed = true;
+  assert.equal(await getFreshLetterboxdRating(990031), null);
+  assert.equal((await getLetterboxdRating(990031))?.score, 3.91);
+  now += 6 * 60000;
+  failed = false;
+  assert.equal((await getFreshLetterboxdRating(990031))?.score, 3.91);
 });

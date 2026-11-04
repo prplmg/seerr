@@ -1,4 +1,4 @@
-import { getLetterboxdRating } from '@server/api/rating/letterboxd';
+import { getFreshLetterboxdRating } from '@server/api/rating/letterboxd';
 import TheMovieDb from '@server/api/themoviedb';
 import logger from '@server/logger';
 import { appDataPath } from '@server/utils/appDataVolume';
@@ -39,6 +39,21 @@ function persist() {
     if (fs.existsSync(temp)) fs.unlinkSync(temp);
   }
 }
+export function refreshedListValue(
+  field: 'rating' | 'runtime',
+  previous: Value | undefined,
+  value: number | null,
+  now = Date.now()
+): Value {
+  return {
+    value: value ?? previous?.value ?? null,
+    until:
+      now +
+      (value === null
+        ? 15 * 60_000
+        : (field === 'rating' ? 7 : 1) * 24 * 3600_000),
+  };
+}
 function pump() {
   while (active < 2 && queue.length) {
     const task = queue.shift()!;
@@ -48,7 +63,7 @@ function pump() {
       try {
         if (task.field === 'rating')
           value =
-            (await getLetterboxdRating(task.film.tmdbId, task.film.type))
+            (await getFreshLetterboxdRating(task.film.tmdbId, task.film.type))
               ?.score ?? null;
         else if (task.film.type === 'movie')
           value =
@@ -59,10 +74,10 @@ function pump() {
       }
       if (values.size >= 30000 && !values.has(task.key))
         values.delete(values.keys().next().value!);
-      values.set(task.key, {
-        value,
-        until: Date.now() + (value === null ? 15 * 60_000 : 24 * 3600_000),
-      });
+      values.set(
+        task.key,
+        refreshedListValue(task.field, values.get(task.key), value)
+      );
       dirty++;
       if (dirty >= 25) persist();
     })().finally(() => {
