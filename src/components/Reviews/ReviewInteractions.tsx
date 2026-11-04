@@ -25,15 +25,17 @@ export default function ReviewInteractions({
   reviewId,
   viewerId,
   summary,
+  threadOnly = false,
   onChanged,
 }: {
+  threadOnly?: boolean;
   reviewId: string;
   viewerId?: number;
   summary?: InteractionSummary;
   onChanged: () => unknown;
 }) {
   const t = usePartyText(),
-    [open, setOpen] = useState(false),
+    [open, setOpen] = useState(threadOnly),
     [picker, setPicker] = useState<string | null>(null),
     [page, setPage] = useState(1),
     [draft, setDraft] = useState(''),
@@ -74,7 +76,7 @@ export default function ReviewInteractions({
       aria-label={t('Review interactions', 'Interacciones de la reseña')}
       className="mt-4 min-w-0 border-t border-gray-700 pt-3"
     >
-      <div className="flex items-center gap-2">
+      <div className={threadOnly ? 'hidden' : 'flex items-center gap-2'}>
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [&>button]:shrink-0">
           {summary?.reactions.map((r) => (
             <button

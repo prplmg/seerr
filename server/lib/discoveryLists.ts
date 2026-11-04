@@ -52,6 +52,8 @@ export function visibleList(
   now = Date.now()
 ) {
   return (
+    list.url?.replace(/\/$/, '').toLowerCase() !==
+      'https://letterboxd.com/o_zero/list/short-films-on-youtube' &&
     !list.unavailable &&
     !list.deletedAt &&
     (list.ownerId === userId ||

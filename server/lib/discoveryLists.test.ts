@@ -305,3 +305,25 @@ it('large lists have lower activity scores; diversity changes rank without dropp
   );
   assert.deepEqual(diversify(ranked, [large]), ranked);
 });
+
+it('excludes o_zero’s YouTube list for every viewer but keeps other lists visible', () => {
+  const blocked = list({
+    visibility: 'public',
+    url: 'https://letterboxd.com/o_zero/list/short-films-on-youtube/',
+    checkedAt: now,
+  });
+  for (const viewer of [1, 2]) {
+    assert.equal(visibleList(blocked, viewer, now), false);
+    assert.equal(
+      visibleList(
+        {
+          ...blocked,
+          url: 'https://letterboxd.com/another/list/short-films-on-youtube/',
+        },
+        viewer,
+        now
+      ),
+      true
+    );
+  }
+});

@@ -1,36 +1,140 @@
 import { usePartyText } from '@app/components/WatchParty/messages';
-import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline';
-import type { InteractionSummary } from './ReviewInteractions';
+import { Dialog } from '@headlessui/react';
+import { ChatBubbleOvalLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import axios from 'axios';
+import { Suspense, lazy, useState } from 'react';
+import ReviewInteractions, {
+  type InteractionSummary,
+} from './ReviewInteractions';
+const EmojiPicker = lazy(() => import('./EmojiPicker'));
+const pill =
+  'shrink-0 rounded-full border border-gray-600 px-2 py-1 text-purple-200 disabled:opacity-50';
 
 export default function DiscoveryReviewFooter({
-  href,
+  reviewId,
+  viewerId,
+  title,
   summary,
+  onChanged,
 }: {
-  href: string;
+  reviewId: string;
+  viewerId?: number;
+  title?: string;
   summary?: InteractionSummary;
+  onChanged: () => unknown;
 }) {
   const t = usePartyText();
+  const [sheet, setSheet] = useState<'comments' | 'picker' | null>(null);
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState('');
+  async function react(emoji: string, active: boolean) {
+    setBusy(true);
+    setError('');
+    try {
+      await axios.put(
+        '/api/v1/review-interactions/' +
+          encodeURIComponent(reviewId) +
+          '/reactions',
+        { emoji, active }
+      );
+      setSheet(null);
+      await onChanged();
+    } catch {
+      setError(
+        t(
+          'Could not update reaction. Try again.',
+          'No se pudo actualizar la reacción. Intenta de nuevo.'
+        )
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
-    <a
-      href={href}
-      className="mt-auto flex flex-none items-center gap-2 pt-2 text-sm text-purple-200"
-    >
-      <span className="mr-auto">{t('Read more', 'Leer más')}</span>
-      {summary?.reactions.slice(0, 2).map((r) => (
-        <span
-          key={r.emoji}
-          className="rounded-full border border-gray-600 px-2 py-1"
+    <div className="mt-auto flex-none pt-2 text-sm">
+      <div className="flex items-center gap-1">
+        <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+          {summary?.reactions.map((r) => (
+            <button
+              key={r.emoji}
+              className={
+                pill + (r.mine ? ' border-purple-400 bg-purple-900/40' : '')
+              }
+              disabled={busy}
+              aria-pressed={r.mine}
+              onClick={() => void react(r.emoji, !r.mine)}
+            >
+              {r.emoji} {r.count}
+            </button>
+          ))}
+        </div>
+        <button
+          className={pill}
+          disabled={busy}
+          aria-label={t('Add reaction', 'Añadir reacción')}
+          onClick={() => setSheet('picker')}
         >
-          {r.emoji} {r.count}
-        </span>
-      ))}
-      <span
-        aria-label={t('Comments', 'Comentarios')}
-        className="inline-flex items-center gap-1 rounded-full border border-gray-600 px-2 py-1"
+          ＋
+        </button>
+        <button
+          aria-label={
+            t('Comments', 'Comentarios') + ' · ' + (summary?.comments ?? 0)
+          }
+          className={pill + ' ml-auto inline-flex items-center gap-1'}
+          onClick={() => setSheet('comments')}
+        >
+          <ChatBubbleOvalLeftIcon className="h-4 w-4" />
+          {summary?.comments ?? '…'}
+        </button>
+      </div>
+      {error && !sheet && <span role="alert">{error}</span>}
+      <Dialog
+        open={sheet !== null}
+        onClose={() => setSheet(null)}
+        className="relative z-[100]"
       >
-        <ChatBubbleOvalLeftIcon className="h-4 w-4" />
-        {summary?.comments ?? '…'}
-      </span>
-    </a>
+        <div aria-hidden className="fixed inset-0 bg-black/60" />
+        <div className="fixed inset-0 flex items-end justify-center sm:items-center">
+          <Dialog.Panel className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-gray-600 bg-gray-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-gray-100 sm:rounded-2xl">
+            <header className="flex items-center justify-between gap-2">
+              <Dialog.Title className="text-lg font-semibold">
+                {sheet === 'comments'
+                  ? t('Comments', 'Comentarios')
+                  : t('React', 'Reaccionar')}
+                {title ? ' · ' + title : ''}
+              </Dialog.Title>
+              <button
+                aria-label={t('Close', 'Cerrar')}
+                className={pill}
+                onClick={() => setSheet(null)}
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </header>
+            {sheet === 'comments' && (
+              <ReviewInteractions
+                threadOnly
+                reviewId={reviewId}
+                viewerId={viewerId}
+                summary={summary}
+                onChanged={onChanged}
+              />
+            )}
+            {sheet === 'picker' && (
+              <Suspense
+                fallback={
+                  <span>{t('Loading emoji…', 'Cargando emojis…')}</span>
+                }
+              >
+                <fieldset disabled={busy}>
+                  <EmojiPicker onSelect={(emoji) => void react(emoji, true)} />
+                </fieldset>
+              </Suspense>
+            )}
+            {sheet && error && <p role="alert">{error}</p>}
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+    </div>
   );
 }

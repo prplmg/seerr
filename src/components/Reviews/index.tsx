@@ -664,12 +664,17 @@ export function MovieReviews({
   );
 }
 function ReviewCard({
+  viewerId,
+  onChanged,
   review,
   summary,
 }: {
+  viewerId?: number;
+  onChanged: () => unknown;
   review: Review;
   summary?: InteractionSummary;
 }) {
+  const t = usePartyText();
   const { ref, inView } = useInView({ triggerOnce: true });
   const { data } = useSWR<{
     title?: string;
@@ -726,7 +731,19 @@ function ReviewCard({
         </div>
       </div>
       <ReviewBody review={review} compact />
-      <DiscoveryReviewFooter href={reviewHref(review)} summary={summary} />
+      <Link
+        href={reviewHref(review)}
+        className="mt-auto self-start text-sm text-purple-300 hover:underline"
+      >
+        {t('Read more', 'Leer más')}
+      </Link>
+      <DiscoveryReviewFooter
+        reviewId={review.id}
+        viewerId={viewerId}
+        title={data?.title || data?.name}
+        onChanged={onChanged}
+        summary={summary}
+      />
     </article>
   );
 }
@@ -741,7 +758,9 @@ export function RecentReviews({ days = 28 }: { days?: number }) {
     .slice(0, 50)
     .map((r) => r.id)
     .join(',');
-  const { data: summaries } = useSWR<Record<string, InteractionSummary>>(
+  const { data: summaries, mutate: refresh } = useSWR<
+    Record<string, InteractionSummary>
+  >(
     ids
       ? [
           `/api/v1/review-interactions/summary?ids=${encodeURIComponent(ids)}`,
@@ -774,7 +793,13 @@ export function RecentReviews({ days = 28 }: { days?: number }) {
             'No hay reseñas en este período.'
           )}
           items={data?.results.map((r) => (
-            <ReviewCard key={r.id} review={r} summary={summaries?.[r.id]} />
+            <ReviewCard
+              viewerId={user?.id}
+              onChanged={refresh}
+              key={r.id}
+              review={r}
+              summary={summaries?.[r.id]}
+            />
           ))}
         />
       )}
