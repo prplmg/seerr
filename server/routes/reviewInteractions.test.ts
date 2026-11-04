@@ -129,6 +129,23 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
       .set('x-test-user', '1')
       .send({ emoji: '😀', active: 'yes' })
       .expect(400);
+    await request(app)
+      .put(prefix + '/reactions')
+      .set('x-test-user', '2')
+      .send({ commentId: id, emoji: '🎉', active: true })
+      .expect(204);
+    const threaded = await request(app)
+      .get(prefix + '/comments')
+      .set('x-test-user', '2')
+      .expect(200);
+    assert.deepEqual(threaded.body.results[0].reactions, [
+      { emoji: '🎉', count: 1, mine: true },
+    ]);
+    await request(app)
+      .put(prefix + '/reactions')
+      .set('x-test-user', '2')
+      .send({ commentId: randomUUID(), emoji: '🎉', active: true })
+      .expect(404);
     const summary = await request(app)
       .get('/api/v1/review-interactions/summary')
       .query({ ids: 'local:1:123' })

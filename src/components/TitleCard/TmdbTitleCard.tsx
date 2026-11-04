@@ -5,6 +5,7 @@ import { useInView } from 'react-intersection-observer';
 import useSWR from 'swr';
 
 export interface TmdbTitleCardProps {
+  hideMissing?: boolean;
   posterBadge?: React.ReactNode;
   detailHref?: string;
   id: number;
@@ -23,6 +24,7 @@ const isMovie = (
 };
 
 const TmdbTitleCard = ({
+  hideMissing,
   detailHref,
   posterBadge,
   id,
@@ -53,6 +55,7 @@ const TmdbTitleCard = ({
   }
 
   if (!title) {
+    if (hideMissing) return null;
     return hasPermission(Permission.ADMIN) ? (
       <TitleCard.ErrorCard
         id={id}

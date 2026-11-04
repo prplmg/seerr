@@ -1,5 +1,3 @@
-import SaveList from './SaveList';
-export { default as SaveList } from './SaveList';
 import CachedImage from '@app/components/Common/CachedImage';
 import Modal from '@app/components/Common/Modal';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -26,7 +24,9 @@ import useSWRInfinite from 'swr/infinite';
 import ForYouLayout from './ForYouLayout';
 import ListEditor from './ListEditor';
 import { ReleaseUpdates } from './ReleaseUpdates';
+import SaveList from './SaveList';
 import { listAuthorStyle } from './listAuthorStyle';
+export { default as SaveList } from './SaveList';
 
 type Film = {
   type: 'movie' | 'tv';
@@ -156,8 +156,12 @@ export function ListCard({ list: l }: { list: List }) {
       )}
       <div className="mt-auto flex w-full -space-x-3 overflow-hidden pt-3">
         {l.covers.slice(0, 3).map((f) => (
-          <div className="min-w-0 flex-1" key={`${f.type}:${f.tmdbId}`}>
+          <div
+            className="min-w-0 flex-1 empty:hidden"
+            key={`${f.type}:${f.tmdbId}`}
+          >
             <TmdbTitleCard
+              hideMissing
               id={f.tmdbId}
               tmdbId={f.tmdbId}
               type={f.type}
@@ -369,6 +373,7 @@ function FilmGrid({
         {films.map((f) => (
           <li key={`${f.type}:${f.tmdbId}`}>
             <TmdbTitleCard
+              hideMissing
               detailHref={
                 endpoint.includes('section=unrated')
                   ? `/movie/${f.tmdbId}#reviews`
@@ -1512,6 +1517,7 @@ function FilmRow({
         isLoading={false}
         items={films.slice(0, 20).map((f) => (
           <TmdbTitleCard
+            hideMissing
             key={`${f.type}:${f.tmdbId}`}
             detailHref={
               section === 'unrated' ? `/movie/${f.tmdbId}#reviews` : undefined

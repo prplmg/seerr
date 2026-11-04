@@ -91,11 +91,17 @@ router.get(
           id: In([...new Set(rows.map((r) => r.userId))]),
         })
       : [];
+    const reactionCounts = await interactionSummaries(
+      manager(),
+      rows.map((row) => '#' + row.id),
+      req.user!.id
+    );
     res.json({
       results: rows.map((row) => {
         const user = users.find((u) => u.id === row.userId);
         return {
           ...row,
+          reactions: reactionCounts['#' + row.id].reactions,
           user: user
             ? { id: user.id, name: user.displayName, avatar: user.avatar }
             : null,
@@ -165,6 +171,25 @@ router.put(
   '/:reviewId/reactions',
   handle(async (req, res) => {
     const id = await requireReview(req);
+    if (req.body.commentId) {
+      await manager().transaction(async (tx) => {
+        if (
+          !(await tx
+            .getRepository(ReviewComment)
+            .existsBy({ id: req.body.commentId, reviewId: id }))
+        )
+          throw new InteractionError(404, 'Comment not found.');
+        await setReaction(
+          tx,
+          '#' + req.body.commentId,
+          req.user!.id,
+          req.body.emoji,
+          req.body.active
+        );
+      });
+      res.sendStatus(204);
+      return;
+    }
     await setReaction(
       manager(),
       id,

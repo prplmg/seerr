@@ -253,7 +253,10 @@ async function buildDiscoveryData(userId: number) {
     saved: saved.has(l.id),
     progress: listProgress(l, userId, watched, now),
     available: l.items.filter((f) => available.has(filmKey(f))).length,
-    covers: l.items.slice(0, 5),
+    // This stale movie mapping returns Movie Not Found in catalogue covers.
+    covers: l.items
+      .filter((f) => f.type !== 'movie' || f.tmdbId !== 194079)
+      .slice(0, 5),
   });
   const summary = (l: (typeof lists)[number]) => {
     let result = summaries.get(l);

@@ -3162,6 +3162,9 @@ paths:
               additionalProperties: false
               required: [emoji, active]
               properties:
+                commentId:
+                  type: string
+                  format: uuid
                 emoji:
                   type: string
                 active:
@@ -3169,6 +3172,8 @@ paths:
       responses:
         '200':
           description: Current interaction counts
+        '204':
+          description: Comment reaction updated
         '400':
           description: Invalid emoji
         '404':
@@ -8576,6 +8581,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  listVideo:
+                    type: string
+                    format: uri
                   rating:
                     type: object
                     nullable: true

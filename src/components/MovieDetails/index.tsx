@@ -159,7 +159,10 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
   const { data: ratingData } = useSWR<RatingResponse>(
     `/api/v1/movie/${router.query.movieId}/ratingscombined`
   );
-  const { data: letterboxdData } = useSWR<{ rating: LetterboxdRating | null }>(
+  const { data: letterboxdData } = useSWR<{
+    rating: LetterboxdRating | null;
+    listVideo?: string;
+  }>(
     router.query.movieId
       ? `/api/v1/movie/${router.query.movieId}/letterboxd`
       : null,
@@ -595,11 +598,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               tmdbId={data.id}
               onUpdate={() => revalidate()}
             />
-            <FollowReleases
-              id={data.id}
-              type="movie"
-              metadata={data}
-            />
+            <FollowReleases id={data.id} type="movie" metadata={data} />
           </div>
           <div className="media-tertiary-actions">
             {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
@@ -1093,10 +1092,20 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 </span>
               </div>
             )}
-            {!!streamingProviders.length && (
+            {(!!streamingProviders.length || letterboxdData?.listVideo) && (
               <div className="media-fact flex-col gap-1">
                 <span>{intl.formatMessage(messages.streamingproviders)}</span>
                 <span className="media-fact-value flex flex-row flex-wrap gap-5">
+                  {letterboxdData?.listVideo && (
+                    <a
+                      href={letterboxdData.listVideo}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-purple-300 hover:underline"
+                    >
+                      YouTube ↗
+                    </a>
+                  )}
                   {streamingProviders.map((p) => {
                     return (
                       <Tooltip content={p.name} key={`tooltip-${p.id}`}>

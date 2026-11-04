@@ -116,6 +116,45 @@ export function replaceList(
   } else store.lists[index] = next;
 }
 const filename = () => path.join(appDataPath(), 'discovery-lists.json');
+// Only accept a list note consisting of one YouTube watch link.
+export function noteVideo(note = '') {
+  const match = note
+    .trim()
+    .match(
+      /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([A-Za-z0-9_-]{11})(?:[?&][^\s]*)?$/i
+    );
+  return match ? 'https://www.youtube.com/watch?v=' + match[1] : undefined;
+}
+let videoIndex:
+  | {
+      stamp: string;
+      films: Map<number, { list: DiscoveryList; url: string }[]>;
+    }
+  | undefined;
+export function listVideo(movieId: number, userId: number) {
+  const file = filename();
+  const stat = fs.statSync(file, { throwIfNoEntry: false });
+  if (!stat) return;
+  const stamp = [file, stat.ino, stat.mtimeMs].join(':');
+  if (videoIndex?.stamp !== stamp) {
+    const films = new Map<number, { list: DiscoveryList; url: string }[]>();
+    for (const list of readListStore().lists) {
+      if (list.source !== 'letterboxd' || list.deletedAt || list.unavailable)
+        continue;
+      for (const film of list.items) {
+        const url = film.type === 'movie' && noteVideo(film.note);
+        if (!url) continue;
+        const entries = films.get(film.tmdbId) || [];
+        entries.push({ url, list });
+        films.set(film.tmdbId, entries);
+      }
+    }
+    videoIndex = { stamp, films };
+  }
+  return videoIndex.films
+    .get(movieId)
+    ?.find((entry) => visibleList(entry.list, userId))?.url;
+}
 export function readListStore(): ListStore {
   try {
     const s = JSON.parse(fs.readFileSync(filename(), 'utf8'));

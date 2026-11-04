@@ -92,7 +92,10 @@ export async function changeComment(
   if (comment.userId !== userId && !(admin && action === 'delete'))
     throw new InteractionError(403, 'You cannot change this comment.');
   if (action === 'delete') {
-    await repo.delete({ id, reviewId });
+    await manager.transaction(async (tx) => {
+      await tx.delete(ReviewReaction, { reviewId: '#' + id });
+      await tx.delete(ReviewComment, { id, reviewId });
+    });
     return;
   }
   if (typeof revision !== 'string' || revision !== comment.updatedAt)

@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import useSWR, { useSWRConfig } from 'swr';
+import DiscoveryReviewFooter from './DiscoveryReviewFooter';
 import ReviewInteractions, {
   type InteractionSummary,
 } from './ReviewInteractions';
@@ -196,14 +197,6 @@ function ReviewBody({
           {review.text}
         </p>
       )}
-      {compact ? (
-        <Link
-          href={reviewHref(review)}
-          className="mt-auto inline-block flex-none pt-1 text-purple-300 hover:underline"
-        >
-          {t('Read more', 'Leer más')}
-        </Link>
-      ) : null}
     </>
   );
 }
@@ -670,7 +663,13 @@ export function MovieReviews({
     </section>
   );
 }
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({
+  review,
+  summary,
+}: {
+  review: Review;
+  summary?: InteractionSummary;
+}) {
   const { ref, inView } = useInView({ triggerOnce: true });
   const { data } = useSWR<{
     title?: string;
@@ -727,6 +726,7 @@ function ReviewCard({ review }: { review: Review }) {
         </div>
       </div>
       <ReviewBody review={review} compact />
+      <DiscoveryReviewFooter href={reviewHref(review)} summary={summary} />
     </article>
   );
 }
@@ -736,6 +736,20 @@ export function RecentReviews({ days = 28 }: { days?: number }) {
       `/api/v1/reviews?days=${days}`,
       { refreshInterval: 60000 }
     );
+  const { user } = useUser();
+  const ids = data?.results
+    .slice(0, 50)
+    .map((r) => r.id)
+    .join(',');
+  const { data: summaries } = useSWR<Record<string, InteractionSummary>>(
+    ids
+      ? [
+          `/api/v1/review-interactions/summary?ids=${encodeURIComponent(ids)}`,
+          user?.id,
+        ]
+      : null,
+    async ([url]: [string, number | undefined]) => (await axios.get(url)).data
+  );
   return (
     <section className="mb-6">
       <div className="slider-header">
@@ -760,7 +774,7 @@ export function RecentReviews({ days = 28 }: { days?: number }) {
             'No hay reseñas en este período.'
           )}
           items={data?.results.map((r) => (
-            <ReviewCard key={r.id} review={r} />
+            <ReviewCard key={r.id} review={r} summary={summaries?.[r.id]} />
           ))}
         />
       )}

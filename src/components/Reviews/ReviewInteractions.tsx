@@ -1,5 +1,6 @@
 import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
+import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { lazy, Suspense, useState } from 'react';
 import useSWR from 'swr';
@@ -13,12 +14,13 @@ type Comment = {
   text: string;
   createdAt: string;
   updatedAt: string;
+  reactions?: InteractionSummary['reactions'];
   canEdit: boolean;
   canDelete: boolean;
   user: { id: number; name: string; avatar: string } | null;
 };
 const control =
-  'rounded-lg border border-gray-600 px-3 py-2 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50';
+  'rounded-full border border-gray-600 px-3 py-2 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50';
 export default function ReviewInteractions({
   reviewId,
   viewerId,
@@ -32,7 +34,7 @@ export default function ReviewInteractions({
 }) {
   const t = usePartyText(),
     [open, setOpen] = useState(false),
-    [picker, setPicker] = useState(false),
+    [picker, setPicker] = useState<string | null>(null),
     [page, setPage] = useState(1),
     [draft, setDraft] = useState(''),
     [draftId, setDraftId] = useState(''),
@@ -72,48 +74,54 @@ export default function ReviewInteractions({
       aria-label={t('Review interactions', 'Interacciones de la reseña')}
       className="mt-4 min-w-0 border-t border-gray-700 pt-3"
     >
-      <div className="flex flex-wrap items-center gap-2">
-        {summary?.reactions.map((r) => (
+      <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [&>button]:shrink-0">
+          {summary?.reactions.map((r) => (
+            <button
+              type="button"
+              key={r.emoji}
+              disabled={busy}
+              aria-pressed={r.mine}
+              aria-label={`${r.emoji}: ${r.count}${r.mine ? t(', remove your reaction', ', quitar tu reacción') : t(', react', ', reaccionar')}`}
+              className={`${control} ${r.mine ? 'border-purple-400 bg-purple-900/40' : ''}`}
+              onClick={() =>
+                void act(() =>
+                  axios.put(`${base}/reactions`, {
+                    emoji: r.emoji,
+                    active: !r.mine,
+                  })
+                )
+              }
+            >
+              <span className="mr-1 text-lg">{r.emoji}</span>
+              {r.count}
+            </button>
+          ))}
           <button
             type="button"
-            key={r.emoji}
-            disabled={busy}
-            aria-pressed={r.mine}
-            aria-label={`${r.emoji}: ${r.count}${r.mine ? t(', remove your reaction', ', quitar tu reacción') : t(', react', ', reaccionar')}`}
-            className={`${control} ${r.mine ? 'border-purple-400 bg-purple-900/40' : ''}`}
-            onClick={() =>
-              void act(() =>
-                axios.put(`${base}/reactions`, {
-                  emoji: r.emoji,
-                  active: !r.mine,
-                })
-              )
-            }
+            disabled={busy || !summary}
+            className={control}
+            aria-label={t('＋ React', '＋ Reaccionar')}
+            aria-expanded={picker === reviewId}
+            onClick={() => setPicker((v) => (v === reviewId ? null : reviewId))}
           >
-            <span className="mr-1 text-lg">{r.emoji}</span>
-            {r.count}
+            ＋
           </button>
-        ))}
+        </div>
         <button
           type="button"
-          disabled={busy || !summary}
-          className={control}
-          aria-expanded={picker}
-          onClick={() => setPicker((v) => !v)}
-        >
-          {t('＋ React', '＋ Reaccionar')}
-        </button>
-        <button
-          type="button"
-          className={`${control} ml-auto`}
+          aria-label={
+            t('Comments', 'Comentarios') + ' · ' + (summary?.comments ?? 0)
+          }
+          className={`${control} inline-flex shrink-0 items-center gap-1`}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          {t('Comments', 'Comentarios')}
-          {summary ? ` · ${summary.comments}` : ''}
+          <ChatBubbleOvalLeftIcon className="h-4 w-4" />
+          {summary?.comments ?? '…'}
         </button>
       </div>
-      {picker && (
+      {picker === reviewId && (
         <Suspense
           fallback={
             <p role="status" className="mt-3 text-sm text-gray-400">
@@ -123,7 +131,7 @@ export default function ReviewInteractions({
         >
           <EmojiPicker
             onSelect={(emoji) => {
-              setPicker(false);
+              setPicker(null);
               void act(() =>
                 axios.put(`${base}/reactions`, { emoji, active: true })
               );
@@ -240,6 +248,55 @@ export default function ReviewInteractions({
                     >
                       {c.text}
                     </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-1">
+                      {c.reactions?.map((r) => (
+                        <button
+                          key={r.emoji}
+                          className={control}
+                          disabled={busy}
+                          aria-pressed={r.mine}
+                          onClick={() =>
+                            void act(() =>
+                              axios.put(base + '/reactions', {
+                                commentId: c.id,
+                                emoji: r.emoji,
+                                active: !r.mine,
+                              })
+                            )
+                          }
+                        >
+                          {r.emoji} {r.count}
+                        </button>
+                      ))}
+                      <button
+                        className={control}
+                        disabled={busy}
+                        aria-label={t(
+                          'React to comment',
+                          'Reaccionar al comentario'
+                        )}
+                        aria-expanded={picker === c.id}
+                        onClick={() => setPicker(picker === c.id ? null : c.id)}
+                      >
+                        ＋
+                      </button>
+                    </div>
+                    {picker === c.id && (
+                      <Suspense fallback={null}>
+                        <EmojiPicker
+                          onSelect={(emoji) => {
+                            setPicker(null);
+                            void act(() =>
+                              axios.put(base + '/reactions', {
+                                commentId: c.id,
+                                emoji,
+                                active: true,
+                              })
+                            );
+                          }}
+                        />
+                      </Suspense>
+                    )}
                     <div className="mt-2 flex gap-4 text-xs text-purple-300">
                       {c.canEdit && (
                         <button
@@ -327,7 +384,7 @@ export default function ReviewInteractions({
               onChange={(e) => {
                 setDraft(e.target.value);
               }}
-              placeholder={t('What did you think?', '¿Qué te pareció?')}
+              placeholder={t('Write a comment...', 'Escribe un comentario...')}
               className="w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-3 text-base focus:border-purple-400"
             />
             <div className="mt-2 flex items-center justify-between gap-3">
