@@ -543,7 +543,7 @@ router.get('/feed', async (req, res, next) => {
         offset,
         runtime,
         async (item) => {
-          const m = await tmdb.getMovie({ movieId: item.tmdbId });
+          const m = await tmdb.getListMovie(item.tmdbId);
           return m.runtime;
         },
         (item, listRuntime) => ({ ...item, listRuntime })

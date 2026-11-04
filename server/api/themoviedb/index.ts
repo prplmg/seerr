@@ -277,10 +277,13 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
     }
   };
 
-  // List editing only needs identity and a poster, not credits/videos/providers.
+  // List editing and runtime filters need only base movie fields, not appended details.
   public getListMovie = (movieId: number) =>
     this.get<
-      Pick<TmdbMovieDetails, 'id' | 'title' | 'release_date' | 'poster_path'>
+      Pick<
+        TmdbMovieDetails,
+        'id' | 'title' | 'release_date' | 'poster_path' | 'runtime'
+      >
     >(`/movie/${movieId}`, { params: { language: this.locale } }, 43200);
 
   public getMovie = async ({

@@ -110,7 +110,7 @@ async function harness(failImport = false, requester = 1, requestStatus = 2) {
       };
     if (name === '@server/api/themoviedb')
       return class {
-        async getMovie() {
+        async getListMovie() {
           return { runtime: 80 };
         }
       };

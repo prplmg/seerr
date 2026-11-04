@@ -67,7 +67,7 @@ function pump() {
               ?.score ?? null;
         else if (task.film.type === 'movie')
           value =
-            (await new TheMovieDb().getMovie({ movieId: task.film.tmdbId }))
+            (await new TheMovieDb().getListMovie(task.film.tmdbId))
               .runtime || null;
       } catch {
         /* Missing values stay last and are retried later. */
