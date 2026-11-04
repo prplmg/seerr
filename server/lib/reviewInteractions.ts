@@ -34,6 +34,20 @@ export function interactionReviewId(value: unknown): string {
     throw new InteractionError(400, 'Invalid review.');
   return value;
 }
+async function inserted(write: Promise<unknown>) {
+  try {
+    await write;
+    return true;
+  } catch (error) {
+    if (
+      error.code === '23505' ||
+      (error.code === 'SQLITE_CONSTRAINT' &&
+        /UNIQUE constraint failed/.test(error.message))
+    )
+      return false;
+    throw error;
+  }
+}
 export async function addComment(
   manager: EntityManager,
   reviewId: string,
@@ -51,10 +65,8 @@ export async function addComment(
   const body = commentText(text),
     now = new Date().toISOString(),
     repo = manager.getRepository(ReviewComment);
-  await repo
-    .createQueryBuilder()
-    .insert()
-    .values({
+  const created = await inserted(
+    repo.insert({
       id,
       reviewId,
       userId,
@@ -62,8 +74,7 @@ export async function addComment(
       createdAt: now,
       updatedAt: now,
     })
-    .orIgnore()
-    .execute();
+  );
   const comment = await repo.findOneByOrFail({ id });
   if (
     comment.userId !== userId ||
@@ -74,7 +85,7 @@ export async function addComment(
       409,
       'This comment was already submitted. Refresh before trying again.'
     );
-  return comment;
+  return { comment, created };
 }
 export async function changeComment(
   manager: EntityManager,
@@ -130,14 +141,20 @@ export async function setReaction(
   const id = createHash('sha256')
     .update(JSON.stringify([reviewId, userId, emoji]))
     .digest('hex');
-  if (active)
+  if (!active) {
+    await repo.delete({ id, reviewId, userId });
+    return false;
+  }
+  if (reviewId.startsWith('#')) {
     await repo
       .createQueryBuilder()
       .insert()
       .values({ id, reviewId, userId, emoji })
       .orIgnore()
       .execute();
-  else await repo.delete({ id, reviewId, userId });
+    return false;
+  }
+  return inserted(repo.insert({ id, reviewId, userId, emoji }));
 }
 export async function interactionSummaries(
   manager: EntityManager,

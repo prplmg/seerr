@@ -27,6 +27,7 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
   await new ReviewInteractions1793800000000().up(db.createQueryRunner());
   try {
     const api: any = {};
+    const events: unknown[][] = [];
     const output = ts.transpileModule(
       fs.readFileSync(path.join(__dirname, 'reviewInteractions.ts'), 'utf8'),
       {
@@ -38,6 +39,10 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
       }
     ).outputText;
     new Function('require', 'exports', output)((name: string) => {
+      if (name === '@server/lib/reviewSocialNotification')
+        return {
+          notifyReviewAuthor: (...args: unknown[]) => events.push(args),
+        };
       if (name === '@server/datasource')
         return {
           getRepository: (entity: any) =>
@@ -134,6 +139,15 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
       .set('x-test-user', '2')
       .send({ commentId: id, emoji: '🎉', active: true })
       .expect(204);
+    await request(app)
+      .put(prefix + '/reactions')
+      .set('x-test-user', '1')
+      .send({ emoji: '👩🏽‍🚀', active: true })
+      .expect(200);
+    assert.deepEqual(
+      events.map((e) => e[2]),
+      [undefined, '👩🏽‍🚀']
+    );
     const threaded = await request(app)
       .get(prefix + '/comments')
       .set('x-test-user', '2')

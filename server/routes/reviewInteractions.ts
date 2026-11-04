@@ -11,6 +11,7 @@ import {
   interactionSummaries,
   setReaction,
 } from '@server/lib/reviewInteractions';
+import { notifyReviewAuthor } from '@server/lib/reviewSocialNotification';
 import logger from '@server/logger';
 import {
   Router,
@@ -125,13 +126,14 @@ router.post(
   '/:reviewId/comments',
   handle(async (req, res) => {
     const id = await requireReview(req);
-    const comment = await addComment(
+    const { comment, created } = await addComment(
       manager(),
       id,
       req.user!.id,
       req.body.id,
       req.body.text
     );
+    if (created) void notifyReviewAuthor(id, req.user!);
     res.status(201).json({ comment });
   })
 );
@@ -190,13 +192,14 @@ router.put(
       res.sendStatus(204);
       return;
     }
-    await setReaction(
+    const created = await setReaction(
       manager(),
       id,
       req.user!.id,
       req.body.emoji,
       req.body.active
     );
+    if (created) void notifyReviewAuthor(id, req.user!, req.body.emoji);
     res.json((await interactionSummaries(manager(), [id], req.user!.id))[id]);
   })
 );

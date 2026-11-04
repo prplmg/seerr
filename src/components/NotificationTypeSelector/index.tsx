@@ -8,6 +8,8 @@ import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 const messages = defineMessages('components.NotificationTypeSelector', {
+  social: 'Social Interactions',
+  socialDescription: 'Get notified when users comment or react to your reviews',
   notificationTypes: 'Notification Types',
   mediarequested: 'Request Pending Approval',
   mediarequestedDescription:
@@ -106,6 +108,7 @@ export enum Notification {
   ISSUE_RESOLVED = 1024,
   ISSUE_REOPENED = 2048,
   MEDIA_AUTO_REQUESTED = 4096,
+  SOCIAL_INTERACTIONS = 8192,
 }
 
 export const ALL_NOTIFICATIONS = Object.values(Notification)
@@ -123,6 +126,7 @@ export interface NotificationItem {
 }
 
 interface NotificationTypeSelectorProps {
+  showSocial?: boolean;
   user?: User;
   enabledTypes?: number;
   currentTypes: number;
@@ -132,6 +136,7 @@ interface NotificationTypeSelectorProps {
 
 const NotificationTypeSelector = ({
   user,
+  showSocial = false,
   enabledTypes = ALL_NOTIFICATIONS,
   currentTypes,
   onUpdate,
@@ -196,6 +201,14 @@ const NotificationTypeSelector = ({
             ))));
 
     const types: NotificationItem[] = [
+      {
+        id: 'social-interactions',
+        name: intl.formatMessage(messages.social),
+        description: intl.formatMessage(messages.socialDescription),
+        value: Notification.SOCIAL_INTERACTIONS,
+        hasNotifyUser: true,
+        hidden: !showSocial,
+      },
       {
         id: 'media-auto-requested',
         name: intl.formatMessage(messages.mediaautorequested),
@@ -369,7 +382,15 @@ const NotificationTypeSelector = ({
     return user
       ? sortBy(filteredTypes, 'hasNotifyUser', 'DESC')
       : filteredTypes;
-  }, [user, hasPermission, settings, intl, allowedTypes, enabledTypes]);
+  }, [
+    user,
+    showSocial,
+    hasPermission,
+    settings,
+    intl,
+    allowedTypes,
+    enabledTypes,
+  ]);
 
   if (!availableTypes.length) {
     return null;

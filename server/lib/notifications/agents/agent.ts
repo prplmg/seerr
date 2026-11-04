@@ -8,6 +8,7 @@ import type { Notification } from '..';
 
 export interface NotificationPayload {
   event?: string;
+  reviewUrl?: string;
   subject: string;
   notifySystem: boolean;
   notifyAdmin: boolean;

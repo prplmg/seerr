@@ -30,8 +30,18 @@ it('local interactions migrate, enforce authorship, survive retry, paginate and 
     const id = randomUUID(),
       review = 'local:1:123',
       m = db.manager;
-    const first = await addComment(m, review, 1, id, ' A comment ');
-    await addComment(m, review, 1, id, ' A comment ');
+    const { comment: first, created } = await addComment(
+      m,
+      review,
+      1,
+      id,
+      ' A comment '
+    );
+    assert.equal(created, true);
+    assert.equal(
+      (await addComment(m, review, 1, id, ' A comment ')).created,
+      false
+    );
     assert.equal(await m.count(ReviewComment), 1);
     await assert.rejects(addComment(m, review, 2, id, 'A comment'), {
       status: 409,
@@ -74,8 +84,8 @@ it('local interactions migrate, enforce authorship, survive retry, paginate and 
       (await m.findOneByOrFail(ReviewComment, { id })).text,
       'Updated'
     );
-    await setReaction(m, review, 1, '❤', true);
-    await setReaction(m, review, 1, '❤️', true);
+    assert.equal(await setReaction(m, review, 1, '❤', true), true);
+    assert.equal(await setReaction(m, review, 1, '❤️', true), false);
     await setReaction(m, review, 2, '❤️', true);
     await setReaction(m, review, 1, '👩🏽‍🚀', true);
     const summary = await interactionSummaries(m, [review, 'empty'], 1);

@@ -25,9 +25,11 @@ export default function ReviewInteractions({
   reviewId,
   viewerId,
   summary,
+  initiallyOpen = false,
   threadOnly = false,
   onChanged,
 }: {
+  initiallyOpen?: boolean;
   threadOnly?: boolean;
   reviewId: string;
   viewerId?: number;
@@ -35,7 +37,7 @@ export default function ReviewInteractions({
   onChanged: () => unknown;
 }) {
   const t = usePartyText(),
-    [open, setOpen] = useState(threadOnly),
+    [open, setOpen] = useState(threadOnly || initiallyOpen),
     [picker, setPicker] = useState<string | null>(null),
     [page, setPage] = useState(1),
     [draft, setDraft] = useState(''),

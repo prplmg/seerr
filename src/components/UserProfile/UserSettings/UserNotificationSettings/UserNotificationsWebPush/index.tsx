@@ -296,6 +296,7 @@ const UserWebPushSettings = () => {
           return (
             <Form className="section">
               <NotificationTypeSelector
+                showSocial
                 user={user}
                 currentTypes={values.types}
                 onUpdate={(newTypes) => {

@@ -107,6 +107,19 @@ class EmailAgent
         ? `${applicationUrl}/logo_full.svg`
         : undefined;
 
+    if (type === Notification.SOCIAL_INTERACTIONS) {
+      const link =
+        applicationUrl && payload.reviewUrl
+          ? new URL(payload.reviewUrl, applicationUrl).href
+          : '';
+      return {
+        message: {
+          to: recipientEmail,
+          subject: payload.subject,
+          text: [payload.message, link].filter(Boolean).join('\n\n'),
+        },
+      };
+    }
     if (type === Notification.TEST_NOTIFICATION) {
       return {
         template: path.join(__dirname, '../../../templates/email/test-email'),
@@ -291,12 +304,11 @@ class EmailAgent
   ): Promise<boolean> {
     if (payload.notifyUser) {
       if (
-        !payload.notifyUser.settings ||
-        (payload.notifyUser.settings.hasNotificationType(
+        payload.notifyUser.settings?.hasNotificationType(
           NotificationAgentKey.EMAIL,
           type
         ) ??
-          true)
+        type !== Notification.SOCIAL_INTERACTIONS
       ) {
         logger.debug('Sending email notification', {
           label: 'Notifications',

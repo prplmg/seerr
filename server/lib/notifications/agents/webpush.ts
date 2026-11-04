@@ -94,6 +94,7 @@ class WebPushAgent
 
     let message: string | undefined;
     switch (type) {
+      case Notification.SOCIAL_INTERACTIONS:
       case Notification.TEST_NOTIFICATION:
         message = payload.message;
         break;
@@ -172,11 +173,13 @@ class WebPushAgent
         };
     }
 
-    const actionUrl = payload.issue
-      ? `/issues/${payload.issue.id}`
-      : payload.media
-        ? `/${payload.media.mediaType}/${payload.media.tmdbId}`
-        : undefined;
+    const actionUrl =
+      payload.reviewUrl ??
+      (payload.issue
+        ? `/issues/${payload.issue.id}`
+        : payload.media
+          ? `/${payload.media.mediaType}/${payload.media.tmdbId}`
+          : undefined);
 
     const actionUrlTitle = actionUrl
       ? intl.formatMessage(

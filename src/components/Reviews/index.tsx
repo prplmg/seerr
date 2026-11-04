@@ -573,7 +573,10 @@ export function MovieReviews({
             >
               <ReviewBody review={r} />
               <ReviewInteractions
-                key={r.id}
+                key={
+                  r.id + String(router.query.comments === '1' && hash === r.id)
+                }
+                initiallyOpen={router.query.comments === '1' && hash === r.id}
                 reviewId={r.id}
                 viewerId={user?.id}
                 summary={interactions?.[r.id]}
