@@ -1514,5 +1514,322 @@
       "Files": 0,
       "Skipped": 0
     }
-  ]
+  ],
+  "readableFileLargestDirectories": [
+    {
+      "path": "C:\\",
+      "bytes": 49031653490
+    },
+    {
+      "path": "C:\\ProgramData",
+      "bytes": 16412930703
+    },
+    {
+      "path": "C:\\Windows",
+      "bytes": 12981930614
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr",
+      "bytes": 9480430274
+    },
+    {
+      "path": "C:\\Program Files",
+      "bytes": 8366299091
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps",
+      "bytes": 7296014088
+    },
+    {
+      "path": "C:\\Homebridge",
+      "bytes": 6014763520
+    },
+    {
+      "path": "C:\\Windows\\System32",
+      "bytes": 5626464946
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft",
+      "bytes": 4884699644
+    },
+    {
+      "path": "C:\\Homebridge\\Virtual Hard Disks",
+      "bytes": 4399824896
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows",
+      "bytes": 3564955842
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Virtual Hard Disks",
+      "bytes": 2853175296
+    },
+    {
+      "path": "C:\\Windows\\System32\\DriverStore",
+      "bytes": 2314767156
+    },
+    {
+      "path": "C:\\Windows\\System32\\DriverStore\\FileRepository",
+      "bytes": 2312805010
+    },
+    {
+      "path": "C:\\Users",
+      "bytes": 2057428052
+    },
+    {
+      "path": "C:\\Users\\minilie",
+      "bytes": 2054745030
+    },
+    {
+      "path": "C:\\Program Files (x86)",
+      "bytes": 1683148346
+    },
+    {
+      "path": "C:\\Homebridge\\Virtual Machines",
+      "bytes": 1614938624
+    },
+    {
+      "path": "C:\\Windows\\WinSxS",
+      "bytes": 1560039862
+    },
+    {
+      "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\iigd_dch.inf_amd64_bf2504d4b456f367",
+      "bytes": 1527736129
+    },
+    {
+      "path": "C:\\Users\\minilie\\AppData",
+      "bytes": 1488940517
+    },
+    {
+      "path": "C:\\Recovery",
+      "bytes": 1425108401
+    },
+    {
+      "path": "C:\\Recovery\\Customizations",
+      "bytes": 1408458885
+    },
+    {
+      "path": "C:\\Users\\minilie\\AppData\\Local",
+      "bytes": 1392913226
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows Defender",
+      "bytes": 1258476819
+    },
+    {
+      "path": "C:\\Windows\\SysWOW64",
+      "bytes": 1022278877
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Microsoft",
+      "bytes": 990554850
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles",
+      "bytes": 945175597
+    },
+    {
+      "path": "C:\\Windows\\assembly",
+      "bytes": 913180168
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps\\Microsoft.Windows.Photos_2026.11020.20001.0_x64__8wekyb3d8bbwe",
+      "bytes": 886174137
+    },
+    {
+      "path": "C:\\ProgramData\\Radarr",
+      "bytes": 884882965
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr\\app",
+      "bytes": 873620714
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService",
+      "bytes": 830467340
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData",
+      "bytes": 825658636
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local",
+      "bytes": 825636837
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft",
+      "bytes": 825214635
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows",
+      "bytes": 825203019
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization",
+      "bytes": 825114961
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr\\app\\node_modules",
+      "bytes": 799350724
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr\\app\\node_modules\\.pnpm",
+      "bytes": 799130992
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache",
+      "bytes": 793720396
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows Defender\\Definition Updates",
+      "bytes": 783200208
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Microsoft\\Edge",
+      "bytes": 739074838
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application",
+      "bytes": 739050262
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\156.0.4314.58",
+      "bytes": 725010692
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr\\performance-capture-cvPXC8",
+      "bytes": 714539574
+    },
+    {
+      "path": "C:\\ProgramData\\Sonarr",
+      "bytes": 660914019
+    },
+    {
+      "path": "C:\\Windows\\Installer",
+      "bytes": 646638507
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V",
+      "bytes": 634243379
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V\\Virtual Machines",
+      "bytes": 629424640
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps\\Microsoft.Whiteboard_56.20201.588.0_x64__8wekyb3d8bbwe",
+      "bytes": 622140290
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps\\Microsoft.Whiteboard_56.20201.588.0_x64__8wekyb3d8bbwe\\MicrosoftWhiteboard",
+      "bytes": 620766549
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps\\Microsoft.Whiteboard_56.20201.588.0_x64__8wekyb3d8bbwe\\MicrosoftWhiteboard\\WebView2RT",
+      "bytes": 591037138
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Google",
+      "bytes": 572626485
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Google\\GoogleUpdater",
+      "bytes": 562667933
+    }
+  ],
+  "largeFiles": [
+    {
+      "path": "C:\\Homebridge\\Virtual Hard Disks\\Homebridge.vhdx",
+      "bytes": 4399824896,
+      "modified": "2026-11-04T14:08:59.500Z"
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Virtual Hard Disks\\Caddy_D5A3684E-FB82-47FC-AE75-9FB1DE80C2B0.avhdx",
+      "bytes": 2010120192,
+      "modified": "2026-11-04T14:09:31.862Z"
+    },
+    {
+      "path": "C:\\Homebridge\\Virtual Machines\\0F164CF3-3D33-4646-B9AF-827A37FCB172.VMRS",
+      "bytes": 1610661888,
+      "modified": "2026-11-03T22:50:22.283Z"
+    },
+    {
+      "path": "C:\\Recovery\\Customizations\\usmt.spp",
+      "bytes": 1408458885,
+      "modified": "2024-02-02T20:24:45.640Z"
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Virtual Hard Disks\\Caddy.vhdx",
+      "bytes": 843055104,
+      "modified": "2025-10-18T15:59:15.953Z"
+    },
+    {
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V\\Virtual Machines\\6CBD1871-7E7E-4852-956D-9D6665E07232.VMRS",
+      "bytes": 625147904,
+      "modified": "2026-11-03T22:50:19.964Z"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Google\\GoogleUpdater\\crx_cache\\45256470f27898241ed654c8298055ad283721a5c34465fd5c78575e1413c47e",
+      "bytes": 525306139,
+      "modified": "2026-11-03T02:49:54.896Z"
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr\\performance-capture-cvPXC8\\windows.etl",
+      "bytes": 385875968,
+      "modified": "2026-10-24T00:03:47.323Z"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\156.0.4314.58\\msedge.dll",
+      "bytes": 355200328,
+      "modified": "2026-10-30T03:41:28.306Z"
+    },
+    {
+      "path": "C:\\Program Files\\Google\\Chrome\\Application\\156.0.8078.80\\chrome.dll",
+      "bytes": 306491032,
+      "modified": "2026-10-28T23:41:11.424Z"
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps\\Microsoft.Windows.Photos_2026.11020.20001.0_x64__8wekyb3d8bbwe\\mager.onnxe",
+      "bytes": 302371110,
+      "modified": "2025-10-29T01:23:34.674Z"
+    },
+    {
+      "path": "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache\\d54d98dff1375c7709a405f29297fecfc96045b1\\content.bin",
+      "bytes": 298947789,
+      "modified": "2026-11-03T23:10:17.292Z"
+    },
+    {
+      "path": "C:\\Program Files\\WindowsApps\\Microsoft.Whiteboard_56.20201.588.0_x64__8wekyb3d8bbwe\\MicrosoftWhiteboard\\WebView2RT\\msedge.dll",
+      "bytes": 281694792,
+      "modified": "2025-10-21T08:46:25.672Z"
+    },
+    {
+      "path": "C:\\ProgramData\\Seerr\\performance-capture-cvPXC8\\events.csv",
+      "bytes": 260846146,
+      "modified": "2026-10-24T00:06:17.177Z"
+    },
+    {
+      "path": "C:\\Windows\\Installer\\16780dc3.msi",
+      "bytes": 213929984,
+      "modified": "2025-03-04T03:05:46.268Z"
+    },
+    {
+      "path": "C:\\Windows\\SoftwareDistribution\\Download\\0b8fda71bf1d4644e9c620d0a0c94946cc2dc988",
+      "bytes": 207866272,
+      "modified": "2026-10-28T03:19:54.014Z"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\Download\\{C50565E9-CCCF-44B4-BA15-5AC5C6569197}\\148.0.3967.70\\MicrosoftEdge_X64_148.0.3967.70.exe",
+      "bytes": 193259856,
+      "modified": "2026-05-30T12:44:47.731Z"
+    },
+    {
+      "path": "C:\\Program Files\\qBittorrent\\qbittorrent.pdb",
+      "bytes": 177377280,
+      "modified": "2025-07-02T06:22:52.000Z"
+    }
+  ],
+  "wholeScanFinished": true,
+  "wholeScanErrorCount": 4,
+  "finalCFreeBytes": 4455026688
 }
