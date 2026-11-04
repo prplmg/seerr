@@ -250,56 +250,7 @@ export default function ReviewInteractions({
                     >
                       {c.text}
                     </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-1">
-                      {c.reactions?.map((r) => (
-                        <button
-                          key={r.emoji}
-                          className={control}
-                          disabled={busy}
-                          aria-pressed={r.mine}
-                          onClick={() =>
-                            void act(() =>
-                              axios.put(base + '/reactions', {
-                                commentId: c.id,
-                                emoji: r.emoji,
-                                active: !r.mine,
-                              })
-                            )
-                          }
-                        >
-                          {r.emoji} {r.count}
-                        </button>
-                      ))}
-                      <button
-                        className={control}
-                        disabled={busy}
-                        aria-label={t(
-                          'React to comment',
-                          'Reaccionar al comentario'
-                        )}
-                        aria-expanded={picker === c.id}
-                        onClick={() => setPicker(picker === c.id ? null : c.id)}
-                      >
-                        ＋
-                      </button>
-                    </div>
-                    {picker === c.id && (
-                      <Suspense fallback={null}>
-                        <EmojiPicker
-                          onSelect={(emoji) => {
-                            setPicker(null);
-                            void act(() =>
-                              axios.put(base + '/reactions', {
-                                commentId: c.id,
-                                emoji,
-                                active: true,
-                              })
-                            );
-                          }}
-                        />
-                      </Suspense>
-                    )}
-                    <div className="mt-2 flex gap-4 text-xs text-purple-300">
+                    <div className="mt-2 flex items-center gap-3 text-xs leading-4 text-purple-300">
                       {c.canEdit && (
                         <button
                           disabled={busy}
@@ -331,7 +282,56 @@ export default function ReviewInteractions({
                           {t('Delete', 'Eliminar')}
                         </button>
                       )}
+                      <div className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto">
+                        {c.reactions?.map((r) => (
+                          <button
+                            key={r.emoji}
+                            className="shrink-0 rounded-full border border-gray-600 px-2 py-0.5 text-xs leading-4 text-purple-200 hover:bg-gray-700"
+                            disabled={busy}
+                            aria-pressed={r.mine}
+                            onClick={() =>
+                              void act(() =>
+                                axios.put(base + '/reactions', {
+                                  commentId: c.id,
+                                  emoji: r.emoji,
+                                  active: !r.mine,
+                                })
+                              )
+                            }
+                          >
+                            {r.emoji} {r.count}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        className="relative shrink-0 rounded-full border border-gray-600 px-2 py-0.5 text-xs leading-4 text-purple-200 after:absolute after:-inset-1 hover:bg-gray-700"
+                        disabled={busy}
+                        aria-label={t(
+                          'React to comment',
+                          'Reaccionar al comentario'
+                        )}
+                        aria-expanded={picker === c.id}
+                        onClick={() => setPicker(picker === c.id ? null : c.id)}
+                      >
+                        ＋
+                      </button>
                     </div>
+                    {picker === c.id && (
+                      <Suspense fallback={null}>
+                        <EmojiPicker
+                          onSelect={(emoji) => {
+                            setPicker(null);
+                            void act(() =>
+                              axios.put(base + '/reactions', {
+                                commentId: c.id,
+                                emoji,
+                                active: true,
+                              })
+                            );
+                          }}
+                        />
+                      </Suspense>
+                    )}
                   </>
                 )}
               </article>
