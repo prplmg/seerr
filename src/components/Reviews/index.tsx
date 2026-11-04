@@ -10,6 +10,9 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import useSWR, { useSWRConfig } from 'swr';
+import ReviewInteractions, {
+  type InteractionSummary,
+} from './ReviewInteractions';
 
 type Review = {
   id: string;
@@ -317,6 +320,21 @@ export function MovieReviews({
       : []),
     ...(data?.results || []),
   ];
+  const interactionIds = rows
+    .map((r) => r.id)
+    .sort()
+    .join(',');
+  const { data: interactions, mutate: refreshInteractions } = useSWR<
+    Record<string, InteractionSummary>
+  >(
+    interactionIds
+      ? [
+          `/api/v1/review-interactions/summary?ids=${encodeURIComponent(interactionIds)}`,
+          user?.id,
+        ]
+      : null,
+    async ([url]: [string, number | undefined]) => (await axios.get(url)).data
+  );
   function startEditing(review?: Review) {
     const base = `local:${user!.id}:${mediaType === 'tv' ? 'tv:' : ''}${movieId}${episodeNumber !== undefined ? `:s${seasonNumber}:e${episodeNumber}` : ''}`;
     setEditingId(review?.id || `${base}:${crypto.randomUUID()}`);
@@ -328,7 +346,13 @@ export function MovieReviews({
         ? review.syncToLetterboxd === true
         : mine?.publishing?.enabled === true
     );
-    setViewingId(review ? undefined : mine?.latestViewing?.suggested ? mine.latestViewing.id : null);
+    setViewingId(
+      review
+        ? undefined
+        : mine?.latestViewing?.suggested
+          ? mine.latestViewing.id
+          : null
+    );
     setEditing(true);
   }
   const { mutate: refreshCache } = useSWRConfig();
@@ -422,9 +446,12 @@ export function MovieReviews({
                 {mine?.latestViewing && (
                   <option value={mine.latestViewing.id}>
                     {mine.latestViewing.inProgress
-                      ? t('Watching now · mark watched', 'Viendo ahora · marcar como vista')
-                      : t('Latest viewing', 'Última visualización')} ·{' '}
-                    {mine.latestViewing.date} ·{' '}
+                      ? t(
+                          'Watching now · mark watched',
+                          'Viendo ahora · marcar como vista'
+                        )
+                      : t('Latest viewing', 'Última visualización')}{' '}
+                    · {mine.latestViewing.date} ·{' '}
                     {mine.latestViewing.source === 'letterboxd'
                       ? 'Letterboxd'
                       : 'Multimeldia'}
@@ -544,7 +571,7 @@ export function MovieReviews({
           )}
         </p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid items-start gap-4 lg:grid-cols-2">
           {rows.map((r) => (
             <article
               id={`review-${r.id}`}
@@ -552,6 +579,13 @@ export function MovieReviews({
               className="scroll-mt-24 rounded-xl border border-gray-700 bg-gray-800 p-4"
             >
               <ReviewBody review={r} />
+              <ReviewInteractions
+                key={r.id}
+                reviewId={r.id}
+                viewerId={user?.id}
+                summary={interactions?.[r.id]}
+                onChanged={refreshInteractions}
+              />
               {(r.source === 'local' && r.userId === user?.id) ||
               r.syncedToLetterboxd ||
               r.externalUrl ? (

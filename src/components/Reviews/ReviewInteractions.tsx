@@ -1,0 +1,351 @@
+import CachedImage from '@app/components/Common/CachedImage';
+import { usePartyText } from '@app/components/WatchParty/messages';
+import axios from 'axios';
+import { lazy, Suspense, useState } from 'react';
+import useSWR from 'swr';
+const EmojiPicker = lazy(() => import('./EmojiPicker'));
+export type InteractionSummary = {
+  comments: number;
+  reactions: { emoji: string; count: number; mine: boolean }[];
+};
+type Comment = {
+  id: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+  canEdit: boolean;
+  canDelete: boolean;
+  user: { id: number; name: string; avatar: string } | null;
+};
+const control =
+  'rounded-lg border border-gray-600 px-3 py-2 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50';
+export default function ReviewInteractions({
+  reviewId,
+  viewerId,
+  summary,
+  onChanged,
+}: {
+  reviewId: string;
+  viewerId?: number;
+  summary?: InteractionSummary;
+  onChanged: () => unknown;
+}) {
+  const t = usePartyText(),
+    [open, setOpen] = useState(false),
+    [picker, setPicker] = useState(false),
+    [page, setPage] = useState(1),
+    [draft, setDraft] = useState(''),
+    [draftId, setDraftId] = useState(''),
+    [editing, setEditing] = useState<Comment | null>(null),
+    [editText, setEditText] = useState(''),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState('');
+  const base = `/api/v1/review-interactions/${encodeURIComponent(reviewId)}`;
+  const {
+    data,
+    mutate,
+    error: loadError,
+  } = useSWR<{ results: Comment[]; total: number; page: number }>(
+    open ? [`${base}/comments?page=${page}`, viewerId] : null,
+    async ([url]: [string, number | undefined]) => (await axios.get(url)).data
+  );
+  async function act(work: () => Promise<unknown>) {
+    setBusy(true);
+    setError('');
+    try {
+      await work();
+      await Promise.all([mutate(), onChanged()]);
+    } catch (reason) {
+      setError(
+        (axios.isAxiosError(reason) && reason.response?.data?.message) ||
+          t(
+            'Could not save this change. Your text is kept—please retry.',
+            'No se pudo guardar el cambio. Tu texto se conserva; intenta de nuevo.'
+          )
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section
+      aria-label={t('Review interactions', 'Interacciones de la reseña')}
+      className="mt-4 min-w-0 border-t border-gray-700 pt-3"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        {summary?.reactions.map((r) => (
+          <button
+            type="button"
+            key={r.emoji}
+            disabled={busy}
+            aria-pressed={r.mine}
+            aria-label={`${r.emoji}: ${r.count}${r.mine ? t(', remove your reaction', ', quitar tu reacción') : t(', react', ', reaccionar')}`}
+            className={`${control} ${r.mine ? 'border-purple-400 bg-purple-900/40' : ''}`}
+            onClick={() =>
+              void act(() =>
+                axios.put(`${base}/reactions`, {
+                  emoji: r.emoji,
+                  active: !r.mine,
+                })
+              )
+            }
+          >
+            <span className="mr-1 text-lg">{r.emoji}</span>
+            {r.count}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={busy || !summary}
+          className={control}
+          aria-expanded={picker}
+          onClick={() => setPicker((v) => !v)}
+        >
+          {t('＋ React', '＋ Reaccionar')}
+        </button>
+        <button
+          type="button"
+          className={`${control} ml-auto`}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {t('Comments', 'Comentarios')}
+          {summary ? ` · ${summary.comments}` : ''}
+        </button>
+      </div>
+      {picker && (
+        <Suspense
+          fallback={
+            <p role="status" className="mt-3 text-sm text-gray-400">
+              {t('Loading emoji…', 'Cargando emojis…')}
+            </p>
+          }
+        >
+          <EmojiPicker
+            onSelect={(emoji) => {
+              setPicker(false);
+              void act(() =>
+                axios.put(`${base}/reactions`, { emoji, active: true })
+              );
+            }}
+          />
+        </Suspense>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-red-300">
+          {error}
+        </p>
+      )}
+      {open && (
+        <div className="mt-4 min-w-0 space-y-4">
+          <p className="text-xs text-gray-400">
+            {t(
+              'Comments and reactions stay in Multimeldia.',
+              'Los comentarios y las reacciones se quedan en Multimeldia.'
+            )}
+          </p>
+          {loadError ? (
+            <p role="alert">
+              {t(
+                'Comments could not be loaded.',
+                'No se pudieron cargar los comentarios.'
+              )}{' '}
+              <button className="text-purple-300" onClick={() => void mutate()}>
+                {t('Retry', 'Reintentar')}
+              </button>
+            </p>
+          ) : !data ? (
+            <p role="status">
+              {t('Loading comments…', 'Cargando comentarios…')}
+            </p>
+          ) : !data.total ? (
+            <p className="text-sm text-gray-400">
+              {t('Start the conversation.', 'Inicia la conversación.')}
+            </p>
+          ) : (
+            data.results.map((c) => (
+              <article
+                key={c.id}
+                className="min-w-0 rounded-lg bg-gray-900/60 p-3"
+              >
+                <div className="mb-2 flex min-w-0 flex-wrap items-center gap-2 text-sm">
+                  {c.user?.avatar && (
+                    <CachedImage
+                      type="avatar"
+                      src={c.user.avatar}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full"
+                    />
+                  )}
+                  <span className="break-all font-semibold text-gray-100">
+                    {c.user?.name || t('Former member', 'Exmiembro')}
+                  </span>
+                  <time
+                    className="text-xs text-gray-400"
+                    dateTime={c.createdAt}
+                  >
+                    {new Date(c.createdAt).toLocaleDateString()}
+                  </time>
+                  {c.updatedAt !== c.createdAt && (
+                    <span className="text-xs text-gray-400">
+                      {t('edited', 'editado')}
+                    </span>
+                  )}
+                </div>
+                {editing?.id === c.id ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void act(async () => {
+                        await axios.patch(`${base}/comments/${c.id}`, {
+                          text: editText,
+                          revision: c.updatedAt,
+                        });
+                        setEditing(null);
+                      });
+                    }}
+                  >
+                    <textarea
+                      aria-label={t('Edit comment', 'Editar comentario')}
+                      maxLength={4000}
+                      rows={3}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="w-full min-w-0 rounded-lg border border-gray-600 bg-gray-800 p-2 text-base"
+                    />
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        disabled={busy || !editText.trim()}
+                        className={control}
+                      >
+                        {t('Save', 'Guardar')}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        className={control}
+                        onClick={() => setEditing(null)}
+                      >
+                        {t('Cancel', 'Cancelar')}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <p
+                      className="whitespace-pre-wrap break-words text-sm text-gray-200"
+                      style={{ overflowWrap: 'anywhere' }}
+                    >
+                      {c.text}
+                    </p>
+                    <div className="mt-2 flex gap-4 text-xs text-purple-300">
+                      {c.canEdit && (
+                        <button
+                          disabled={busy}
+                          onClick={() => {
+                            setEditing(c);
+                            setEditText(c.text);
+                          }}
+                        >
+                          {t('Edit', 'Editar')}
+                        </button>
+                      )}
+                      {c.canDelete && (
+                        <button
+                          disabled={busy}
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                t(
+                                  'Delete this comment from Multimeldia?',
+                                  '¿Eliminar este comentario de Multimeldia?'
+                                )
+                              )
+                            )
+                              void act(() =>
+                                axios.delete(`${base}/comments/${c.id}`)
+                              );
+                          }}
+                        >
+                          {t('Delete', 'Eliminar')}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </article>
+            ))
+          )}
+          {data && data.total > 20 && (
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <button
+                disabled={page <= 1 || busy}
+                className={control}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                {t('Previous', 'Anterior')}
+              </button>
+              <span>
+                {page} / {Math.ceil(data.total / 20)}
+              </span>
+              <button
+                disabled={page * 20 >= data.total || busy}
+                className={control}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {t('Next', 'Siguiente')}
+              </button>
+            </div>
+          )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const id = draftId || crypto.randomUUID();
+              setDraftId(id);
+              void act(async () => {
+                await axios.post(`${base}/comments`, { id, text: draft });
+                setDraft('');
+                setDraftId('');
+                if (data) setPage(Math.ceil((data.total + 1) / 20));
+              });
+            }}
+          >
+            <label
+              htmlFor={`comment-${reviewId}`}
+              className="mb-2 block text-sm font-medium text-gray-200"
+            >
+              {t('Add a comment', 'Añadir un comentario')}
+            </label>
+            <textarea
+              id={`comment-${reviewId}`}
+              disabled={busy}
+              rows={3}
+              maxLength={4000}
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value);
+              }}
+              placeholder={t('What did you think?', '¿Qué te pareció?')}
+              className="w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-3 text-base focus:border-purple-400"
+            />
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-400">
+                {draft.length}/4,000
+              </span>
+              <button
+                disabled={busy || !draft.trim()}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {busy
+                  ? t('Saving…', 'Guardando…')
+                  : t('Post comment', 'Publicar comentario')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </section>
+  );
+}

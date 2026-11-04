@@ -11,6 +11,7 @@ import {
 import {
   allLists,
   filmKey,
+  personalList,
   readListStore,
   updateListStore,
   visibleList,
@@ -232,10 +233,7 @@ async function buildDiscoveryData(userId: number) {
     }));
   const saved = new Set(store.saved[userId] || []),
     liked = new Set(store.liked[userId] || []);
-  const mine = lists.filter(
-    (l) =>
-      l.ownerId === userId || saved.has(l.id) || (l.url && liked.has(l.url))
-  );
+  const mine = lists.filter((l) => personalList(l, store, userId));
   const seen = new Set(watched.filter((w) => w.userId === userId).map(filmKey));
   const summaries = new Map<
     (typeof lists)[number],

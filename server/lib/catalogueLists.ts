@@ -1,6 +1,10 @@
 import { randomUUID } from 'crypto';
 import type { ListStore } from './discoveryLists';
-import { replaceList } from './discoveryLists';
+import {
+  initializeCreatedBookmarks,
+  replaceList,
+  setListSaved,
+} from './discoveryLists';
 
 export class CatalogueListError extends Error {
   constructor(
@@ -65,6 +69,7 @@ export function saveCatalogueList(
   id?: string,
   now = Date.now()
 ) {
+  initializeCreatedBookmarks(store);
   const value = validateCatalogueList(body);
   const old = id ? ownedCatalogueList(store, userId, id) : undefined;
   if (old && value.revision !== old.checkedAt)
@@ -98,7 +103,13 @@ export function saveCatalogueList(
     items: value.movieIds.map((tmdbId) => ({ type: 'movie' as const, tmdbId })),
     history: old?.history || [],
   };
+  if (!old && (store.saved[userId] || []).length >= 200)
+    throw new CatalogueListError(
+      409,
+      'Unsave a list before creating another saved list.'
+    );
   replaceList(store, list, list.checkedAt);
+  if (!old) setListSaved(store, userId, list.id, true, now);
   return list;
 }
 

@@ -1,3 +1,5 @@
+import SaveList from './SaveList';
+export { default as SaveList } from './SaveList';
 import CachedImage from '@app/components/Common/CachedImage';
 import Modal from '@app/components/Common/Modal';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -117,76 +119,6 @@ function Gate({ children }: { children: React.ReactNode }) {
       </p>
     );
   return <div className="text-gray-300">{children}</div>;
-}
-export function SaveList({
-  id,
-  saved,
-  onChange,
-}: {
-  id: string;
-  saved?: boolean;
-  onChange?: () => void;
-}) {
-  const { enabled, readOnly } = useDiscovery(),
-    [value, setValue] = useState(!!saved),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState(''),
-    t = usePartyText();
-  const { user } = useUser();
-  const { data, mutate } = useSWR<List>(
-    enabled && !readOnly && saved === undefined
-      ? [`/api/v1/discovery-lists/${id}`, user?.id]
-      : null,
-    async ([url]) => (await axios.get(url)).data
-  );
-  useEffect(
-    () => setValue(saved ?? data?.saved ?? false),
-    [saved, data?.saved, id]
-  );
-  if (!enabled || readOnly) return null;
-  return (
-    <span>
-      <button
-        className={style}
-        disabled={busy || (saved === undefined && !data)}
-        aria-pressed={value}
-        onClick={async () => {
-          setBusy(true);
-          setError('');
-          try {
-            await axios.put(`/api/v1/discovery-lists/${id}/save`, {
-              saved: !value,
-            });
-            setValue(!value);
-            if (data) void mutate({ ...data, saved: !value }, false);
-            onChange?.();
-          } catch (error) {
-            setError(
-              axios.isAxiosError(error)
-                ? error.response?.data?.message ||
-                    t(
-                      'Could not save. Please retry.',
-                      'No se pudo guardar. Intenta de nuevo.'
-                    )
-                : t(
-                    'Could not save. Please retry.',
-                    'No se pudo guardar. Intenta de nuevo.'
-                  )
-            );
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        {busy
-          ? t('Saving…', 'Guardando…')
-          : value
-            ? t('Saved ✓', 'Guardada ✓')
-            : t('Save list', 'Guardar lista')}
-      </button>
-      {error && <span role="alert">{error}</span>}
-    </span>
-  );
 }
 export function ListCard({ list: l }: { list: List }) {
   const t = usePartyText();
@@ -594,6 +526,7 @@ function Library({ explore = false }: { explore?: boolean }) {
               ['other', 'Lists', 'Listas'],
               ['saved', 'Saved', 'Guardadas'],
               ['created', 'Created', 'Creadas'],
+              ['unlinked', 'Unlinked', 'Desvinculadas'],
               ['liked', 'Liked on Letterboxd', 'Me gustan en Letterboxd'],
             ].map(([id, en, es]) => (
               <option key={id} value={id}>

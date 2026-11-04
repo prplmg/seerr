@@ -2353,7 +2353,7 @@ paths:
           name: filter
           schema:
             type: string
-            enum: [all, saved, created, liked, discover]
+            enum: [all, saved, created, liked, discover, unlinked]
       responses:
         '200':
           description: List summaries
@@ -2676,7 +2676,10 @@ paths:
         '200': { description: List scan or idle }
         '403': { description: Invalid worker credential }
         '409': { description: Invalid list delivery }
-        '410': { description: List job no longer retained; preserve report before retiring delivery }
+        '410':
+          {
+            description: List job no longer retained; preserve report before retiring delivery,
+          }
   /letterboxd-worker/exchange:
     post:
       security: []
@@ -3037,6 +3040,139 @@ paths:
         '403': { description: Admin required }
         '409': { description: Check already running }
         '503': { description: Verification unavailable; no avatars modified }
+  /review-interactions/summary:
+    get:
+      summary: Batched local review interaction counts
+      parameters:
+        - in: query
+          name: ids
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interaction counts
+        '400':
+          description: Invalid review IDs
+  /review-interactions/{reviewId}/comments:
+    parameters:
+      - in: path
+        name: reviewId
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Local comments for a review
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+      responses:
+        '200':
+          description: Paginated comments
+        '404':
+          description: Review not found
+    post:
+      summary: Add a local comment idempotently
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [id, text]
+              properties:
+                id:
+                  type: string
+                text:
+                  type: string
+      responses:
+        '201':
+          description: Comment saved
+        '400':
+          description: Invalid comment
+        '404':
+          description: Review not found
+        '409':
+          description: Conflicting comment
+  /review-interactions/{reviewId}/comments/{id}:
+    parameters:
+      - in: path
+        name: reviewId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    patch:
+      summary: Edit your local comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [text, revision]
+              properties:
+                text:
+                  type: string
+                revision:
+                  type: string
+      responses:
+        '204':
+          description: Comment updated
+        '403':
+          description: Not the author
+        '404':
+          description: Not found
+        '409':
+          description: Stale revision
+    delete:
+      summary: Delete own comment or moderate as administrator
+      responses:
+        '204':
+          description: Comment deleted
+        '403':
+          description: Not permitted
+        '404':
+          description: Not found
+  /review-interactions/{reviewId}/reactions:
+    parameters:
+      - in: path
+        name: reviewId
+        required: true
+        schema:
+          type: string
+    put:
+      summary: Add or remove one local emoji reaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [emoji, active]
+              properties:
+                emoji:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Current interaction counts
+        '400':
+          description: Invalid emoji
+        '404':
+          description: Review not found
   /reviews:
     get:
       summary: List ratings and reviews

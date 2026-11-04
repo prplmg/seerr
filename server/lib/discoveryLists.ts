@@ -31,6 +31,7 @@ export type DiscoveryList = {
 };
 export type ListStore = {
   version: 1;
+  createdBookmarksVersion?: 1;
   lists: DiscoveryList[];
   saved: Record<string, string[]>;
   liked: Record<string, string[]>;
@@ -126,6 +127,7 @@ export function readListStore(): ListStore {
       !s.availability
     )
       throw Error('Invalid list store');
+    initializeCreatedBookmarks(s);
     return s;
   } catch (e) {
     if (e.code !== 'ENOENT') throw e;
@@ -166,6 +168,31 @@ export function allLists(store: ListStore): DiscoveryList[] {
     ...store.lists,
   ];
 }
+/** One-time compatibility normalization; persisted with the next store mutation. */
+export function initializeCreatedBookmarks(store: ListStore) {
+  if (store.createdBookmarksVersion === 1) return;
+  for (const list of store.lists) {
+    if (list.source === 'catalogue' && list.ownerId && !list.deletedAt) {
+      store.saved[list.ownerId] = [
+        ...new Set([...(store.saved[list.ownerId] || []), list.id]),
+      ];
+    }
+  }
+  store.createdBookmarksVersion = 1;
+}
+export function personalList(
+  list: DiscoveryList,
+  store: ListStore,
+  userId: number
+) {
+  const saved = (store.saved[userId] || []).includes(list.id);
+  if (list.source === 'catalogue' && list.ownerId === userId) return saved;
+  return (
+    saved ||
+    list.ownerId === userId ||
+    !!(list.url && (store.liked[userId] || []).includes(list.url))
+  );
+}
 export function setListSaved(
   store: ListStore,
   userId: number,
@@ -173,6 +200,7 @@ export function setListSaved(
   saved: boolean,
   now = Date.now()
 ) {
+  initializeCreatedBookmarks(store);
   const list = allLists(store).find((l) => l.id === id);
   // Removing an unavailable bookmark must remain possible.
   if (saved && (!list || !visibleList(list, userId, now)))
@@ -180,6 +208,6 @@ export function setListSaved(
   const next = new Set(store.saved[userId] || []);
   if (saved) next.add(id);
   else next.delete(id);
-  if (next.size > 200) throw Error('Saved list limit reached');
+  if (saved && next.size > 200) throw Error('Saved list limit reached');
   store.saved[userId] = [...next];
 }

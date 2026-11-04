@@ -1,10 +1,3 @@
-import socialRoutes from './social';
-import discoveryListRoutes from './discoveryLists';
-import reviewRoutes from './reviews';
-import letterboxdWorkerRoutes from './letterboxdWorker';
-import letterboxdWatchlistRoutes from './letterboxdWatchlist';
-import curatedRoutes from './curated';
-import watchPartyRoutes from './watchParty';
 import GithubAPI from '@server/api/github';
 import PushoverAPI from '@server/api/pushover';
 import TheMovieDb from '@server/api/themoviedb';
@@ -38,24 +31,37 @@ import { Router } from 'express';
 import authRoutes from './auth';
 import blocklistRoutes from './blocklist';
 import collectionRoutes from './collection';
+import curatedRoutes from './curated';
 import discoverRoutes, { createTmdbWithRegionLanguage } from './discover';
+import discoveryListRoutes from './discoveryLists';
 import issueRoutes from './issue';
 import issueCommentRoutes from './issueComment';
+import letterboxdWatchlistRoutes from './letterboxdWatchlist';
+import letterboxdWorkerRoutes from './letterboxdWorker';
 import mediaRoutes from './media';
 import movieRoutes from './movie';
 import personRoutes from './person';
 import requestRoutes from './request';
+import reviewInteractionRoutes from './reviewInteractions';
+import reviewRoutes from './reviews';
 import searchRoutes from './search';
 import serviceRoutes from './service';
+import socialRoutes from './social';
 import tvRoutes from './tv';
 import user from './user';
+import watchPartyRoutes from './watchParty';
 
 const router = Router();
 
 router.use(checkUser);
 router.use('/discovery-lists', isAuthenticated(), discoveryListRoutes);
 router.use('/letterboxd-worker', letterboxdWorkerRoutes);
-router.use('/letterboxd-watchlist', isAuthenticated(), letterboxdWatchlistRoutes);
+router.use(
+  '/letterboxd-watchlist',
+  isAuthenticated(),
+  letterboxdWatchlistRoutes
+);
+router.use('/review-interactions', isAuthenticated(), reviewInteractionRoutes);
 router.use('/reviews', isAuthenticated(), reviewRoutes);
 router.use('/curated', isAuthenticated(), curatedRoutes);
 router.use('/social', isAuthenticated(), socialRoutes);
