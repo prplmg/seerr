@@ -139,6 +139,7 @@ export default function DiscoveryReviewFooter({
               >
                 <fieldset disabled={busy}>
                   <QuickEmojiPicker
+                    viewerId={viewerId}
                     selected={summary?.reactions
                       .filter((r) => r.mine)
                       .map((r) => r.emoji)}

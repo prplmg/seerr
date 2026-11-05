@@ -1,4 +1,6 @@
+import { quickReactions } from '@server/constants/quickReactions';
 import {
+  RecentReaction,
   ReviewComment,
   ReviewReaction,
 } from '@server/entity/ReviewInteraction';
@@ -146,15 +148,24 @@ export async function setReaction(
     return false;
   }
   if (reviewId.startsWith('#')) {
+    if (await repo.existsBy({ id })) return false;
     await repo
       .createQueryBuilder()
       .insert()
       .values({ id, reviewId, userId, emoji })
       .orIgnore()
       .execute();
+  } else if (!(await inserted(repo.insert({ id, reviewId, userId, emoji }))))
     return false;
+  if (!quickReactions.includes(emoji)) {
+    await manager
+      .getRepository(RecentReaction)
+      .upsert({ userId, emoji, lastUsed: new Date().toISOString() }, [
+        'userId',
+        'emoji',
+      ]);
   }
-  return inserted(repo.insert({ id, reviewId, userId, emoji }));
+  return !reviewId.startsWith('#');
 }
 export async function interactionSummaries(
   manager: EntityManager,

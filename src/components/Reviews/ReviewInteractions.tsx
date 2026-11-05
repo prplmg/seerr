@@ -136,6 +136,7 @@ export default function ReviewInteractions({
           }
         >
           <QuickEmojiPicker
+            viewerId={viewerId}
             selected={summary?.reactions
               .filter((r) => r.mine)
               .map((r) => r.emoji)}
@@ -319,6 +320,7 @@ export default function ReviewInteractions({
                     {picker === c.id && (
                       <Suspense fallback={null}>
                         <QuickEmojiPicker
+                          viewerId={viewerId}
                           selected={c.reactions
                             ?.filter((r) => r.mine)
                             .map((r) => r.emoji)}

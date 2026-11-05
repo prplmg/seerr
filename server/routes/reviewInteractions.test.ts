@@ -1,5 +1,7 @@
+import { RecentReactions1793900000000 } from '@server/migration/sqlite/1793900000000-RecentReactions';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  RecentReaction,
   ReviewComment,
   ReviewReaction,
 } from '@server/entity/ReviewInteraction';
@@ -21,9 +23,10 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
   const db = new DataSource({
     type: 'sqlite',
     database: ':memory:',
-    entities: [ReviewComment, ReviewReaction],
+    entities: [ReviewComment, ReviewReaction, RecentReaction],
   });
   await db.initialize();
+  await new RecentReactions1793900000000().up(db.createQueryRunner());
   await new ReviewInteractions1793800000000().up(db.createQueryRunner());
   try {
     const api: any = {};
@@ -170,6 +173,17 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
       .query({ commentId: randomUUID() })
       .set('x-test-user', '2')
       .expect(404);
+    const recentURL = '/api/v1/review-interactions/recent-emoji';
+    assert.deepEqual(
+      (await request(app).get(recentURL).set('x-test-user', '1').expect(200))
+        .body,
+      ['👩🏽‍🚀']
+    );
+    assert.deepEqual(
+      (await request(app).get(recentURL).set('x-test-user', '2').expect(200))
+        .body,
+      ['🎉']
+    );
     const threaded = await request(app)
       .get(prefix + '/comments')
       .set('x-test-user', '2')

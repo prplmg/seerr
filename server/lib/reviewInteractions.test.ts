@@ -1,8 +1,10 @@
 import {
+  RecentReaction,
   ReviewComment,
   ReviewReaction,
 } from '@server/entity/ReviewInteraction';
 import { ReviewInteractions1793800000000 } from '@server/migration/sqlite/1793800000000-ReviewInteractions';
+import { RecentReactions1793900000000 } from '@server/migration/sqlite/1793900000000-RecentReactions';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { it } from 'node:test';
@@ -20,9 +22,10 @@ it('local interactions migrate, enforce authorship, survive retry, paginate and 
   const db = new DataSource({
     type: 'sqlite',
     database: ':memory:',
-    entities: [ReviewComment, ReviewReaction],
+    entities: [ReviewComment, ReviewReaction, RecentReaction],
   });
   await db.initialize();
+  await new RecentReactions1793900000000().up(db.createQueryRunner());
   const migration = new ReviewInteractions1793800000000(),
     q = db.createQueryRunner();
   try {
@@ -119,6 +122,28 @@ it('local interactions migrate, enforce authorship, survive retry, paginate and 
     assert.equal(total, 25);
     assert.equal(page.length, 5);
     assert.equal(await q.hasTable('letterboxd_write_queue'), false);
+    const extras = ['🍋', '🍊', '🍏', '🍐', '🍑', '🍓', '🥭'];
+    for (const emoji of extras) await setReaction(m, review, 3, emoji, true);
+    await setReaction(m, review, 3, '👍', true);
+    await m.update(
+      RecentReaction,
+      { userId: 3 },
+      { lastUsed: '2020-01-01T00:00:00.000Z' }
+    );
+    await setReaction(m, '#' + id, 3, '🍋', true);
+    await setReaction(m, '#' + id, 3, '🍋', false);
+    const rows = await m.getRepository(RecentReaction).find({
+      where: { userId: 3 },
+      take: 6,
+      order: { lastUsed: 'DESC', emoji: 'ASC' },
+    });
+    assert.equal(rows.length, 6);
+    assert.equal(rows[0].emoji, '🍋');
+    assert.equal(await m.countBy(RecentReaction, { userId: 3 }), 7);
+    assert.equal(
+      await m.countBy(RecentReaction, { userId: 3, emoji: '👍' }),
+      0
+    );
     await migration.down(q);
     assert.equal(await q.hasTable('review_comment'), false);
     await migration.up(q);

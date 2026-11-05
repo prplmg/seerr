@@ -3040,6 +3040,11 @@ paths:
         '403': { description: Admin required }
         '409': { description: Check already running }
         '503': { description: Verification unavailable; no avatars modified }
+  /review-interactions/recent-emoji:
+    get:
+      summary: Get the current member's six most recent non-default emoji
+      responses:
+        '200': { description: Recent emoji in descending order of use }
   /review-interactions/summary:
     get:
       summary: Batched local review interaction counts

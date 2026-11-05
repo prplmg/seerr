@@ -20,3 +20,11 @@ export class ReviewReaction {
   @Column({ type: 'integer' }) userId: number;
   @Column({ type: 'varchar' }) emoji: string;
 }
+
+@Entity()
+@Index(['userId', 'lastUsed'])
+export class RecentReaction {
+  @PrimaryColumn({ type: 'integer' }) userId: number;
+  @PrimaryColumn({ type: 'varchar' }) emoji: string;
+  @Column({ type: 'varchar' }) lastUsed: string;
+}

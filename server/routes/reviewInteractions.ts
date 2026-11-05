@@ -1,6 +1,7 @@
 import { getRepository } from '@server/datasource';
 import { MovieReview } from '@server/entity/MovieReview';
 import {
+  RecentReaction,
   ReviewComment,
   ReviewReaction,
 } from '@server/entity/ReviewInteraction';
@@ -55,6 +56,18 @@ async function requireReview(req: Request) {
     throw new InteractionError(404, 'Review not found.');
   return id;
 }
+router.get(
+  '/recent-emoji',
+  handle(async (req, res) => {
+    const rows = await getRepository(RecentReaction).find({
+      where: { userId: req.user!.id },
+      order: { lastUsed: 'DESC', emoji: 'ASC' },
+      take: 6,
+      select: { emoji: true },
+    });
+    res.json(rows.map((r) => r.emoji));
+  })
+);
 router.get(
   '/summary',
   handle(async (req, res) => {
