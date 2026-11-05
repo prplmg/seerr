@@ -1,5 +1,6 @@
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { Dialog } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -64,22 +65,65 @@ export function ReactionPeople({
           {t('Reacted to this review', 'Reaccionaron a esta reseña')}
         </h4>
       )}
-      {[...new Set(people.map((p) => p.emoji))].map((e) => (
-        <p key={e} className="break-words">
-          {e}{' '}
-          {people
-            .filter((p) => p.emoji === e)
-            .map((p) => p.name ?? t('Catalogue member', 'Miembro del catálogo'))
-            .join(', ')}
-        </p>
-      ))}
+      {emoji ? (
+        <ul
+          className="max-h-[40dvh] space-y-1 overflow-y-auto overscroll-contain"
+          aria-label={t('People who reacted', 'Personas que reaccionaron')}
+        >
+          {people.map((person) => {
+            const name =
+              person.name ?? t('Catalogue member', 'Miembro del catálogo');
+            return (
+              <li
+                key={person.id}
+                className="flex min-w-0 items-center gap-3 rounded-xl px-2 py-2"
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-400/10 text-sm font-semibold text-purple-200"
+                >
+                  {Array.from(name)[0]?.toLocaleUpperCase()}
+                </span>
+                <span className="min-w-0 flex-1 break-words font-medium">
+                  {name}
+                </span>
+                {person.id === target.viewerId && (
+                  <span className="shrink-0 text-xs text-gray-400">
+                    {t('You', 'Tú')}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {[...new Set(people.map((p) => p.emoji))].map((e) => (
+            <div
+              key={e}
+              className="flex max-w-full items-start gap-2 rounded-2xl bg-gray-900/40 px-3 py-2"
+            >
+              <span className="text-lg leading-5">{e}</span>
+              <span className="min-w-0 break-words text-xs leading-5 text-gray-300">
+                {people
+                  .filter((p) => p.emoji === e)
+                  .map(
+                    (p) =>
+                      p.name ?? t('Catalogue member', 'Miembro del catálogo')
+                  )
+                  .join(', ')}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {!people.length && (
         <p>{t('No reactions yet.', 'Todavía no hay reacciones.')}</p>
       )}
       {emoji && (
         <button
           disabled={busy}
-          className="rounded-full border border-gray-600 px-3 py-1 text-purple-200"
+          className="mt-2 w-full rounded-full border border-purple-400/25 bg-purple-400/10 px-4 py-2.5 text-sm font-medium text-purple-200 transition-colors hover:bg-purple-400/20 focus-visible:ring-2 focus-visible:ring-purple-400 disabled:opacity-50"
           onClick={() => void change()}
         >
           {mine
@@ -126,18 +170,28 @@ export function ReactionPill({
         onClose={() => setOpen(false)}
         className="relative z-[110]"
       >
-        <div aria-hidden className="fixed inset-0 bg-black/60" />
-        <div className="fixed inset-0 flex items-end justify-center sm:items-center">
-          <Dialog.Panel className="max-h-[80dvh] w-full max-w-sm overflow-auto rounded-t-2xl bg-gray-800 p-5 text-gray-100 sm:rounded-2xl">
-            <header className="mb-3 flex justify-between">
-              <Dialog.Title className="font-semibold">
-                {reaction.emoji} · {t('Who reacted', 'Quién reaccionó')}
+        <div
+          aria-hidden
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+        />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="max-h-[80dvh] w-full max-w-xs overflow-auto rounded-2xl border border-gray-600/70 bg-gray-800 p-4 text-gray-100 shadow-2xl">
+            <header className="mb-3 flex items-center gap-3 border-b border-gray-700 pb-3">
+              <span
+                aria-hidden="true"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900/60 text-2xl"
+              >
+                {reaction.emoji}
+              </span>
+              <Dialog.Title className="flex-1 text-sm font-semibold">
+                {t('Who reacted', 'Quién reaccionó')}
               </Dialog.Title>
               <button
                 aria-label={t('Close', 'Cerrar')}
+                className="rounded-full p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus-visible:ring-2 focus-visible:ring-purple-400"
                 onClick={() => setOpen(false)}
               >
-                ✕
+                <XMarkIcon className="h-4 w-4" />
               </button>
             </header>
             {open && (

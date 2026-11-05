@@ -7,3 +7,5 @@ Full picker uses a compact panel, search, scrollable category icons, selected-re
 Validation: full TypeScript check and focused ESLint passed. Actual components with mock API data passed Chrome at 320, 390 and 1280px: stable review dimensions, viewport containment, quick/recent scrolling, Escape and outside dismissal, expand/back/search, review and comment reaction writes, and no runtime errors or horizontal page overflow. Native iPhone Safari not tested. Preview harness remains outside application commits in seerr-social/interactions-preview/test-slim-picker.cjs.
 
 Not deployed. No settings changed.
+
+Who reacted now uses a compact centered panel with initial circles, individual name rows, a You marker, and an explicit removal button. Inline comment-drawer reaction names use grouped chips. Mock browser tests at all three widths verify opening the roster preserves your reaction and only the removal button removes it. Focused lint passed. Category highlight circles reduced and inset to avoid clipping.
