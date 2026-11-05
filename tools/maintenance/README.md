@@ -11,3 +11,5 @@ Deploy src/pages/_app.tsx and src/components/StatusChecker/MaintenanceBanner.tsx
 To revert, restore the previous release engine, restore the edge Caddyfile backup and reload Caddy. The page itself reloads the same URL only after receiving a valid healthy catalogue response.
 
 Validated on the same Caddy binary as production using test-edge.sh on a temporary loopback listener. The branded response body matched the standalone HTML byte for byte. API POST returned a marked JSON 503 without reaching the upstream, ordinary status forwarded normally, wrong-owner cleanup was ignored and an abandoned short test lease expired. Chrome tests confirmed reload at the original path/query/hash, banner recovery with an intact draft, and no replay of failed requests. These tests used isolated fixtures; they did not stop the production catalogue.
+
+**Default build host:** normal releases now compile on PRPL-PC and exercise the transferred build on Mini before acquiring the lease. See ../build-host/README.md. The 600-second lease expiry is a fail-safe, separate from the public wording “It will only take a few moments.”

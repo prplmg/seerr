@@ -48,8 +48,7 @@ export default function MaintenanceBanner() {
       role="status"
       className="pointer-events-none fixed inset-x-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[150] mx-auto w-fit rounded-xl border border-purple-400/50 bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 shadow-lg"
     >
-      <strong>Multimeldia is updating.</strong> Updates usually last up to 10
-      minutes.
+      <strong>Multimeldia is updating.</strong> It will only take a few moments.
     </div>
   ) : null;
 }

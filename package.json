@@ -63,6 +63,7 @@
     "express-session": "1.19.0",
     "formik": "^2.4.9",
     "gravatar-url": "4.0.1",
+    "htmlparser2": "10.0.0",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
     "humanize-duration": "^3.33.2",

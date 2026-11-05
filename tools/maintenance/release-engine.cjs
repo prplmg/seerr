@@ -4,7 +4,7 @@ const root='C:/ProgramData/Seerr',live=root+'/app',release=root+'/reconciliation
 const read=f=>fs.existsSync(f)?fs.readFileSync(f,'utf8'):null;
 const hash=s=>s===null?null:crypto.createHash('sha256').update(s.replace(/\r\n/g,'\n')).digest('hex');
 const ps=s=>cp.execFileSync('powershell.exe',['-NoProfile','-Command',"$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';"+s],{stdio:'inherit'});
-const allowed=f=>/^(server|src)\//.test(f)&&/\.(ts|tsx|json|css)$/.test(f)&&!f.includes('.test.')||f==='seerr-api.yml';
+const allowed=f=>/^(server|src)\//.test(f)&&/\.(ts|tsx|json|css)$/.test(f)&&!f.includes('.test.')||f==='seerr-api.yml'||f==='package.json'||f==='pnpm-lock.yaml'||f==='server/lib/data/UNICODE-LICENSE.txt';
 function startReady(){
  // Windows append handles do not reliably emit directory-change notifications.
  // Allow cold startup once, then verify the actual API below; no status polling.
@@ -29,7 +29,7 @@ async function main(){
    return {file:e.file,before:e.before,beforeHash:hash(e.before),afterHash:hash(e.after)};
   });
   fs.writeFileSync(release+'/manifest.json',JSON.stringify(manifest));console.log('Building '+manifest.length+' changed source files');
-  const script=read(root+'/BuildLetterboxd.ps1').replaceAll('letterboxd-native-20261016','reconciliation-native-20261019').replaceAll('letterboxd-release-20261016','reconciliation-release-20261019').replace('Copy-Item (Join-Path','Copy-Item -LiteralPath (Join-Path').replace('$entry.file) $file -Force','$entry.file) -Destination $file -Force');ps(script);
+  cp.execFileSync(process.execPath,[root+'/build-host/mini-build.cjs',live,stage,release],{stdio:'inherit'});
   for(const e of manifest)if(hash(read(stage+'/'+e.file))!==e.afterHash)throw Error('Staged source mismatch '+e.file);
   if(!fs.existsSync(stage+'/dist/lib/letterboxdExportReconciliation.js'))throw Error('Missing compiled reconciliation');
   fs.writeFileSync(release+'/built.json',JSON.stringify({buildId:read(stage+'/.next/BUILD_ID').trim(),manifestHash:hash(JSON.stringify(manifest))}));console.log('BUILD COMPLETE');return;
@@ -48,6 +48,8 @@ async function main(){
  const manifest=JSON.parse(read(release+'/manifest.json')),built=JSON.parse(read(release+'/built.json'));
  if(built.manifestHash!==hash(JSON.stringify(manifest)))throw Error('Manifest changed');
  for(const e of manifest)if(hash(read(live+'/'+e.file))!==e.beforeHash||hash(read(stage+'/'+e.file))!==e.afterHash)throw Error('Source drift '+e.file);
+ const preflight=JSON.parse(read(release+'/mini-preflight.json'));
+ if(!preflight?.verified || preflight.buildId!==built.buildId)throw Error('Mini preflight missing or stale');
  const publishing=()=>Object.entries(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings).filter(([,s])=>s.enabled).map(([id,s])=>({id,account:s.account}));
  const mappingsBefore=hash(read(root+'/data/account-mappings.json'));
  const publishingSettingsBefore=JSON.stringify(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings);
@@ -62,7 +64,8 @@ async function main(){
  maintenance('start');
  try {
   const edge=await fetch('https://catalogue.prpl.com.mx/?maintenance-check='+encodeURIComponent(leaseOwner),{headers:{Accept:'text/html'},signal:AbortSignal.timeout(15000)});
-  if(edge.status!==503 || edge.headers.get('x-multimeldia-updating')!=='1' || !(await edge.text()).includes('Multimeldia is updating')) throw Error('Public maintenance screen did not verify');
+  const page=await edge.text();
+  if(edge.status!==503 || edge.headers.get('x-multimeldia-updating')!=='1' || !page.includes('Multimeldia is updating') || !page.includes('It will only take a few moments.')) throw Error('Public maintenance screen did not verify');
   console.log('Public branded maintenance page verified before stopping Seerr');
  } catch(error) {maintenance('finish');throw error;}
  try{
