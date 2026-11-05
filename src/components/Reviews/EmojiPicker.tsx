@@ -84,7 +84,7 @@ export default function EmojiPicker({
             title={g}
             aria-label={g}
             aria-pressed={!search && group === g}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg hover:bg-gray-700 aria-pressed:bg-purple-900/60 aria-pressed:ring-1 aria-pressed:ring-purple-400"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg hover:bg-gray-700 aria-pressed:bg-purple-900/60 aria-pressed:ring-1 aria-pressed:ring-purple-400"
             onClick={() => {
               setGroup(g);
               setSearch('');
@@ -107,7 +107,7 @@ export default function EmojiPicker({
               title={e.name}
               aria-pressed={selected.includes(e.emoji)}
               aria-label={e.name}
-              className="flex h-10 min-w-0 items-center justify-center rounded-xl text-2xl transition-transform hover:scale-110 hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-purple-400 aria-pressed:bg-purple-900/60"
+              className="flex h-10 w-10 min-w-0 justify-self-center items-center justify-center rounded-full text-2xl transition-transform hover:scale-110 hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-purple-400 aria-pressed:bg-purple-900/60"
               onClick={() => onSelect(e.emoji)}
             >
               {e.emoji}
