@@ -75,7 +75,7 @@ export default function EmojiPicker({
       <div
         role="group"
         aria-label={t('Emoji category', 'Categoría de emoji')}
-        className="my-2 flex overflow-x-auto border-b border-gray-700 pb-2 [scrollbar-width:none]"
+        className="my-2 flex items-center gap-1 overflow-x-auto border-b border-gray-700 px-1 pt-1 pb-2 [scrollbar-width:none]"
       >
         {groups.map((g) => (
           <button
@@ -84,7 +84,7 @@ export default function EmojiPicker({
             title={g}
             aria-label={g}
             aria-pressed={!search && group === g}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg hover:bg-gray-700 aria-pressed:bg-purple-900/60 aria-pressed:ring-1 aria-pressed:ring-purple-400"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg leading-none hover:bg-gray-700 aria-pressed:bg-purple-900/60 aria-pressed:ring-1 aria-pressed:ring-inset aria-pressed:ring-purple-400"
             onClick={() => {
               setGroup(g);
               setSearch('');
