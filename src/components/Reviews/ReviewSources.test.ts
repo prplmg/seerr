@@ -93,7 +93,7 @@ it('detail footer keeps actions before a muted right-aligned sync label', () => 
     footer.indexOf('Edit this entry') < footer.indexOf('Synced with Letterboxd')
   );
   assert.ok(
-    footer.indexOf('Open in Letterboxd') <
+    footer.indexOf('Letterboxd ↗') <
       footer.indexOf('Synced with Letterboxd')
   );
 });

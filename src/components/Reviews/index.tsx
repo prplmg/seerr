@@ -606,7 +606,7 @@ export function MovieReviews({
                           target="_blank"
                           rel="noreferrer"
                         >
-                          {t('Open in Letterboxd ↗', 'Abrir en Letterboxd ↗')}
+                          {t('Letterboxd ↗', 'Letterboxd ↗')}
                         </a>
                       )}
                     </div>
