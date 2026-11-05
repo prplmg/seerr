@@ -2,7 +2,7 @@ import { usePartyText } from '@app/components/WatchParty/messages';
 import { Dialog } from '@headlessui/react';
 import { ChatBubbleOvalLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import QuickEmojiPicker from './QuickEmojiPicker';
 import { ReactionPill } from './ReactionPeople';
 import ReviewInteractions, {
@@ -30,6 +30,7 @@ export default function DiscoveryReviewFooter({
 }) {
   const t = usePartyText();
   const [sheet, setSheet] = useState<'comments' | 'picker' | null>(null);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   async function react(emoji: string, active: boolean) {
@@ -77,7 +78,10 @@ export default function DiscoveryReviewFooter({
           className={pill}
           disabled={busy}
           aria-label={t('Add reaction', 'Añadir reacción')}
-          onClick={() => setSheet('picker')}
+          onClick={(event) => {
+            setAnchor(event.currentTarget);
+            setSheet('picker');
+          }}
         >
           ＋
         </button>
@@ -92,9 +96,9 @@ export default function DiscoveryReviewFooter({
           {summary?.comments ?? '…'}
         </button>
       </div>
-      {error && !sheet && <span role="alert">{error}</span>}
+      {error && sheet !== 'comments' && <span role="alert">{error}</span>}
       <Dialog
-        open={sheet !== null}
+        open={sheet === 'comments'}
         onClose={() => setSheet(null)}
         className="relative z-[100]"
       >
@@ -131,27 +135,23 @@ export default function DiscoveryReviewFooter({
                 onChanged={onChanged}
               />
             )}
-            {sheet === 'picker' && (
-              <Suspense
-                fallback={
-                  <span>{t('Loading emoji…', 'Cargando emojis…')}</span>
-                }
-              >
-                <fieldset disabled={busy}>
-                  <QuickEmojiPicker
-                    viewerId={viewerId}
-                    selected={summary?.reactions
-                      .filter((r) => r.mine)
-                      .map((r) => r.emoji)}
-                    onSelect={(emoji) => void react(emoji, true)}
-                  />
-                </fieldset>
-              </Suspense>
-            )}
             {sheet && error && <p role="alert">{error}</p>}
           </Dialog.Panel>
         </div>
       </Dialog>
+      {sheet === 'picker' && (
+        <QuickEmojiPicker
+          anchor={anchor}
+          onClose={() => setSheet(null)}
+          viewerId={viewerId}
+          selected={summary?.reactions
+            .filter((r) => r.mine)
+            .map((r) => r.emoji)}
+          onSelect={(emoji) => {
+            if (!busy) void react(emoji, true);
+          }}
+        />
+      )}
     </div>
   );
 }

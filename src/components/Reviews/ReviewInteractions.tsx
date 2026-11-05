@@ -37,6 +37,7 @@ export default function ReviewInteractions({
   summary?: InteractionSummary;
   onChanged: () => unknown;
 }) {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const t = usePartyText(),
     [open, setOpen] = useState(threadOnly || initiallyOpen),
     [picker, setPicker] = useState<string | null>(null),
@@ -109,7 +110,10 @@ export default function ReviewInteractions({
             className={control}
             aria-label={t('＋ React', '＋ Reaccionar')}
             aria-expanded={picker === reviewId}
-            onClick={() => setPicker((v) => (v === reviewId ? null : reviewId))}
+            onClick={(event) => {
+              setAnchor(event.currentTarget);
+              setPicker((v) => (v === reviewId ? null : reviewId));
+            }}
           >
             ＋
           </button>
@@ -136,6 +140,8 @@ export default function ReviewInteractions({
           }
         >
           <QuickEmojiPicker
+            anchor={anchor}
+            onClose={() => setPicker(null)}
             viewerId={viewerId}
             selected={summary?.reactions
               .filter((r) => r.mine)
@@ -312,7 +318,10 @@ export default function ReviewInteractions({
                           'Reaccionar al comentario'
                         )}
                         aria-expanded={picker === c.id}
-                        onClick={() => setPicker(picker === c.id ? null : c.id)}
+                        onClick={(event) => {
+                          setAnchor(event.currentTarget);
+                          setPicker(picker === c.id ? null : c.id);
+                        }}
                       >
                         ＋
                       </button>
@@ -320,6 +329,8 @@ export default function ReviewInteractions({
                     {picker === c.id && (
                       <Suspense fallback={null}>
                         <QuickEmojiPicker
+                          anchor={anchor}
+                          onClose={() => setPicker(null)}
                           viewerId={viewerId}
                           selected={c.reactions
                             ?.filter((r) => r.mine)
