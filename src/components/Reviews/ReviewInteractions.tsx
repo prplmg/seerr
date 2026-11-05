@@ -2,8 +2,9 @@ import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { lazy, Suspense, useState } from 'react';
-import useSWR from 'swr';
+import { Suspense, lazy, useState } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
+import { ReactionPeople, ReactionPill } from './ReactionPeople';
 const EmojiPicker = lazy(() => import('./EmojiPicker'));
 export type InteractionSummary = {
   comments: number;
@@ -46,6 +47,7 @@ export default function ReviewInteractions({
     [editText, setEditText] = useState(''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
+  const { mutate: refreshPeople } = useSWRConfig();
   const base = `/api/v1/review-interactions/${encodeURIComponent(reviewId)}`;
   const {
     data,
@@ -60,7 +62,16 @@ export default function ReviewInteractions({
     setError('');
     try {
       await work();
-      await Promise.all([mutate(), onChanged()]);
+      await Promise.all([
+        mutate(),
+        onChanged(),
+        refreshPeople(
+          (key) =>
+            Array.isArray(key) &&
+            key[0] === base + '/reactions' &&
+            key[2] === viewerId
+        ),
+      ]);
     } catch (reason) {
       setError(
         (axios.isAxiosError(reason) && reason.response?.data?.message) ||
@@ -81,25 +92,16 @@ export default function ReviewInteractions({
       <div className={threadOnly ? 'hidden' : 'flex items-center gap-2'}>
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [&>button]:shrink-0">
           {summary?.reactions.map((r) => (
-            <button
-              type="button"
+            <ReactionPill
               key={r.emoji}
-              disabled={busy}
-              aria-pressed={r.mine}
-              aria-label={`${r.emoji}: ${r.count}${r.mine ? t(', remove your reaction', ', quitar tu reacción') : t(', react', ', reaccionar')}`}
-              className={`${control} ${r.mine ? 'border-purple-400 bg-purple-900/40' : ''}`}
-              onClick={() =>
-                void act(() =>
-                  axios.put(`${base}/reactions`, {
-                    emoji: r.emoji,
-                    active: !r.mine,
-                  })
-                )
+              reaction={r}
+              reviewId={reviewId}
+              viewerId={viewerId}
+              className={
+                control + (r.mine ? ' border-purple-400 bg-purple-900/40' : '')
               }
-            >
-              <span className="mr-1 text-lg">{r.emoji}</span>
-              {r.count}
-            </button>
+              onChanged={onChanged}
+            />
           ))}
           <button
             type="button"
@@ -150,6 +152,7 @@ export default function ReviewInteractions({
       )}
       {open && (
         <div className="mt-4 min-w-0 space-y-4">
+          <ReactionPeople reviewId={reviewId} viewerId={viewerId} />
           <p className="text-xs text-gray-400">
             {t(
               'Comments and reactions stay in Multimeldia.',
@@ -286,23 +289,15 @@ export default function ReviewInteractions({
                       )}
                       <div className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto">
                         {c.reactions?.map((r) => (
-                          <button
+                          <ReactionPill
                             key={r.emoji}
+                            reaction={r}
+                            reviewId={reviewId}
+                            viewerId={viewerId}
+                            commentId={c.id}
                             className="shrink-0 rounded-full border border-gray-600 px-2 py-0.5 text-xs leading-4 text-purple-200 hover:bg-gray-700"
-                            disabled={busy}
-                            aria-pressed={r.mine}
-                            onClick={() =>
-                              void act(() =>
-                                axios.put(base + '/reactions', {
-                                  commentId: c.id,
-                                  emoji: r.emoji,
-                                  active: !r.mine,
-                                })
-                              )
-                            }
-                          >
-                            {r.emoji} {r.count}
-                          </button>
+                            onChanged={mutate}
+                          />
                         ))}
                       </div>
                       <button

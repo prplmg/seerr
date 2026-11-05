@@ -1,12 +1,15 @@
 import { getRepository } from '@server/datasource';
 import { MovieReview } from '@server/entity/MovieReview';
-import { ReviewComment } from '@server/entity/ReviewInteraction';
-import { User } from '@server/entity/User';
-import { hasPermission, Permission } from '@server/lib/permissions';
 import {
+  ReviewComment,
+  ReviewReaction,
+} from '@server/entity/ReviewInteraction';
+import { User } from '@server/entity/User';
+import { Permission, hasPermission } from '@server/lib/permissions';
+import {
+  InteractionError,
   addComment,
   changeComment,
-  InteractionError,
   interactionReviewId,
   interactionSummaries,
   setReaction,
@@ -71,6 +74,52 @@ router.get(
         reviews.map((r) => r.id),
         req.user!.id
       )
+    );
+  })
+);
+router.get(
+  '/:reviewId/reactions',
+  handle(async (req, res) => {
+    const reviewId = await requireReview(req);
+    const commentId = req.query.commentId;
+    if (
+      commentId &&
+      (typeof commentId !== 'string' ||
+        !(await getRepository(ReviewComment).existsBy({
+          id: commentId,
+          reviewId,
+        })))
+    )
+      throw new InteractionError(404, 'Comment not found.');
+    const rows = await getRepository(ReviewReaction).find({
+      where: { reviewId: commentId ? '#' + commentId : reviewId },
+      select: { emoji: true, userId: true },
+      order: { emoji: 'ASC', userId: 'ASC' },
+    });
+    const users = rows.length
+      ? await getRepository(User).find({
+          where: { id: In([...new Set(rows.map((r) => r.userId))]) },
+          loadEagerRelations: false,
+          select: {
+            id: true,
+            username: true,
+            plexUsername: true,
+            jellyfinUsername: true,
+          },
+        })
+      : [];
+    const names = new Map(
+      users.map((u) => [
+        u.id,
+        u.username || u.plexUsername || u.jellyfinUsername || null,
+      ])
+    );
+    res.json(
+      rows.map((r) => ({
+        emoji: r.emoji,
+        id: r.userId,
+        name: names.get(r.userId) ?? null,
+      }))
     );
   })
 );

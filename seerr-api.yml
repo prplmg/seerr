@@ -3151,6 +3151,15 @@ paths:
         required: true
         schema:
           type: string
+    get:
+      summary: List members who reacted to a review or one of its comments
+      parameters:
+        - in: query
+          name: commentId
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Members grouped by reaction target }
+        '404': { description: Review or comment not found }
     put:
       summary: Add or remove one local emoji reaction
       requestBody:

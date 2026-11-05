@@ -3,6 +3,7 @@ import { Dialog } from '@headlessui/react';
 import { ChatBubbleOvalLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { Suspense, lazy, useState } from 'react';
+import { ReactionPill } from './ReactionPeople';
 import ReviewInteractions, {
   type InteractionSummary,
 } from './ReviewInteractions';
@@ -60,17 +61,16 @@ export default function DiscoveryReviewFooter({
         {children}
         <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
           {summary?.reactions.map((r) => (
-            <button
+            <ReactionPill
               key={r.emoji}
+              reaction={r}
+              reviewId={reviewId}
+              viewerId={viewerId}
               className={
                 pill + (r.mine ? ' border-purple-400 bg-purple-900/40' : '')
               }
-              disabled={busy}
-              aria-pressed={r.mine}
-              onClick={() => void react(r.emoji, !r.mine)}
-            >
-              {r.emoji} {r.count}
-            </button>
+              onChanged={onChanged}
+            />
           ))}
         </div>
         <button

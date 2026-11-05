@@ -53,8 +53,14 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
                 }
               : entity.name === 'User'
                 ? {
+                    find: async () => [{ id: 1, username: 'One' }],
                     findBy: async () => [
-                      { id: 1, displayName: 'One', avatar: '/one.png' },
+                      {
+                        id: 1,
+                        username: 'One',
+                        displayName: 'One',
+                        avatar: '/one.png',
+                      },
                     ],
                   }
                 : db.getRepository(entity),
@@ -148,6 +154,22 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
       events.map((e) => e[2]),
       [undefined, '👩🏽‍🚀']
     );
+    const people = await request(app)
+      .get(prefix + '/reactions')
+      .set('x-test-user', '2')
+      .expect(200);
+    assert.deepEqual(people.body, [{ emoji: '👩🏽‍🚀', id: 1, name: 'One' }]);
+    const commentPeople = await request(app)
+      .get(prefix + '/reactions')
+      .query({ commentId: id })
+      .set('x-test-user', '2')
+      .expect(200);
+    assert.deepEqual(commentPeople.body, [{ emoji: '🎉', id: 2, name: null }]);
+    await request(app)
+      .get(prefix + '/reactions')
+      .query({ commentId: randomUUID() })
+      .set('x-test-user', '2')
+      .expect(404);
     const threaded = await request(app)
       .get(prefix + '/comments')
       .set('x-test-user', '2')
