@@ -2,6 +2,7 @@
 import LoadingBar from '@app/components/LoadingBar';
 import PWAHeader from '@app/components/PWAHeader';
 import ServiceWorkerSetup from '@app/components/ServiceWorkerSetup';
+import MaintenanceBanner from '@app/components/StatusChecker/MaintenanceBanner';
 import StatusChecker from '@app/components/StatusChecker';
 import { InteractionProvider } from '@app/context/InteractionContext';
 import { LanguageContext } from '@app/context/LanguageContext';
@@ -216,6 +217,7 @@ const CoreApp: Omit<NextAppComponentType, 'origGetInitialProps'> = ({
                   applicationTitle={currentSettings.applicationTitle}
                 />
               </Head>
+              <MaintenanceBanner />
               <StatusChecker />
               <ServiceWorkerSetup />
               <UserContext initialUser={user}>{component}</UserContext>

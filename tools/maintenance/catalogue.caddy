@@ -1,0 +1,31 @@
+# Imported INSIDE the normal catalogue handler, after the socket.io route.
+route {
+    @updating file {
+        root /run/multimeldia-maintenance
+        try_files active
+    }
+    handle @updating {
+        header Cache-Control "no-store, max-age=0"
+        header Retry-After 5
+        header X-Multimeldia-Updating 1
+        @page {
+            method GET HEAD
+            header Accept *text/html*
+            not path /api/* /_next/* /socket.io/*
+        }
+        handle @page {
+            root * /srv/multimeldia-maintenance
+            rewrite * /updating.html
+            file_server {
+                status 503
+            }
+        }
+        handle {
+            header Content-Type application/json
+            respond `{"message":"Multimeldia is updating","retryAfter":5}` 503
+        }
+    }
+    handle {
+        reverse_proxy 192.168.68.50:5055
+    }
+}
