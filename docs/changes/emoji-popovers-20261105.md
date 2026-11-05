@@ -15,3 +15,7 @@ Media-detail and episode reviews now share DiscoveryReviewFooter: slim reaction/
 ## Production verification
 
 Deployed all six UI files through the PRPL-PC builder and canonical maintenance rollout. Build `nE-ZHijNfGJyjYh-21_m9`; source commit `cea0c117`. Release `catalogue-20261105082846084-47786`. Frozen install 1.587s; compilation 41.973s; 31 dependency junctions verified on Mini. Loopback login, JS chunks, compiled server and SQLite checks passed before maintenance. Branded maintenance page verified before switch, native API checks passed, publishing settings/account mappings unchanged, lease cleared, public login 200 with expected build, reaction summary/recent emoji endpoints 200. All six live source hashes match approved local files. Previous build retained in `C:/ProgramData/Seerr/catalogue-20261105082846084-47786-release/previous`. No build-status polling; waited for command completion. No remote Git push.
+
+## Pending avatar correction
+
+Who-reacted API now includes avatar URLs from the existing batched user query. Roster uses CachedImage profile pictures; initials appear only for missing/failed images. Applies to review and comment reactions. API contract covers populated avatars and missing users. Not deployed.

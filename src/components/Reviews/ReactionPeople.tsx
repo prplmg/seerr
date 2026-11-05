@@ -1,16 +1,41 @@
+import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { useState } from 'react';
 import useSWR from 'swr';
+function PersonAvatar({
+  name,
+  avatar,
+}: {
+  name: string;
+  avatar?: string | null;
+}) {
+  const [failed, setFailed] = useState<string | null>(null);
+  return avatar && failed !== avatar ? (
+    <CachedImage
+      type="avatar"
+      src={avatar}
+      alt=""
+      width={36}
+      height={36}
+      className="h-9 w-9 rounded-full object-cover"
+      onError={() => setFailed(avatar)}
+    />
+  ) : (
+    <>{Array.from(name)[0]?.toLocaleUpperCase()}</>
+  );
+}
 type Target = { reviewId: string; commentId?: string; viewerId?: number };
 function usePeople({ reviewId, commentId, viewerId }: Target) {
   const url =
     '/api/v1/review-interactions/' +
     encodeURIComponent(reviewId) +
     '/reactions';
-  return useSWR<{ id: number; name: string | null; emoji: string }[]>(
+  return useSWR<
+    { id: number; name: string | null; avatar?: string | null; emoji: string }[]
+  >(
     [url, commentId ?? '', viewerId],
     async () => (await axios.get(url, { params: { commentId } })).data
   );
@@ -82,7 +107,7 @@ export function ReactionPeople({
                   aria-hidden="true"
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-400/10 text-sm font-semibold text-purple-200"
                 >
-                  {Array.from(name)[0]?.toLocaleUpperCase()}
+                  <PersonAvatar name={name} avatar={person.avatar} />
                 </span>
                 <span className="min-w-0 flex-1 break-words font-medium">
                   {name}

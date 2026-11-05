@@ -118,9 +118,11 @@ router.get(
             username: true,
             plexUsername: true,
             jellyfinUsername: true,
+            avatar: true,
           },
         })
       : [];
+    const avatars = new Map(users.map((u) => [u.id, u.avatar]));
     const names = new Map(
       users.map((u) => [
         u.id,
@@ -132,6 +134,7 @@ router.get(
         emoji: r.emoji,
         id: r.userId,
         name: names.get(r.userId) ?? null,
+        avatar: avatars.get(r.userId) || null,
       }))
     );
   })

@@ -56,7 +56,7 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
                 }
               : entity.name === 'User'
                 ? {
-                    find: async () => [{ id: 1, username: 'One' }],
+                    find: async () => [{ id: 1, username: 'One', avatar: '/avatar/one.png' }],
                     findBy: async () => [
                       {
                         id: 1,
@@ -161,13 +161,13 @@ it('actual interaction API contract authenticates, scopes writes, validates emoj
       .get(prefix + '/reactions')
       .set('x-test-user', '2')
       .expect(200);
-    assert.deepEqual(people.body, [{ emoji: '👩🏽‍🚀', id: 1, name: 'One' }]);
+    assert.deepEqual(people.body, [{ emoji: '👩🏽‍🚀', id: 1, name: 'One', avatar: '/avatar/one.png' }]);
     const commentPeople = await request(app)
       .get(prefix + '/reactions')
       .query({ commentId: id })
       .set('x-test-user', '2')
       .expect(200);
-    assert.deepEqual(commentPeople.body, [{ emoji: '🎉', id: 2, name: null }]);
+    assert.deepEqual(commentPeople.body, [{ emoji: '🎉', id: 2, name: null, avatar: null }]);
     await request(app)
       .get(prefix + '/reactions')
       .query({ commentId: randomUUID() })
