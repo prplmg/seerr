@@ -19,3 +19,5 @@ Deployed all six UI files through the PRPL-PC builder and canonical maintenance 
 ## Pending avatar correction
 
 Who-reacted API now includes avatar URLs from the existing batched user query. Roster uses CachedImage profile pictures; initials appear only for missing/failed images. Applies to review and comment reactions. API contract covers populated avatars and missing users. Not deployed.
+
+Avatar correction deployed: build `btEqXDlwuXZZbmAXuGOT1`, release `catalogue-20261105083725202-48451`, source `b94001d4`. PRPL-PC build / Mini preflight / branded maintenance / native and public checks passed. Live reaction API avatar matched the saved user avatar, both source hashes verified, public login 200, maintenance cleared, publishing settings and mappings unchanged. Previous build preserved in release/previous.
