@@ -9,3 +9,5 @@ Validation: full TypeScript check and focused ESLint passed. Actual components w
 Not deployed. No settings changed.
 
 Who reacted now uses a compact centered panel with initial circles, individual name rows, a You marker, and an explicit removal button. Inline comment-drawer reaction names use grouped chips. Mock browser tests at all three widths verify opening the roster preserves your reaction and only the removal button removes it. Focused lint passed. Category highlight circles reduced and inset to avoid clipping.
+
+Media-detail and episode reviews now share DiscoveryReviewFooter: slim reaction/comment controls at bottom right, alongside existing edit/external links where present. Episode-only footers remain right aligned without a link. Comment deep links open the shared drawer; author and episode context retained. TypeScript, focused lint, review-source tests (whitespace-tolerant assertion), and mobile/desktop footer/dialog preview checks passed. Still undeployed.

@@ -11,9 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import useSWR, { useSWRConfig } from 'swr';
 import DiscoveryReviewFooter from './DiscoveryReviewFooter';
-import ReviewInteractions, {
-  type InteractionSummary,
-} from './ReviewInteractions';
+import { type InteractionSummary } from './ReviewInteractions';
 
 type Review = {
   id: string;
@@ -569,83 +567,90 @@ export function MovieReviews({
             <article
               id={`review-${r.id}`}
               key={r.id}
-              className="scroll-mt-24 rounded-xl border border-gray-700 bg-gray-800 p-4"
+              className="flex min-w-0 scroll-mt-24 flex-col gap-3 rounded-xl border border-gray-700 bg-gray-800 p-4"
             >
               <ReviewBody review={r} />
-              <ReviewInteractions
+              <DiscoveryReviewFooter
                 key={
                   r.id + String(router.query.comments === '1' && hash === r.id)
                 }
                 initiallyOpen={router.query.comments === '1' && hash === r.id}
                 reviewId={r.id}
                 viewerId={user?.id}
+                author={r.user?.name}
+                title={
+                  r.episodeNumber != null
+                    ? `S${String(r.seasonNumber).padStart(2, '0')}E${String(r.episodeNumber).padStart(2, '0')}${r.episodeName ? ` · ${r.episodeName}` : ''}`
+                    : undefined
+                }
                 summary={interactions?.[r.id]}
                 onChanged={refreshInteractions}
-              />
-              {(r.source === 'local' && r.userId === user?.id) ||
-              r.syncedToLetterboxd ||
-              r.externalUrl ? (
-                <div className="mt-3 flex items-center justify-between gap-x-3">
-                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
-                    {r.source === 'local' && r.userId === user?.id && (
-                      <button
-                        className="text-purple-300 hover:underline"
-                        onClick={() => startEditing(r)}
-                      >
-                        {t('Edit this entry', 'Editar esta entrada')}
-                      </button>
-                    )}
-                    {r.externalUrl && (
-                      <a
-                        className="text-green-400 hover:underline"
-                        href={r.externalUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {t('Open in Letterboxd ↗', 'Abrir en Letterboxd ↗')}
-                      </a>
-                    )}
-                  </div>
-                  {r.syncingToLetterboxd && !r.syncedToLetterboxd ? (
-                    <span
-                      role="status"
-                      aria-label={t(
-                        'Syncing with Letterboxd…',
-                        'Sincronizando con Letterboxd…'
+              >
+                {(r.source === 'local' && r.userId === user?.id) ||
+                r.syncedToLetterboxd ||
+                r.externalUrl ? (
+                  <div className="mr-auto flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
+                      {r.source === 'local' && r.userId === user?.id && (
+                        <button
+                          className="text-purple-300 hover:underline"
+                          onClick={() => startEditing(r)}
+                        >
+                          {t('Edit this entry', 'Editar esta entrada')}
+                        </button>
                       )}
-                      title={t(
-                        'Syncing with Letterboxd…',
-                        'Sincronizando con Letterboxd…'
+                      {r.externalUrl && (
+                        <a
+                          className="text-green-400 hover:underline"
+                          href={r.externalUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {t('Open in Letterboxd ↗', 'Abrir en Letterboxd ↗')}
+                        </a>
                       )}
-                      className="ml-auto inline-flex shrink-0 items-center gap-1.5 text-right text-sm text-gray-400"
-                    >
+                    </div>
+                    {r.syncingToLetterboxd && !r.syncedToLetterboxd ? (
                       <span
-                        aria-hidden="true"
-                        className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-gray-600 border-t-gray-300 motion-reduce:animate-none"
-                      />
-                      <span aria-hidden="true" className="sm:hidden">
-                        {t('Syncing…', 'Sincronizando…')}
-                      </span>
-                      <span aria-hidden="true" className="hidden sm:inline">
-                        {t(
+                        role="status"
+                        aria-label={t(
                           'Syncing with Letterboxd…',
                           'Sincronizando con Letterboxd…'
                         )}
-                      </span>
-                    </span>
-                  ) : (
-                    r.syncedToLetterboxd &&
-                    !r.externalUrl && (
-                      <span className="ml-auto text-right text-gray-400">
-                        {t(
-                          'Synced with Letterboxd',
-                          'Sincronizado con Letterboxd'
+                        title={t(
+                          'Syncing with Letterboxd…',
+                          'Sincronizando con Letterboxd…'
                         )}
+                        className="ml-auto inline-flex shrink-0 items-center gap-1.5 text-right text-sm text-gray-400"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-gray-600 border-t-gray-300 motion-reduce:animate-none"
+                        />
+                        <span aria-hidden="true" className="sm:hidden">
+                          {t('Syncing…', 'Sincronizando…')}
+                        </span>
+                        <span aria-hidden="true" className="hidden sm:inline">
+                          {t(
+                            'Syncing with Letterboxd…',
+                            'Sincronizando con Letterboxd…'
+                          )}
+                        </span>
                       </span>
-                    )
-                  )}
-                </div>
-              ) : null}
+                    ) : (
+                      r.syncedToLetterboxd &&
+                      !r.externalUrl && (
+                        <span className="ml-auto text-right text-gray-400">
+                          {t(
+                            'Synced with Letterboxd',
+                            'Sincronizado con Letterboxd'
+                          )}
+                        </span>
+                      )
+                    )}
+                  </div>
+                ) : null}
+              </DiscoveryReviewFooter>
             </article>
           ))}
         </div>

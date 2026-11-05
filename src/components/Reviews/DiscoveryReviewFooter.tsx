@@ -12,6 +12,7 @@ const pill =
   'shrink-0 rounded-full border border-gray-600 px-2 leading-5 text-purple-200 disabled:opacity-50';
 
 export default function DiscoveryReviewFooter({
+  initiallyOpen = false,
   reviewId,
   viewerId,
   title,
@@ -20,6 +21,7 @@ export default function DiscoveryReviewFooter({
   summary,
   onChanged,
 }: {
+  initiallyOpen?: boolean;
   reviewId: string;
   viewerId?: number;
   title?: string;
@@ -29,7 +31,9 @@ export default function DiscoveryReviewFooter({
   onChanged: () => unknown;
 }) {
   const t = usePartyText();
-  const [sheet, setSheet] = useState<'comments' | 'picker' | null>(null);
+  const [sheet, setSheet] = useState<'comments' | 'picker' | null>(
+    initiallyOpen ? 'comments' : null
+  );
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
@@ -60,7 +64,7 @@ export default function DiscoveryReviewFooter({
     <div className="mt-auto flex-none pt-1 text-sm">
       <div className="flex items-center gap-1">
         {children}
-        <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+        <div className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto">
           {summary?.reactions.map((r) => (
             <ReactionPill
               key={r.emoji}
