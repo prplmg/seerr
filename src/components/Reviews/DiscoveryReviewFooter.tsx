@@ -2,12 +2,12 @@ import { usePartyText } from '@app/components/WatchParty/messages';
 import { Dialog } from '@headlessui/react';
 import { ChatBubbleOvalLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, useState } from 'react';
+import QuickEmojiPicker from './QuickEmojiPicker';
 import { ReactionPill } from './ReactionPeople';
 import ReviewInteractions, {
   type InteractionSummary,
 } from './ReviewInteractions';
-const EmojiPicker = lazy(() => import('./EmojiPicker'));
 const pill =
   'shrink-0 rounded-full border border-gray-600 px-2 leading-5 text-purple-200 disabled:opacity-50';
 
@@ -138,7 +138,12 @@ export default function DiscoveryReviewFooter({
                 }
               >
                 <fieldset disabled={busy}>
-                  <EmojiPicker onSelect={(emoji) => void react(emoji, true)} />
+                  <QuickEmojiPicker
+                    selected={summary?.reactions
+                      .filter((r) => r.mine)
+                      .map((r) => r.emoji)}
+                    onSelect={(emoji) => void react(emoji, true)}
+                  />
                 </fieldset>
               </Suspense>
             )}

@@ -2,10 +2,10 @@ import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
+import QuickEmojiPicker from './QuickEmojiPicker';
 import { ReactionPeople, ReactionPill } from './ReactionPeople';
-const EmojiPicker = lazy(() => import('./EmojiPicker'));
 export type InteractionSummary = {
   comments: number;
   reactions: { emoji: string; count: number; mine: boolean }[];
@@ -135,7 +135,10 @@ export default function ReviewInteractions({
             </p>
           }
         >
-          <EmojiPicker
+          <QuickEmojiPicker
+            selected={summary?.reactions
+              .filter((r) => r.mine)
+              .map((r) => r.emoji)}
             onSelect={(emoji) => {
               setPicker(null);
               void act(() =>
@@ -315,7 +318,10 @@ export default function ReviewInteractions({
                     </div>
                     {picker === c.id && (
                       <Suspense fallback={null}>
-                        <EmojiPicker
+                        <QuickEmojiPicker
+                          selected={c.reactions
+                            ?.filter((r) => r.mine)
+                            .map((r) => r.emoji)}
                           onSelect={(emoji) => {
                             setPicker(null);
                             void act(() =>
