@@ -1,0 +1,9 @@
+{
+  "files": [
+    "src/components/Discover/MediaLists.tsx",
+    "src/components/MovieDetails/index.tsx",
+    "src/components/TvDetails/index.tsx",
+    "server/lib/mediaDiscoveryLists.ts",
+    "server/routes/discoveryLists.ts"
+  ]
+}

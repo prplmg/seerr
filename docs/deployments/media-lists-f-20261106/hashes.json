@@ -1,0 +1,32 @@
+[
+  {
+    "file": "src/components/Discover/MediaLists.tsx",
+    "before": null,
+    "after": "af23c545c6e813a4c55a6f67580b1821d90d18f51c2ed30d4f80d0ca89160f3d"
+  },
+  {
+    "file": "src/components/MovieDetails/index.tsx",
+    "before": "7004d79ed843212ef0aebce9551e8c2d2cf4b9e53b0c85e44a7b704b599bd06a",
+    "after": "97f8b0d25799b04f92460378186eb664e8576e8a4a1641a36dd87ef75dbaa1d6"
+  },
+  {
+    "file": "src/components/TvDetails/index.tsx",
+    "before": "26b9546889e286b76b73beedfe5b4d87535023e005ee558f0271d0efb7163e17",
+    "after": "38b6b79c16d47885e1e41f8aae62c65f41a47493a23d59eb6b714edc6e56c8ee"
+  },
+  {
+    "file": "server/lib/mediaDiscoveryLists.ts",
+    "before": null,
+    "after": "0561a35d57f4dd7d374a425bb294be4eab97822251d2e942f2727e5e83c15a2a"
+  },
+  {
+    "file": "server/routes/discoveryLists.ts",
+    "before": "29ac4c68e6ed265b8ff621f94eb0b22667902e88ab79c107b85f50119167fa41",
+    "after": "7c59911f5e16f6cec08f775e5916dd46e4f8819bfa4a473564d479ff57624e69"
+  },
+  {
+    "file": "seerr-api.yml",
+    "before": "329c343ef504bc562cfc7915681193bab76ff316e23351252b5aaf42b3d337ae",
+    "after": "faaccf436c9313ddc8e7cb86ffd95de6fbe8a293f91e1ac1cef6e938da5751e4"
+  }
+]
