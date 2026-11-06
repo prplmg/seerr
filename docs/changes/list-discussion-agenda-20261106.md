@@ -13,7 +13,7 @@ This status supersedes the historical proposals below. User requested one topic 
 
 ## Possible later TODO: PRPL-PC as primary weekly importer
 
-User explicitly parked this idea; no implementation now. One-time follow-up scheduled for Wednesday November11 at10:00 Merida in this thread (`revisit-weekly-list-worker`), after the Tuesday run. Consider keeping Seerr scheduling controls on Mini while running fetching/parsing/film matching on PRPL-PC, then applying validated results on Mini. Proposed fallback is retrying during the maintenance window and only considering conservative Mini execution after a missed window; ownership/resume semantics need agreement before implementation. Avoid unnecessary complexity; reassess whether the normal cached weekly run needs this at all.
+User explicitly parked this idea; no implementation now. One-time follow-up scheduled for Wednesday November11 at11:00 Merida in this thread (`revisit-weekly-list-worker`), after the Tuesday run. Consider keeping Seerr scheduling controls on Mini while running fetching/parsing/film matching on PRPL-PC, then applying validated results on Mini. Proposed fallback is retrying during the maintenance window and only considering conservative Mini execution after a missed window; ownership/resume semantics need agreement before implementation. Avoid unnecessary complexity; reassess whether the normal cached weekly run needs this at all.
 
 Actual one-off differences, not production changes:
 - Removed the deliberate250ms delay before uncached title lookups in the isolated harness.
@@ -99,3 +99,12 @@ User requested two pages each of weekly/monthly/yearly/all-time popularity and e
 
 ### Point1 scheduling follow-up: 2026-11-06
 User selected maximum560items per automatic list (44lists/9219memberships in measured cohort), not implemented. Live scheduler/Plex/Windows/WSL/Tautulli inspection supports proposed Tuesday07:20–08:40 America/Merida, after Plex03:00–07:00 and before publication09:00. Melbourne00:20Wednesday during DST /23:20Tuesday standard. Weekday is a practical default, not measured traffic evidence. Require heavy-job overrun guard and resumability; continuation policy pending. Maintainerr was offline and not started. Full report:docs/benchmarks/list-schedule-20261106/report.md. No deployment or schedule changes.
+
+
+### 2026-11-06 — Curation clarification and reminder update
+
+User clarified that expansion should mean new lists from the approved institutions, not primarily adding individually researched films to existing themes. The prior eleven-film/five-topic additions remain local and unresolved; do not treat this discussion as approval to deploy them. The three new AFI collections are only a partial batch, not completion of the seven-source request. Evidence for some individual additions came from other organisations, which does not constitute completed collections from those sources. Research should proceed across all seven approved organisations and present coherent source-backed new collections before membership changes.
+
+Attribution clarification: the primary requirement is visible institution/source credit in the card's author/byline area, not a separate source-link panel. Proposed display (not implemented): institution name for an exact institutional selection; "Multimeldia · based on BFI" or similarly explicit credit for expanded selections, so additions are not attributed to the original institution. Preserve provenance URLs in the data; optional clickable byline/detail links are secondary. Existing source approvals stand; no new memberships or UI implementation approved by this discussion alone.
+
+Reminder `revisit-weekly-list-worker` updated and verified: one-time Wednesday November11 at11:00 America/Merida. Discuss both off-host weekly execution and refresh semantics (unsaved qualifying discovery lists refresh weekly; saved/liked/owned lists get separate midnight/noon batch attempts; absent automatic-only lists follow retirement). No changes authorized by reminder.
