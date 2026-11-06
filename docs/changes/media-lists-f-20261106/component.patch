@@ -1,0 +1,134 @@
+--- a/src/components/Discover/MediaLists.tsx
++++ b/src/components/Discover/MediaLists.tsx
+@@ -2,11 +2,7 @@
+ import { usePartyText } from '@app/components/WatchParty/messages';
+ import { useUser } from '@app/hooks/useUser';
+ import { Dialog } from '@headlessui/react';
+-import {
+-  ArrowRightIcon,
+-  ListBulletIcon,
+-  XMarkIcon,
+-} from '@heroicons/react/24/outline';
++import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+ import axios from 'axios';
+ import Link from 'next/link';
+ import { useState } from 'react';
+@@ -27,10 +23,12 @@
+   type,
+   id,
+   collection,
++  backdropPath,
+ }: {
+   type: 'movie' | 'tv';
+   id: number;
+   collection?: Collection | null;
++  backdropPath?: string | null;
+ }) {
+   const t = usePartyText();
+   const { user } = useUser();
+@@ -45,41 +43,78 @@
+   );
+   return (
+     <>
+-      <div className="relative mb-6 overflow-hidden rounded-lg bg-gray-800 ring-1 ring-gray-700">
+-        {collection?.backdropPath && (
++      <div
++        className={`mb-6 grid min-w-0 gap-3 ${collection ? 'grid-cols-2' : 'grid-cols-1'}`}
++      >
++        {collection && (
++          <Link
++            href={`/collection/${collection.id}`}
++            className="relative mt-2 flex min-h-[112px] min-w-0 items-end overflow-hidden rounded-xl border border-gray-600 bg-gray-800 p-3 text-gray-100 hover:border-gray-400 focus-visible:ring-2 focus-visible:ring-purple-400"
++          >
++            {collection.backdropPath && (
++              <CachedImage
++                type="tmdb"
++                src={`https://image.tmdb.org/t/p/w1440_and_h320_multi_faces/${collection.backdropPath}`}
++                alt=""
++                fill
++                style={{ objectFit: 'cover' }}
++              />
++            )}
++            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-gray-900/30" />
++            <ArrowRightIcon
++              className="absolute right-3 top-3 h-6 w-6 rounded-full border border-purple-200/40 bg-gray-900/40 p-1 text-purple-200"
++              aria-hidden="true"
++            />
++            <div className="relative min-w-0 pt-8">
++              <div className="mb-1 text-xs text-gray-300">
++                {t('Collection', 'Colección')}
++              </div>
++              <div className="break-words text-lg font-semibold leading-tight">
++                {collection.name}
++              </div>
++            </div>
++          </Link>
++        )}
++        <div className="relative mr-1.5 mt-2 min-w-0">
+           <div
+-            className="pointer-events-none absolute inset-0"
+             aria-hidden="true"
+-          >
+-            <CachedImage
+-              type="tmdb"
+-              src={`https://image.tmdb.org/t/p/w1440_and_h320_multi_faces/${collection.backdropPath}`}
+-              alt=""
+-              fill
+-              style={{ objectFit: 'cover' }}
+-            />
+-            <div className="absolute inset-0 bg-gray-900/75" />
+-          </div>
+-        )}
+-        <div className="relative flex min-w-0 flex-wrap items-stretch">
+-          {collection && (
+-            <Link
+-              href={`/collection/${collection.id}`}
+-              className="flex min-w-0 flex-1 items-center justify-between gap-3 p-4 text-gray-200 hover:bg-white/5 hover:text-white"
+-            >
+-              <span className="min-w-0 break-words">{collection.name}</span>
+-              <ArrowRightIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
+-            </Link>
+-          )}
++            className="pointer-events-none absolute -right-1.5 -top-2 bottom-2 left-1.5 rounded-xl border border-purple-300/40 bg-gray-800"
++          />
++          <div
++            aria-hidden="true"
++            className="pointer-events-none absolute -right-0.5 -top-1 bottom-1 left-0.5 rounded-xl border border-purple-300/40 bg-gray-700"
++          />
+           <button
+             type="button"
+             aria-haspopup="dialog"
+             aria-expanded={open}
+             onClick={() => setOpen(true)}
+-            className={`flex items-center justify-center gap-2 px-4 py-4 text-purple-200 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-purple-400 ${collection ? 'border-l border-gray-600/60' : 'w-full'}`}
++            className="relative flex h-full min-h-[112px] w-full min-w-0 items-end overflow-hidden rounded-xl border border-gray-600 bg-gray-800 p-3 text-left text-gray-100 hover:border-purple-300 focus-visible:ring-2 focus-visible:ring-purple-400"
+           >
+-            <ListBulletIcon className="h-5 w-5" aria-hidden="true" />
+-            {t('Lists', 'Listas')}
++            {backdropPath && (
++              <CachedImage
++                type="tmdb"
++                src={`https://image.tmdb.org/t/p/w1440_and_h320_multi_faces/${backdropPath}`}
++                alt=""
++                fill
++                style={{ objectFit: 'cover' }}
++              />
++            )}
++            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-gray-900/30" />
++            <ArrowRightIcon
++              className="absolute right-3 top-3 h-6 w-6 rounded-full border border-purple-200/40 bg-gray-900/40 p-1 text-purple-200"
++              aria-hidden="true"
++            />
++            <div className="relative min-w-0 pt-8">
++              <div className="mb-1 text-xs text-gray-300">
++                {type === 'movie'
++                  ? t('Featuring this film', 'Con esta película')
++                  : t('Featuring this series', 'Con esta serie')}
++              </div>
++              <div className="break-words text-lg font-semibold leading-tight">
++                {t('Explore lists', 'Explorar listas')}
++              </div>
++            </div>
+           </button>
+         </div>
+       </div>
