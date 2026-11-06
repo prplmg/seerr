@@ -527,6 +527,15 @@ function Library({ explore = false }: { explore?: boolean }) {
   );
   return (
     <>
+      <PageTitle
+        title={
+          explore
+            ? hasMediaFilter && validMediaFilter
+              ? `${t('Lists featuring', 'Listas con')} ${String(router.query.mediaTitle || (mediaType === 'tv' ? t('this series', 'esta serie') : t('this movie', 'esta película')))}`
+              : t('Explore lists', 'Explorar listas')
+            : t('My lists', 'Mis listas')
+        }
+      />
       <h1 className="my-5 text-3xl font-bold">
         {explore
           ? t('Explore lists', 'Explorar listas')
@@ -925,16 +934,26 @@ function Details() {
   );
   if (error)
     return (
-      <p>
-        {t(
-          'This list is unavailable or private.',
-          'Esta lista no está disponible o es privada.'
-        )}
-      </p>
+      <>
+        <PageTitle title={t('List unavailable', 'Lista no disponible')} />
+        <p>
+          {t(
+            'This list is unavailable or private.',
+            'Esta lista no está disponible o es privada.'
+          )}
+        </p>
+      </>
     );
-  if (!data) return <p role="status">{t('Loading…', 'Cargando…')}</p>;
+  if (!data)
+    return (
+      <>
+        <PageTitle title={t('Loading list…', 'Cargando lista…')} />
+        <p role="status">{t('Loading…', 'Cargando…')}</p>
+      </>
+    );
   return (
     <>
+      <PageTitle title={data.title} />
       <h1 className="my-4 text-3xl font-bold">{data.title}</h1>
       {data.visibility === 'private' && (
         <p className="text-sm text-purple-300">

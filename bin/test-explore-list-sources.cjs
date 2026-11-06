@@ -43,6 +43,7 @@ const mocks = {
     useCallback: (fn) => fn,
   },
   'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'fragment' },
+  '@app/components/Common/PageTitle': 'page-title',
   'next/router': { useRouter: () => router },
   'next/link': 'link',
   '@app/hooks/useUser': { useUser: () => ({ user: { id: 7 } }) },
@@ -412,4 +413,36 @@ assert(
 );
 console.log(
   'PASS: media/source/search intersection, scope removal, loading/error/invalid/empty states, deferred card lookup and hidden empty card'
+);
+
+// Browser tab titles follow list identity and loading/error state, not stale routes.
+mocks.react.useState = (v) => [v, () => {}];
+const titleOf = (tree) =>
+  nodes(tree).find((n) => n.type === 'page-title')?.props.title;
+query = {};
+response = { results: lists };
+assert.equal(titleOf(renderExplore()), 'Explore lists');
+query = {
+  mediaType: 'movie',
+  mediaId: '843',
+  mediaTitle: 'In the Mood for Love',
+};
+assert.equal(titleOf(renderExplore()), 'Lists featuring In the Mood for Love');
+let child = library.MyListsPage().props.children;
+assert.equal(titleOf(child.type(child.props)), 'My lists');
+function renderDetails() {
+  const child = library.ListDetailPage().props.children;
+  return child.type(child.props);
+}
+query = { id: 'lb' };
+response = undefined;
+error = undefined;
+assert.equal(titleOf(renderDetails()), 'Loading list…');
+response = { ...lists[0], progress: { watched: 0, total: 3 }, covers: [] };
+assert.equal(titleOf(renderDetails()), response.title);
+error = new Error('missing');
+assert.equal(titleOf(renderDetails()), 'List unavailable');
+error = undefined;
+console.log(
+  'PASS: My Lists, Explore, media-scoped Explore and list detail loading/ready/error page titles'
 );
