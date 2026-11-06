@@ -1,0 +1,33 @@
+✔ uses Merida morning window across DST seasons (27.366792ms)
+✔ requires complete anonymous evidence for eight discovery pages (0.261292ms)
+✔ failed discovery does not retire anything; completed census applies 560 cap and protects saved/owned/liked lists (24.21825ms)
+✔ an idle non-Tuesday does not initiate a weekly census (10.066375ms)
+✔ durable anonymous list job resumes after restart, deduplicates deliveries and saves only subscribers (49.657417ms)
+✔ requires signed-out complete identity-matched snapshots and rejects duplicates or unsafe URLs (15.333125ms)
+✔ requires permission, spreads work across eligible profiles and caps concurrent scans (26.761042ms)
+✔ unclaimed jobs time out visibly rather than remain queued forever (15.793667ms)
+✔ distinguishes a retired job from a wrong token or account (14.522084ms)
+✔ direct import replies as a durable job, survives restart and deduplicates subscribers (45.02525ms)
+✔ metadata retry preserves verified snapshot and stops after three failures (51.060959ms)
+✔ strictly parses v7, multiline notes, order, empty lists, and owner identity (50.7365ms)
+✔ rejects URL credentials, arbitrary hosts, paths, queries and unsafe redirects (14.82625ms)
+✔ real export short links resolve ownership safely and preserve film references (19.240292ms)
+✔ UI-disabled users still import owned lists without exposing them publicly (12.268834ms)
+✔ owned export and liked references remain separate; missing lists and stale exports reconcile safely (15.021958ms)
+✔ unresolved films retain the complete previous snapshot rather than truncate a list (11.011834ms)
+✔ public lists retain explicit TMDB-zero entries without inventing IDs; transient failures remain atomic (14.73125ms)
+✔ public import requires public HTML and matching CSV identity, maps short likes, and never sets ownership (12.443208ms)
+✔ refresh failures revoke external visibility and preserve owner access without deleting data (12.440583ms)
+✔ public HTML pagination must reach the advertised total; incomplete scans retain previous data (11.044375ms)
+✔ a canonical redirect migrates bookmarks and ownership instead of duplicating the list (11.470875ms)
+✔ explicit empty TMDB identity retains unmatched entries, but challenge pages never qualify (9.243959ms)
+✔ owned list export also retains explicitly unmapped titles rather than blocking the account import (10.908291ms)
+✔ observation API requires dedicated credentials before dispatch and validates capabilities (15.219791ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7823.191333

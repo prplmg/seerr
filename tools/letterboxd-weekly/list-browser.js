@@ -8,7 +8,8 @@ function anonymousDiscoveryPage() {
     const url=new URL(a.getAttribute('href'),location.href).href;
     if(!/^https:\/\/letterboxd\.com\/[a-z0-9_]+\/list\/(?:[a-z0-9-]+|filmlist:[1-9][0-9]*)\/$/i.test(url))continue;
     const card=heading.closest('li')||heading.parentElement;
-    const count=card.textContent.match(/([\d,]+)\s*films?\b/i);
+    const metadata=card.cloneNode(true);for(const h of metadata.querySelectorAll('h2,h3'))h.remove();
+    const count=metadata.textContent.match(/([\d,]+)\s*films?\b/i);
     if(!count)return {error:'missing-list-size'};
     candidates.push({url,title:a.textContent.trim().slice(0,500),total:Number(count[1].replaceAll(',',''))});
   }

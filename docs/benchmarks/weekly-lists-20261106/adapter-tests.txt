@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: DOM reader recognizes numeric Letterboxd film identities and rejects malformed ones
+ok 1 - DOM reader recognizes numeric Letterboxd film identities and rejects malformed ones
+  ---
+  duration_ms: 3.916334
+  ...
+# Subtest: anonymous paginated scan closes its own window and returns complete ordered data
+ok 2 - anonymous paginated scan closes its own window and returns complete ordered data
+  ---
+  duration_ms: 1.002125
+  ...
+# Subtest: permission denied never opens a window; normal context never reads private data
+ok 3 - permission denied never opens a window; normal context never reads private data
+  ---
+  duration_ms: 0.304792
+  ...
+# Subtest: challenge, duplicates and incomplete totals fail closed and always close the window
+ok 4 - challenge, duplicates and incomplete totals fail closed and always close the window
+  ---
+  duration_ms: 1.168417
+  ...
+# Subtest: weekly scan rejects list growth above 560 before following any extra pages
+ok 5 - weekly scan rejects list growth above 560 before following any extra pages
+  ---
+  duration_ms: 0.150916
+  ...
+# Subtest: discovery reads only an allowlisted page and returns a complete anonymous census
+ok 6 - discovery reads only an allowlisted page and returns a complete anonymous census
+  ---
+  duration_ms: 0.101541
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.759208
