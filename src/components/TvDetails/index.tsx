@@ -14,6 +14,7 @@ import StatusBadgeMini from '@app/components/Common/StatusBadgeMini';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
 import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
+import MediaLists from '@app/components/Discover/MediaLists';
 import { FollowReleases } from '@app/components/Discover/ReleaseUpdates';
 import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
@@ -1157,6 +1158,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           </div>
         </div>
         <div className="media-overview-right">
+          <MediaLists type="tv" id={data.id} backdropPath={data.backdropPath} />
           <div className="media-facts">
             <div className="media-ratings">
               {ratingData?.criticsRating && !!ratingData?.criticsScore && (

@@ -12,6 +12,7 @@ import type { PlayButtonLink } from '@app/components/Common/PlayButton';
 import Tag from '@app/components/Common/Tag';
 import Tooltip from '@app/components/Common/Tooltip';
 import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
+import MediaLists from '@app/components/Discover/MediaLists';
 import { FollowReleases } from '@app/components/Discover/ReleaseUpdates';
 import StatusBadge from '@app/components/DownloadProgressBadge';
 import ExternalLinkBlock from '@app/components/ExternalLinkBlock';
@@ -595,11 +596,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
               tmdbId={data.id}
               onUpdate={() => revalidate()}
             />
-            <FollowReleases
-              id={data.id}
-              type="movie"
-              metadata={data}
-            />
+            <FollowReleases id={data.id} type="movie" metadata={data} />
           </div>
           <div className="media-tertiary-actions">
             {(data.mediaInfo?.status === MediaStatus.AVAILABLE ||
@@ -779,40 +776,12 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
           )}
         </div>
         <div className="media-overview-right">
-          {data.collection && (
-            <div className="mb-6">
-              <Link href={`/collection/${data.collection.id}`}>
-                <div className="group relative z-0 scale-100 transform-gpu cursor-pointer overflow-hidden rounded-lg bg-gray-800 bg-cover bg-center shadow-md ring-1 ring-gray-700 transition duration-300 hover:scale-105 hover:ring-gray-500">
-                  <div className="absolute inset-0 z-0">
-                    <CachedImage
-                      type="tmdb"
-                      src={`https://image.tmdb.org/t/p/w1440_and_h320_multi_faces/${data.collection.backdropPath}`}
-                      alt=""
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                      fill
-                    />
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage:
-                          'linear-gradient(180deg, rgba(31, 41, 55, 0.47) 0%, rgba(31, 41, 55, 0.80) 100%)',
-                      }}
-                    />
-                  </div>
-                  <div className="relative z-10 flex h-full items-center justify-between p-4 text-gray-200 transition duration-300 group-hover:text-white">
-                    <div>{data.collection.name}</div>
-                    <Button buttonSize="sm">
-                      {intl.formatMessage(globalMessages.view)}
-                    </Button>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          )}
+          <MediaLists
+            type="movie"
+            id={data.id}
+            collection={data.collection}
+            backdropPath={data.backdropPath}
+          />
           <div className="media-facts">
             <div className="media-ratings">
               {ratingData?.rt?.criticsRating &&

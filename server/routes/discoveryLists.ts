@@ -1,5 +1,5 @@
 import TheMovieDb from '@server/api/themoviedb';
-import { MediaRequestStatus } from '@server/constants/media';
+import { MediaRequestStatus, MediaStatus } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
 import {
@@ -7,7 +7,10 @@ import {
   queueBrowserList,
 } from '@server/lib/discoveryBrowser';
 import { discoveryData } from '@server/lib/discoveryData';
-import { discoveryRequests } from '@server/lib/discoveryDatabaseCache';
+import {
+  discoveryMedia,
+  discoveryRequests,
+} from '@server/lib/discoveryDatabaseCache';
 import { exploreLists } from '@server/lib/discoveryExplore';
 import {
   discoveryEnabled,
@@ -33,6 +36,7 @@ import { discoveryWatchlists } from '@server/lib/discoveryWatchlists';
 import { forYouLayout } from '@server/lib/forYouLayout';
 import { sortedList, type ListSort } from '@server/lib/listSort';
 import { sortProgress } from '@server/lib/listSortProgress';
+import { mediaDiscoveryLists } from '@server/lib/mediaDiscoveryLists';
 import { Permission } from '@server/lib/permissions';
 import { recentUnrated } from '@server/lib/recentUnrated';
 import { requestedUnwatched } from '@server/lib/requestedUnwatched';
@@ -306,6 +310,37 @@ router.get('/watchlists', async (_req, res, next) => {
       results: snapshots.map((s) => ({ ...d.summary(s.list), virtual: true })),
       updating: snapshots.some((s) => s.updating),
       unresolved: snapshots.some((s) => s.unresolved),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+router.get('/media/:type/:id', async (req, res, next) => {
+  const type = req.params.type;
+  const id = Number(req.params.id);
+  if (
+    (type !== 'movie' && type !== 'tv') ||
+    !/^[1-9]\d*$/.test(req.params.id) ||
+    !Number.isSafeInteger(id)
+  )
+    return res.sendStatus(400);
+  try {
+    return res.json({
+      results: mediaDiscoveryLists(
+        readListStore(),
+        res.locals.discoveryUserId,
+        { type, tmdbId: id },
+        Date.now(),
+        new Set(
+          (await discoveryMedia())
+            .filter(
+              (m) =>
+                m.status === MediaStatus.BLOCKLISTED ||
+                m.status4k === MediaStatus.BLOCKLISTED
+            )
+            .map((m) => `${m.mediaType}:${m.tmdbId}`)
+        )
+      ),
     });
   } catch (error) {
     next(error);
