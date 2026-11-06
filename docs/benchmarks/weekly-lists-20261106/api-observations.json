@@ -1,1 +1,47 @@
-{"note":"Single before/after observations, not controlled benchmarks or proof of page-load speedup. Before was during off-host build; after follows service restart. All responses HTTP 200.","before":{"exploreMs":2458.7109,"availableFeedMs":561.8516,"movieDetailMs":543.9043},"after":{"exploreMs":1958.346,"availableFeedMs":451.2488,"movieDetailMs":549.1668},"scheduler":{"id":"weekly-list-discovery","cron":"0 * 7,8 * * *","timezone":"America/Merida","weeklyStart":"Tuesday 07:20","hardWindowEnd":"08:40","runningAfterRelease":false}}
+{
+  "note": "Single before/after observations, not controlled benchmarks or proof of page-load speedup. Before was during off-host build; after follows service restart. All responses HTTP 200.",
+  "before": {
+    "exploreMs": 2458.7109,
+    "availableFeedMs": 561.8516,
+    "movieDetailMs": 543.9043
+  },
+  "after": {
+    "exploreMs": 1958.346,
+    "availableFeedMs": 451.2488,
+    "movieDetailMs": 549.1668
+  },
+  "scheduler": {
+    "id": "weekly-list-discovery",
+    "cron": "0 * 7,8 * * *",
+    "timezone": "America/Merida",
+    "weeklyStart": "Tuesday 07:20",
+    "hardWindowEnd": "08:40",
+    "runningAfterRelease": false
+  },
+  "finalOutlier": {
+    "exploreMs": 15750.0724,
+    "availableFeedMs": 829.9647,
+    "movieDetailMs": 213.2515
+  },
+  "repeatRounds": [
+    {
+      "exploreMs": 1718.735,
+      "availableFeedMs": 130.5318,
+      "movieDetailMs": 116.2007
+    },
+    {
+      "exploreMs": 238.1374,
+      "availableFeedMs": 108.1911,
+      "movieDetailMs": 68.9015
+    },
+    {
+      "exploreMs": 199.0134,
+      "availableFeedMs": 114.5773,
+      "movieDetailMs": 90.881
+    }
+  ],
+  "afterRepeats": {
+    "runningJobs": [],
+    "weeklyStatePresent": false
+  }
+}
