@@ -1,0 +1,11 @@
+# Daily homepage rotation — deployed 2026-11-06
+
+Scope: exactly three application files from commit720d096d: server/lib/discoveryExplore.ts, server/lib/discoveryData.ts, server/routes/discoveryLists.ts. Compared current live source hashes to b8c2536d before deployment and deployed hashes to approved sources afterwards. Manifest explicitly excludes every other worktree change, including the next-env.d.ts newline-only working change, pending curated collections, filters/provenance and detail UI. No frontend source changed.
+
+Release catalogue-20261106171948030-36550; build DYuikNjwqvrq5-au_dR2x. PRPL-PC frozen install3.738s, build80.485s. One build reached successful terminal completion. Mini verified artifact/link hashes and recreated31exact package junctions; staged login200, three JS chunks, compiled modules and native in-memory SQLite passed. Canonical maintenance engine verified branded page before stopping Seerr, checked native APIs under the lease, cleared the lease and passed public health. Rollback retained at C:/ProgramData/Seerr/catalogue-20261106171948030-36550-release/previous, with database/state backup in the release directory. Previous build X4DN9Gvt3Uaf1oF4ekm0t.
+
+Post-deploy live API checks for all6linked accounts returned the exact same20card IDs in the same order with no duplicates:13Letterboxd/7curated (user picks may themselves be LB/curated). Individual progress and save-button state remain personal. Response observations2.165s first account,0.500–0.675s others; these are not a controlled performance benchmark. All source hashes matched, all6binding toggles/instances and publication settings matched preflight, and weekly/browser/publication schedules remained unchanged. Original9selector tests, TypeScript and lint passed before deployment.
+
+Refresh policy separately verified in refresh-policy.md: weekly automatic pool; personal saved/liked/owned URLs at00:00/12:00Merida in20URLround-robin batches plus successful export-triggered passes. Currently19personal URLs fit a single pass. Daily display rotation makes no LB requests.
+
+Local Git receipt only; no push. No browser screenshot/interactive visual QA was performed in this deployment; rendered card components are unchanged and API selection was verified live.

@@ -1,0 +1,17 @@
+[
+  {
+    "file": "server/lib/discoveryExplore.ts",
+    "before": "7aa5760becfea9163b1a842f9a9c6a91bd043fd1c04b19c558a26bcf7f0f810e",
+    "after": "cb7b4229d7cd35f09d338aae22616b4ca4061b4f08a9d2dc2938ca4f69923dbf"
+  },
+  {
+    "file": "server/lib/discoveryData.ts",
+    "before": "19655a7dc1b56e6b41208fdce624b4690c39f41d64bde0db564299ce3596be6a",
+    "after": "ad3245af59b0d43b48f5dd06634d889af82a1013c637bcd682f9e7c6439b0024"
+  },
+  {
+    "file": "server/routes/discoveryLists.ts",
+    "before": "2f69633641c406ce391ed60ace5798c1e1697ed12a2afe1e7388be9af1b98174",
+    "after": "29ac4c68e6ed265b8ff621f94eb0b22667902e88ab79c107b85f50119167fa41"
+  }
+]

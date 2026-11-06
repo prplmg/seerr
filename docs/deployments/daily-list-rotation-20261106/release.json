@@ -1,0 +1,7 @@
+{
+  "files": [
+    "server/lib/discoveryExplore.ts",
+    "server/lib/discoveryData.ts",
+    "server/routes/discoveryLists.ts"
+  ]
+}

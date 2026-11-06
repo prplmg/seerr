@@ -1,6 +1,6 @@
 # Shared daily homepage list rotation — 2026-11-06
 
-Implemented locally, tested, not deployed. No production data, import schedules or user toggles changed. Only point 3 of the list agenda is addressed; other pending browse/curation work remains excluded.
+Deployed 2026-11-06: build DYuikNjwqvrq5-au_dR2x, scoped three-file release. See docs/deployments/daily-list-rotation-20261106/report.md. No production data, import schedules or user toggles changed. Only point 3 of the list agenda is addressed; other pending browse/curation work remains excluded.
 
 User decision: identical cards/order for everyone, including owned/saved lists. Prefer 20 cards, but allow more to represent all eligible users with different public saved/created lists.
 

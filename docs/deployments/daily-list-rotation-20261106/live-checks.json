@@ -1,0 +1,86 @@
+{
+  "at": "2026-11-06T17:27:07.689Z",
+  "build": "DYuikNjwqvrq5-au_dR2x",
+  "sourceHashesMatch": true,
+  "togglesUnchanged": true,
+  "schedulesUnchanged": true,
+  "identicalAcrossAllSix": true,
+  "checks": [
+    {
+      "userId": 1,
+      "status": 200,
+      "ms": 2165,
+      "cards": 20,
+      "letterboxd": 13,
+      "curated": 7,
+      "created": 0
+    },
+    {
+      "userId": 4,
+      "status": 200,
+      "ms": 541,
+      "cards": 20,
+      "letterboxd": 13,
+      "curated": 7,
+      "created": 0
+    },
+    {
+      "userId": 7,
+      "status": 200,
+      "ms": 664,
+      "cards": 20,
+      "letterboxd": 13,
+      "curated": 7,
+      "created": 0
+    },
+    {
+      "userId": 5,
+      "status": 200,
+      "ms": 500,
+      "cards": 20,
+      "letterboxd": 13,
+      "curated": 7,
+      "created": 0
+    },
+    {
+      "userId": 12,
+      "status": 200,
+      "ms": 511,
+      "cards": 20,
+      "letterboxd": 13,
+      "curated": 7,
+      "created": 0
+    },
+    {
+      "userId": 14,
+      "status": 200,
+      "ms": 675,
+      "cards": 20,
+      "letterboxd": 13,
+      "curated": 7,
+      "created": 0
+    }
+  ],
+  "cardIds": [
+    "lb-00fe551f22fd1caaa7d50ad20450ebf3",
+    "lb-82e3f7a2b1a9f227fc7092de2e26ad21",
+    "lb-e938e67b6e706b45f7182e370d8f52e3",
+    "lb-afd12652ba966b7019d5fe43777370d1",
+    "lb-e631e79d371acb3010084c12bf1d1c08",
+    "lb-bfd04af5037fc7ee98b8f86541267c80",
+    "lb-d97778dafc88e3780730ce562ef99ea9",
+    "lb-fe8faabaed24439a2ee1090f780e8b54",
+    "lb-3fbf7fdd046ae5f6d3ab0f9a32606a7e",
+    "lb-99b6fdd64da6622a405654e10c39274c",
+    "curated-courtroom-showdowns",
+    "curated-mockumentary-mayhem",
+    "lb-b20650a4780cbc205dfd743837cb2494",
+    "lb-27727edf44ca430beb809dc530cacca8",
+    "lb-11606ab38a788b314d688bdb55ac7516",
+    "curated-romcoms-in-full-colour",
+    "curated-money-changes-everything",
+    "curated-whodunnit-mysteries",
+    "curated-oscar-winning-documentary-features",
+    "curated-oscar-winners-2025"
+  ]
+}
