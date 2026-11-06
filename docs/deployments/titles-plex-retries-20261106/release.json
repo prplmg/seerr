@@ -1,0 +1,7 @@
+{
+  "files": [
+    "src/components/Discover/ListLibrary.tsx",
+    "server/lib/scanners/plex/index.ts",
+    "server/lib/scanners/plex/retryQueue.ts"
+  ]
+}

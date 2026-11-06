@@ -1,0 +1,17 @@
+[
+  {
+    "file": "src/components/Discover/ListLibrary.tsx",
+    "before": "15a949f4b69520ea2406f8613b66cf066830907e33d6c4945590adf309b6373b",
+    "after": "abd0990ccbb92189f45f10b5df3cf53a7b43e2b7f45346e89e442a641667e4b2"
+  },
+  {
+    "file": "server/lib/scanners/plex/index.ts",
+    "before": "bc69bbac363b4bad946271d74c7b87c0b3d70910adcb58e1aee7c74f30249587",
+    "after": "42315896594754b4c8f03ca4e62fac66aaf29f0c30833e920cce626228ebef41"
+  },
+  {
+    "file": "server/lib/scanners/plex/retryQueue.ts",
+    "before": null,
+    "after": "7a2d7df32955f064ab8697bd79a552d1d21299288d0c7acaa443a8a666a7ee10"
+  }
+]
