@@ -21,6 +21,18 @@ import BaseScanner from '@server/lib/scanners/baseScanner';
 import type { Library } from '@server/lib/settings';
 import { getSettings } from '@server/lib/settings';
 import { uniqWith } from 'lodash';
+import { PlexRetryQueue, plexRetryKey, plexRetryServer } from './retryQueue';
+
+// Full and recent scans share mutable library state and one durable retry queue.
+let plexScanRunning = false;
+class MissingPlexGuid extends Error {}
+class ScannerPlexAPI extends PlexAPI {
+  public async refreshMetadata(ratingKey: string) {
+    await this.axios.put(
+      `/library/metadata/${encodeURIComponent(ratingKey)}/refresh`
+    );
+  }
+}
 
 const imdbRegex = new RegExp(/imdb:\/\/(tt[0-9]+)/);
 const tmdbRegex = new RegExp(/tmdb:\/\/([0-9]+)/);
@@ -42,10 +54,12 @@ class PlexScanner
   extends BaseScanner<PlexLibraryItem>
   implements RunnableScanner<SyncStatus>
 {
-  private plexClient: PlexAPI;
+  private plexClient: ScannerPlexAPI;
   private libraries: Library[];
   private currentLibrary: Library;
   private isRecentOnly = false;
+  private retryQueue = new PlexRetryQueue();
+  private retryServer: string;
 
   public constructor(isRecentOnly = false) {
     super('Plex Scan', { bundleSize: 50 });
@@ -63,8 +77,10 @@ class PlexScanner
   }
 
   public async run(): Promise<void> {
+    if (plexScanRunning) return;
     const settings = getSettings();
     const sessionId = this.startRun();
+    plexScanRunning = true;
     try {
       const userRepository = getRepository(User);
       const admin = await userRepository.findOne({
@@ -76,16 +92,22 @@ class PlexScanner
         return this.log('No admin configured. Plex scan skipped.', 'warn');
       }
 
-      this.plexClient = new PlexAPI({ plexToken: admin.plexToken });
+      this.plexClient = new ScannerPlexAPI({
+        plexToken: admin.plexToken,
+        timeout: 30_000,
+      });
 
       this.libraries = settings.plex.libraries.filter(
         (library) => library.enabled
       );
 
+      this.retryServer = plexRetryServer(settings.plex);
       const hasHama = await this.hasHamaAgent();
       if (hasHama) {
         await animeList.sync();
       }
+
+      await this.retryFailedItems(sessionId);
 
       if (this.isRecentOnly) {
         for (const library of this.libraries) {
@@ -121,7 +143,20 @@ class PlexScanner
             return mediaA.ratingKey === mediaB.ratingKey;
           });
 
-          await this.loop(this.processItem.bind(this), { sessionId });
+          let itemError: unknown;
+          await this.loop(
+            async (item) => {
+              try {
+                await this.processItem(item);
+              } catch (error) {
+                // BaseScanner uses Promise.all. Defer persistence errors until
+                // every sibling settles, keeping the shared scan guard held.
+                itemError ??= error;
+              }
+            },
+            { sessionId }
+          );
+          if (itemError) throw itemError;
 
           // After run completes, update last scan time
           const newLibraries = settings.plex.libraries.map((lib) => {
@@ -144,6 +179,7 @@ class PlexScanner
           await this.paginateLibrary(library, { sessionId });
         }
       }
+      this.log('Plex retry queue', 'info', this.retryQueue.summary());
       this.log(
         this.isRecentOnly
           ? 'Recently Added Scan Complete'
@@ -156,6 +192,7 @@ class PlexScanner
       });
     } finally {
       this.endRun(sessionId);
+      plexScanRunning = false;
     }
   }
 
@@ -183,11 +220,11 @@ class PlexScanner
       return;
     }
 
-    await Promise.all(
-      response.items.map(async (item) => {
-        await this.processItem(item);
-      })
+    const results = await Promise.allSettled(
+      response.items.map((item) => this.processItem(item))
     );
+    const failed = results.find((result) => result.status === 'rejected');
+    if (failed?.status === 'rejected') throw failed.reason;
 
     if (response.items.length < this.protectedBundleSize) {
       return;
@@ -205,7 +242,81 @@ class PlexScanner
     );
   }
 
-  private async processItem(plexitem: PlexLibraryItem) {
+  private async retryFailedItems(sessionId: string) {
+    const deadline = Date.now() + 30_000;
+    const entries = this.retryQueue.due(
+      this.retryServer,
+      getSettings().plex.libraries
+    );
+    for (const entry of entries) {
+      if (
+        !this.running ||
+        this.sessionId !== sessionId ||
+        Date.now() >= deadline
+      )
+        break;
+      const settings = getSettings().plex;
+      if (plexRetryServer(settings) !== this.retryServer) break;
+      const library = settings.libraries.find(
+        (l) => l.id === entry.libraryId && l.enabled
+      );
+      if (!library || !this.retryQueue.claim(entry)) continue;
+      this.currentLibrary = library;
+      let metadata: PlexMetadata;
+      try {
+        metadata = await this.plexClient.getMetadata(entry.ratingKey);
+      } catch (error) {
+        // Only a Plex metadata 404 means deletion. TMDB/child lookup failures
+        // in processItem remain retryable, including their own 404 responses.
+        if (error.response?.status === 404) this.retryQueue.clear(entry);
+        else this.retryQueue.fail(entry);
+        continue;
+      }
+      if (!metadata) {
+        this.retryQueue.fail(entry);
+        continue;
+      }
+      const section = (
+        metadata as PlexMetadata & { librarySectionID?: string | number }
+      ).librarySectionID;
+      const current = getSettings().plex;
+      if (
+        !this.running ||
+        plexRetryServer(current) !== this.retryServer ||
+        !current.libraries.some((l) => l.id === entry.libraryId && l.enabled)
+      )
+        continue;
+      // Never import a moved item from a disabled/different library. Missing
+      // membership metadata is ambiguous, so keep it for a later attempt.
+      if (section === undefined) {
+        this.retryQueue.fail(entry);
+        continue;
+      }
+      if (
+        String(section) !== entry.libraryId ||
+        metadata.ratingKey !== entry.ratingKey
+      ) {
+        this.retryQueue.fail(entry);
+        this.log(
+          'Plex retry library/identity changed; retained for inspection',
+          'warn',
+          { ratingKey: entry.ratingKey, libraryId: entry.libraryId }
+        );
+        continue;
+      }
+      await this.processItem(metadata, true);
+    }
+  }
+
+  private async processItem(plexitem: PlexLibraryItem, retry = false) {
+    const entry = {
+      server: this.retryServer,
+      libraryId: this.currentLibrary.id,
+      ratingKey: plexRetryKey(plexitem),
+    };
+    // Existing failures are owned by the bounded retry drain, even if the
+    // recent overlap/full scan returns them again before their backoff expires.
+    if (!retry && this.retryQueue.has(entry)) return;
     try {
       if (plexitem.type === 'movie') {
         await this.processPlexMovie(plexitem);
@@ -217,11 +328,50 @@ class PlexScanner
         await this.processPlexShow(plexitem);
       }
     } catch (e) {
+      const failure = this.retryQueue.fail(
+        entry,
+        Date.now(),
+        e instanceof MissingPlexGuid
+      );
+      if (
+        retry &&
+        this.running &&
+        plexRetryServer(getSettings().plex) === this.retryServer &&
+        getSettings().plex.libraries.some(
+          (l) => l.id === entry.libraryId && l.enabled
+        ) &&
+        e instanceof MissingPlexGuid &&
+        this.retryQueue.claimRefresh(entry)
+      ) {
+        try {
+          await this.plexClient.refreshMetadata(entry.ratingKey);
+          this.log(
+            'Requested one Plex metadata refresh for missing Guid; retry remains queued',
+            'warn',
+            entry
+          );
+        } catch (refreshError) {
+          this.log(
+            'Plex metadata refresh failed; manual metadata repair may be needed',
+            'warn',
+            { ...entry, errorMessage: refreshError.message }
+          );
+        }
+      }
+      if (e instanceof MissingPlexGuid && failure.repairNeeded) {
+        this.log(
+          'Plex Guid still missing after capped backoff; manual metadata repair needed. Daily retries retained.',
+          'warn',
+          entry
+        );
+      }
       this.log('Failed to process Plex media', 'error', {
         errorMessage: e.message,
         title: plexitem.title,
       });
+      return;
     }
+    this.retryQueue.clear(entry);
   }
 
   private async processPlexMovie(plexitem: PlexLibraryItem) {
@@ -305,7 +455,7 @@ class PlexScanner
     // If the media is from HAMA, and doesn't have a TVDb ID, we will treat it
     // as a special HAMA movie
     if (mediaIds.tmdbId && !mediaIds.tvdbId && mediaIds.isHama) {
-      this.processHamaMovie(metadata, mediaIds.tmdbId);
+      await this.processHamaMovie(metadata, mediaIds.tmdbId);
       return;
     }
 
@@ -380,29 +530,21 @@ class PlexScanner
   }
 
   private async getMediaIds(plexitem: PlexLibraryItem): Promise<MediaIds> {
-    let mediaIds: Partial<MediaIds> = {};
+    const mediaIds: Partial<MediaIds> = {};
     // Check if item is using new plex movie/tv agent
     if (plexitem.guid.match(plexRegex)) {
       const guidCache = cacheManager.getCache('plexguid');
 
-      const cachedGuids = guidCache.data.get<MediaIds>(plexitem.ratingKey);
-
-      if (cachedGuids) {
-        this.log('GUIDs are cached. Skipping metadata request.', 'debug', {
-          mediaIds: cachedGuids,
-          title: plexitem.title,
-        });
-        mediaIds = cachedGuids;
-      }
-
+      // Verify current Plex metadata even if a prior identity was cached. A
+      // stale cache must not mask missing Guid or override a repaired match.
       const metadata =
         plexitem.Guid && plexitem.Guid.length > 0
           ? plexitem
           : await this.plexClient.getMetadata(plexitem.ratingKey);
 
       // If there is no Guid field at all, then we bail
-      if (!metadata.Guid) {
-        throw new Error(
+      if (!metadata?.Guid?.length) {
+        throw new MissingPlexGuid(
           'No Guid metadata for this title. Skipping. (Try refreshing the metadata in Plex for this media!)'
         );
       }

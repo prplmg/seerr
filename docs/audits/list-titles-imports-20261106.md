@@ -11,3 +11,9 @@ Read-only production audit at approximately 15:12 America/Merida. Compared Radar
 - Diarios de motocicleta / The Motorcycle Diaries: completed download awaiting manual import because Radarr reports movie title mismatch. La belle verte remains queued.
 
 No library, request, torrent, publishing toggle or schedule was changed. Follow-up: refresh/repair The Ritual's Plex metadata then reconcile catalogue identity; consider durable bounded retries for failed scanner items instead of relying only on the ten-minute overlap. Review the title-mismatch download before any manual import.
+
+## Authorized repair follow-up
+
+The Ritual: explicitly refreshed Plex key23971 metadata. Plex now returns imdb://tt5638642, tmdb://433808 and tvdb://1501. Ran the existing Plex full reconciliation through the supported API; catalogue TMDB433808 is now AVAILABLE. No blind matching or manual availability override.
+
+Correction to the initial queue-only assessment of Motorcycle Diaries: its unmatched queue entry is residual, not evidence of a missing library copy. Radarr movie321/file319 has a verified 10,058,928,269-byte 1080p Spanish-language file, imported 2026-11-04T01:57:14Z (November3 19:57 Mérida), with the same source release named in the queue. Plex key23921 exists and catalogue TMDB1653 is AVAILABLE. Manual-import candidate lookup returned none. Preserved the existing library copy and torrent; no redundant reimport or replacement was performed. The residual unknown-item queue warning was not deleted.
