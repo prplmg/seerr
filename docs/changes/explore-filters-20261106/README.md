@@ -1,3 +1,7 @@
+# DEPLOYED 2026-11-06
+
+Build xZC3dpCZbwxFAKXuO4_Vr; see ../../deployments/explore-filters-20261106/report.md. Historical implementation notes follow.
+
 # Explore source/media filters — implemented, NOT deployed
 
 2026-11-06. Based on live/catalogue-2026-11-06-media-lists in seerr-weekly-lists; mixed original seerr-fork proposals remain separate.

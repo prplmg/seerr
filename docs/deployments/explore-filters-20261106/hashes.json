@@ -1,0 +1,37 @@
+[
+  {
+    "file": "server/lib/mediaDiscoveryListsData.ts",
+    "before": null,
+    "after": "ae2ef0ad2033c90a7f0d183278739e2ef61d2911b092d8978756f50875ce1edf"
+  },
+  {
+    "file": "server/routes/discoveryLists.ts",
+    "before": "7c59911f5e16f6cec08f775e5916dd46e4f8819bfa4a473564d479ff57624e69",
+    "after": "61520d83234f309d80efd50889a6e2e36a2525fef99bb11506519040266fa7d8"
+  },
+  {
+    "file": "src/components/Discover/Curated/index.tsx",
+    "before": "5cc765875fc3a6226bc9b221320b1ce514c24fd22af1ea0341430d7a1eb72b52",
+    "after": "8fb4e05bbb59327e29d1da8b27598fee1429c2044bf888506b37090120e46251"
+  },
+  {
+    "file": "src/components/Discover/ListLibrary.tsx",
+    "before": "8d6479d45b0f3687e89d5021a2f5fabcb142ef4928cf0ee33412b30fd2d91a48",
+    "after": "15a949f4b69520ea2406f8613b66cf066830907e33d6c4945590adf309b6373b"
+  },
+  {
+    "file": "src/components/Discover/MediaLists.tsx",
+    "before": "af23c545c6e813a4c55a6f67580b1821d90d18f51c2ed30d4f80d0ca89160f3d",
+    "after": "96e417c1a4e1529fba5078fa0528847136155da99683da776d61fe39810355b4"
+  },
+  {
+    "file": "src/components/MovieDetails/index.tsx",
+    "before": "97f8b0d25799b04f92460378186eb664e8576e8a4a1641a36dd87ef75dbaa1d6",
+    "after": "a51a884728d8d6d71c26e88cc19080a6c035d7ced1ca354b34b15d5fe7e505fa"
+  },
+  {
+    "file": "src/components/TvDetails/index.tsx",
+    "before": "38b6b79c16d47885e1e41f8aae62c65f41a47493a23d59eb6b714edc6e56c8ee",
+    "after": "e14f8d01d74da78807bed6d396cef3ff6fa9bff2f0d92083b8045bc795d41227"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "files": [
+    "server/lib/mediaDiscoveryListsData.ts",
+    "server/routes/discoveryLists.ts",
+    "src/components/Discover/Curated/index.tsx",
+    "src/components/Discover/ListLibrary.tsx",
+    "src/components/Discover/MediaLists.tsx",
+    "src/components/MovieDetails/index.tsx",
+    "src/components/TvDetails/index.tsx"
+  ]
+}
