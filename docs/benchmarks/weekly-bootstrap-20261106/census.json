@@ -1,0 +1,850 @@
+[
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/",
+      "state": "succeeded",
+      "seconds": 8.01,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "Letterboxd\u2019s Top 500 Films",
+          "total": 500,
+          "url": "https://letterboxd.com/official/list/letterboxds-top-500-films/"
+        },
+        {
+          "title": "Movies everyone should watch at least once during their lifetime",
+          "total": 800,
+          "url": "https://letterboxd.com/fcbarcelona/list/movies-everyone-should-watch-at-least-once/"
+        },
+        {
+          "title": "for when you want to feel something",
+          "total": 187,
+          "url": "https://letterboxd.com/ellefnning/list/for-when-you-want-to-feel-something/"
+        },
+        {
+          "title": "You\u2019re not the same person once the film has finished",
+          "total": 360,
+          "url": "https://letterboxd.com/andredenervaux/list/youre-not-the-same-person-once-the-film-has/"
+        },
+        {
+          "title": "classic movies for beginners.",
+          "total": 135,
+          "url": "https://letterboxd.com/hepburnluv/list/classic-movies-for-beginners/"
+        },
+        {
+          "title": "\u0b6d definition of girly classics \ud83c\udf80 \u02da\u208a\u00b7 \u035f\u035f\u035e\u035e\u27b3\u2765",
+          "total": 271,
+          "url": "https://letterboxd.com/darkestparadise/list/definition-of-girly-classics/"
+        },
+        {
+          "title": "1001 Movies You Must See Before You Die",
+          "total": 1245,
+          "url": "https://letterboxd.com/peterstanley/list/1001-movies-you-must-see-before-you-die/"
+        },
+        {
+          "title": "Psychosexual dramas, nihilistic fever dreams & surrealism with a touch of humour",
+          "total": 2393,
+          "url": "https://letterboxd.com/magrosleau/list/psychosexual-dramas-nihilistic-fever-dreams/"
+        },
+        {
+          "title": "Top 250 Films with the Most Fans",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-films-with-the-most-fans/"
+        },
+        {
+          "title": "Comfort Movies",
+          "total": 183,
+          "url": "https://letterboxd.com/cinemaparadisa/list/comfort-movies/"
+        },
+        {
+          "title": "feeling lost in your 20\u2019s",
+          "total": 216,
+          "url": "https://letterboxd.com/adaydreaming/list/feeling-lost-in-your-20s/"
+        },
+        {
+          "title": "\ud83d\udc09\ud83c\udfad\u2728 \ud835\udd4d\ud835\udd40\ud835\udd4a\ud835\udd4c\ud835\udd38\ud835\udd43\ud835\udd43\ud835\udd50 \ud835\ude78\ud835\ude7d\ud835\ude82\ud835\ude70\ud835\ude7d\ud835\ude74\ud83d\udc79\ud83e\uddde\u200d\u2640\ufe0f\ud83d\udc41\ufe0f",
+          "total": 833,
+          "url": "https://letterboxd.com/etolkin/list/filmlist:28697007/"
+        },
+        {
+          "title": "Good Films, 90 Minutes or Less",
+          "total": 2438,
+          "url": "https://letterboxd.com/stautis/list/good-films-90-minutes-or-less/"
+        },
+        {
+          "title": "what is reality?",
+          "total": 1636,
+          "url": "https://letterboxd.com/tediously_brief/list/what-is-reality/"
+        },
+        {
+          "title": "Horror Movies Everyone Should Watch at Least Once",
+          "total": 300,
+          "url": "https://letterboxd.com/browsehorror/list/horror-movies-everyone-should-watch-at-least/"
+        },
+        {
+          "title": "Befriending the lyrical loneliness\u2026",
+          "total": 716,
+          "url": "https://letterboxd.com/kun/list/befriending-the-lyrical-loneliness/"
+        },
+        {
+          "title": "Random Movie Roulette",
+          "total": 10988,
+          "url": "https://letterboxd.com/tobiasandersen2/list/random-movie-roulette/"
+        },
+        {
+          "title": "Top 250 Animated Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-animated-films/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/page/2/",
+      "state": "succeeded",
+      "seconds": 6.009,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "Women have superior taste that is why these masterpieces are called chick flicks",
+          "total": 448,
+          "url": "https://letterboxd.com/marialuisacctc/list/women-have-superior-taste-that-is-why-these/"
+        },
+        {
+          "title": "Top 250 Horror Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-horror-films/"
+        },
+        {
+          "title": "chick flicks",
+          "total": 854,
+          "url": "https://letterboxd.com/kaitienk/list/chick-flicks/"
+        },
+        {
+          "title": "IMDb Top 250",
+          "total": 250,
+          "url": "https://letterboxd.com/dave/list/imdb-top-250/"
+        },
+        {
+          "title": "Weirdo Watchlist",
+          "total": 1904,
+          "url": "https://letterboxd.com/hamburgersplash/list/weirdo-watchlist/"
+        },
+        {
+          "title": "The World is Hell: Hopeless Cinema",
+          "total": 1000,
+          "url": "https://letterboxd.com/darrencb/list/the-world-is-hell-hopeless-cinema/"
+        },
+        {
+          "title": "Teenage Wasteland: A Comprehensive List of Coming-of-Age films",
+          "total": 4328,
+          "url": "https://letterboxd.com/moviemaestro/list/teenage-wasteland-a-comprehensive-list-of/"
+        },
+        {
+          "title": "Horror!!!",
+          "total": 502,
+          "url": "https://letterboxd.com/ale_x/list/horror/"
+        },
+        {
+          "title": "\ud83d\udcc2  \u2014 youtube",
+          "total": 435,
+          "url": "https://letterboxd.com/s4ppho/list/youtube/"
+        },
+        {
+          "title": "Stuff by women, about women",
+          "total": 6137,
+          "url": "https://letterboxd.com/meagan/list/stuff-by-women-about-women/"
+        },
+        {
+          "title": "\u201cCartoons are for Children\u201d",
+          "total": 493,
+          "url": "https://letterboxd.com/lucidforest/list/cartoons-are-for-children/"
+        },
+        {
+          "title": "Top 250 Documentary Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-documentary-films/"
+        },
+        {
+          "title": "Sight and Sound\u2019s Greatest Films of All Time \u2013 2022",
+          "total": 264,
+          "url": "https://letterboxd.com/sightsoundmag/list/sight-and-sounds-greatest-films-of-all-time/"
+        },
+        {
+          "title": "Movies That Will Make You Say \u201cWhat the Fuck\u201d At Least 3 Times",
+          "total": 356,
+          "url": "https://letterboxd.com/zanderific/list/movies-that-will-make-you-say-what-the-fuck/"
+        },
+        {
+          "title": "If you like (2010\u2019s movie) watch (older movie)",
+          "total": 570,
+          "url": "https://letterboxd.com/julps2/list/if-you-like-2010s-movie-watch-older-movie-1/"
+        },
+        {
+          "title": "The Complete Criterion Collection",
+          "total": 1726,
+          "url": "https://letterboxd.com/jbutts15/list/the-complete-criterion-collection/"
+        },
+        {
+          "title": "MCU",
+          "total": 65,
+          "url": "https://letterboxd.com/arinbicer/list/mcu/"
+        },
+        {
+          "title": "Films Directed by Women",
+          "total": 8706,
+          "url": "https://letterboxd.com/michaelhaneke/list/films-directed-by-women/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/page/2/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/this/week/",
+      "state": "succeeded",
+      "seconds": 6.011,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "Letterboxd\u2019s Top 500 Films",
+          "total": 500,
+          "url": "https://letterboxd.com/official/list/letterboxds-top-500-films/"
+        },
+        {
+          "title": "tongue-in-chic",
+          "total": 81,
+          "url": "https://letterboxd.com/moderngurlz/list/tongue-in-chic/"
+        },
+        {
+          "title": "Top 1,000 Horror Films on Halloween 2026",
+          "total": 1000,
+          "url": "https://letterboxd.com/official/list/top-1000-horror-films-on-halloween-2026/"
+        },
+        {
+          "title": "fucked up twisted sick relationships",
+          "total": 183,
+          "url": "https://letterboxd.com/messer_vergi/list/fucked-up-twisted-sick-relationships/"
+        },
+        {
+          "title": "Movies everyone should watch at least once during their lifetime",
+          "total": 800,
+          "url": "https://letterboxd.com/fcbarcelona/list/movies-everyone-should-watch-at-least-once/"
+        },
+        {
+          "title": "A list dedicated to the love of Japanese cinema \ud83c\uddef\ud83c\uddf5, where love resides, tenderness blossoms, hope quietly finds its way in, and beauty reveals itself in life\u2019s simplest moments.",
+          "total": 84,
+          "url": "https://letterboxd.com/ruviio/list/a-list-dedicated-to-the-love-of-japanese/"
+        },
+        {
+          "title": "Top 250 Films with the Most Fans",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-films-with-the-most-fans/"
+        },
+        {
+          "title": "sapphic horror",
+          "total": 43,
+          "url": "https://letterboxd.com/waltrautts/list/sapphic-horror/"
+        },
+        {
+          "title": "November Report 2026: Top 25 films of the year so far",
+          "total": 25,
+          "url": "https://letterboxd.com/official/list/november-report-2026-top-25-films-of-the/"
+        },
+        {
+          "title": "20 gripping films where horror and noir bleed into one",
+          "total": 20,
+          "url": "https://letterboxd.com/crew/list/20-gripping-films-where-horror-and-noir-bleed/"
+        },
+        {
+          "title": "classic movies for beginners.",
+          "total": 135,
+          "url": "https://letterboxd.com/hepburnluv/list/classic-movies-for-beginners/"
+        },
+        {
+          "title": "\u0b6d definition of girly classics \ud83c\udf80 \u02da\u208a\u00b7 \u035f\u035f\u035e\u035e\u27b3\u2765",
+          "total": 271,
+          "url": "https://letterboxd.com/darkestparadise/list/definition-of-girly-classics/"
+        },
+        {
+          "title": "Top 250 Horror Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-horror-films/"
+        },
+        {
+          "title": "for when you want to feel something",
+          "total": 187,
+          "url": "https://letterboxd.com/ellefnning/list/for-when-you-want-to-feel-something/"
+        },
+        {
+          "title": "The Anti-Letterboxd 500",
+          "total": 500,
+          "url": "https://letterboxd.com/louferrigno/list/the-anti-letterboxd-500/"
+        },
+        {
+          "title": "You\u2019re not the same person once the film has finished",
+          "total": 360,
+          "url": "https://letterboxd.com/andredenervaux/list/youre-not-the-same-person-once-the-film-has/"
+        },
+        {
+          "title": "20 paranoid sci-fi mind-benders from the early 2000s",
+          "total": 20,
+          "url": "https://letterboxd.com/crew/list/20-paranoid-sci-fi-mind-benders-from-the/"
+        },
+        {
+          "title": "Horror Movies Everyone Should Watch at Least Once",
+          "total": 300,
+          "url": "https://letterboxd.com/browsehorror/list/horror-movies-everyone-should-watch-at-least/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/this/week/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/this/week/page/2/",
+      "state": "succeeded",
+      "seconds": 6.011,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "THE 2AM GENRE",
+          "total": 59,
+          "url": "https://letterboxd.com/parrkeerr/list/the-2am-genre/"
+        },
+        {
+          "title": "Psychosexual dramas, nihilistic fever dreams & surrealism with a touch of humour",
+          "total": 2393,
+          "url": "https://letterboxd.com/magrosleau/list/psychosexual-dramas-nihilistic-fever-dreams/"
+        },
+        {
+          "title": "Top 250 Animated Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-animated-films/"
+        },
+        {
+          "title": "what is reality?",
+          "total": 1636,
+          "url": "https://letterboxd.com/tediously_brief/list/what-is-reality/"
+        },
+        {
+          "title": "MCU",
+          "total": 65,
+          "url": "https://letterboxd.com/arinbicer/list/mcu/"
+        },
+        {
+          "title": "Horror!!!",
+          "total": 502,
+          "url": "https://letterboxd.com/ale_x/list/horror/"
+        },
+        {
+          "title": "\ud83d\udc09\ud83c\udfad\u2728 \ud835\udd4d\ud835\udd40\ud835\udd4a\ud835\udd4c\ud835\udd38\ud835\udd43\ud835\udd43\ud835\udd50 \ud835\ude78\ud835\ude7d\ud835\ude82\ud835\ude70\ud835\ude7d\ud835\ude74\ud83d\udc79\ud83e\uddde\u200d\u2640\ufe0f\ud83d\udc41\ufe0f",
+          "total": 833,
+          "url": "https://letterboxd.com/etolkin/list/filmlist:28697007/"
+        },
+        {
+          "title": "chick flicks",
+          "total": 854,
+          "url": "https://letterboxd.com/kaitienk/list/chick-flicks/"
+        },
+        {
+          "title": "Halloween",
+          "total": 702,
+          "url": "https://letterboxd.com/mysteriis666/list/halloween/"
+        },
+        {
+          "title": "Every A24 Movie Ever",
+          "total": 190,
+          "url": "https://letterboxd.com/a24/list/every-a24-movie-ever/"
+        },
+        {
+          "title": "actual good religious movies",
+          "total": 65,
+          "url": "https://letterboxd.com/nathannrobinson/list/actual-good-religious-movies/"
+        },
+        {
+          "title": "feeling lost in your 20\u2019s",
+          "total": 216,
+          "url": "https://letterboxd.com/adaydreaming/list/feeling-lost-in-your-20s/"
+        },
+        {
+          "title": "Random Movie Roulette",
+          "total": 10988,
+          "url": "https://letterboxd.com/tobiasandersen2/list/random-movie-roulette/"
+        },
+        {
+          "title": "queer but not really but actually yes",
+          "total": 236,
+          "url": "https://letterboxd.com/naomey/list/queer-but-not-really-but-actually-yes/"
+        },
+        {
+          "title": "Top 250 Documentary Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-documentary-films/"
+        },
+        {
+          "title": "1001 Movies You Must See Before You Die",
+          "total": 1245,
+          "url": "https://letterboxd.com/peterstanley/list/1001-movies-you-must-see-before-you-die/"
+        },
+        {
+          "title": "20 essential cinematic journeys of self-discovery",
+          "total": 20,
+          "url": "https://letterboxd.com/crew/list/20-essential-cinematic-journeys-of-self-discovery/"
+        },
+        {
+          "title": "Top 100 Spanish Films",
+          "total": 100,
+          "url": "https://letterboxd.com/official/list/top-100-spanish-films/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/this/week/page/2/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/this/month/",
+      "state": "succeeded",
+      "seconds": 6.008,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "Letterboxd\u2019s Top 500 Films",
+          "total": 500,
+          "url": "https://letterboxd.com/official/list/letterboxds-top-500-films/"
+        },
+        {
+          "title": "sapphic horror",
+          "total": 43,
+          "url": "https://letterboxd.com/waltrautts/list/sapphic-horror/"
+        },
+        {
+          "title": "Movies everyone should watch at least once during their lifetime",
+          "total": 800,
+          "url": "https://letterboxd.com/fcbarcelona/list/movies-everyone-should-watch-at-least-once/"
+        },
+        {
+          "title": "tongue-in-chic",
+          "total": 81,
+          "url": "https://letterboxd.com/moderngurlz/list/tongue-in-chic/"
+        },
+        {
+          "title": "Top 250 Films with the Most Fans",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-films-with-the-most-fans/"
+        },
+        {
+          "title": "Top 250 Horror Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-horror-films/"
+        },
+        {
+          "title": "classic movies for beginners.",
+          "total": 135,
+          "url": "https://letterboxd.com/hepburnluv/list/classic-movies-for-beginners/"
+        },
+        {
+          "title": "\u0b6d definition of girly classics \ud83c\udf80 \u02da\u208a\u00b7 \u035f\u035f\u035e\u035e\u27b3\u2765",
+          "total": 271,
+          "url": "https://letterboxd.com/darkestparadise/list/definition-of-girly-classics/"
+        },
+        {
+          "title": "You\u2019re not the same person once the film has finished",
+          "total": 360,
+          "url": "https://letterboxd.com/andredenervaux/list/youre-not-the-same-person-once-the-film-has/"
+        },
+        {
+          "title": "for when you want to feel something",
+          "total": 187,
+          "url": "https://letterboxd.com/ellefnning/list/for-when-you-want-to-feel-something/"
+        },
+        {
+          "title": "Horror Movies Everyone Should Watch at Least Once",
+          "total": 300,
+          "url": "https://letterboxd.com/browsehorror/list/horror-movies-everyone-should-watch-at-least/"
+        },
+        {
+          "title": "Psychosexual dramas, nihilistic fever dreams & surrealism with a touch of humour",
+          "total": 2393,
+          "url": "https://letterboxd.com/magrosleau/list/psychosexual-dramas-nihilistic-fever-dreams/"
+        },
+        {
+          "title": "MCU",
+          "total": 65,
+          "url": "https://letterboxd.com/arinbicer/list/mcu/"
+        },
+        {
+          "title": "Top 1,000 Horror Films on Halloween 2026",
+          "total": 1000,
+          "url": "https://letterboxd.com/official/list/top-1000-horror-films-on-halloween-2026/"
+        },
+        {
+          "title": "what is reality?",
+          "total": 1636,
+          "url": "https://letterboxd.com/tediously_brief/list/what-is-reality/"
+        },
+        {
+          "title": "girl stoner slacker epics",
+          "total": 52,
+          "url": "https://letterboxd.com/abbyjwright/list/girl-stoner-slacker-epics/"
+        },
+        {
+          "title": "fucked up twisted sick relationships",
+          "total": 183,
+          "url": "https://letterboxd.com/messer_vergi/list/fucked-up-twisted-sick-relationships/"
+        },
+        {
+          "title": "Horror!!!",
+          "total": 502,
+          "url": "https://letterboxd.com/ale_x/list/horror/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/this/month/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/this/month/page/2/",
+      "state": "succeeded",
+      "seconds": 6.009,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "The Anti-Letterboxd 500",
+          "total": 500,
+          "url": "https://letterboxd.com/louferrigno/list/the-anti-letterboxd-500/"
+        },
+        {
+          "title": "Halloween",
+          "total": 702,
+          "url": "https://letterboxd.com/mysteriis666/list/halloween/"
+        },
+        {
+          "title": "Top 250 Animated Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-animated-films/"
+        },
+        {
+          "title": "THE 2AM GENRE",
+          "total": 59,
+          "url": "https://letterboxd.com/parrkeerr/list/the-2am-genre/"
+        },
+        {
+          "title": "\u22c6\u02da\u0c68\u09ce \u22c6.\u02da the infp mind",
+          "total": 200,
+          "url": "https://letterboxd.com/bunesque/list/the-infp-mind/"
+        },
+        {
+          "title": "chick flicks",
+          "total": 854,
+          "url": "https://letterboxd.com/kaitienk/list/chick-flicks/"
+        },
+        {
+          "title": "\ud83d\udc09\ud83c\udfad\u2728 \ud835\udd4d\ud835\udd40\ud835\udd4a\ud835\udd4c\ud835\udd38\ud835\udd43\ud835\udd43\ud835\udd50 \ud835\ude78\ud835\ude7d\ud835\ude82\ud835\ude70\ud835\ude7d\ud835\ude74\ud83d\udc79\ud83e\uddde\u200d\u2640\ufe0f\ud83d\udc41\ufe0f",
+          "total": 833,
+          "url": "https://letterboxd.com/etolkin/list/filmlist:28697007/"
+        },
+        {
+          "title": "Every A24 Movie Ever",
+          "total": 190,
+          "url": "https://letterboxd.com/a24/list/every-a24-movie-ever/"
+        },
+        {
+          "title": "Top 250 Documentary Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-documentary-films/"
+        },
+        {
+          "title": "Random Movie Roulette",
+          "total": 10988,
+          "url": "https://letterboxd.com/tobiasandersen2/list/random-movie-roulette/"
+        },
+        {
+          "title": "feeling lost in your 20\u2019s",
+          "total": 216,
+          "url": "https://letterboxd.com/adaydreaming/list/feeling-lost-in-your-20s/"
+        },
+        {
+          "title": "Top 100 Spanish Films",
+          "total": 100,
+          "url": "https://letterboxd.com/official/list/top-100-spanish-films/"
+        },
+        {
+          "title": "A list dedicated to the love of Japanese cinema \ud83c\uddef\ud83c\uddf5, where love resides, tenderness blossoms, hope quietly finds its way in, and beauty reveals itself in life\u2019s simplest moments.",
+          "total": 84,
+          "url": "https://letterboxd.com/ruviio/list/a-list-dedicated-to-the-love-of-japanese/"
+        },
+        {
+          "title": "1001 Movies You Must See Before You Die",
+          "total": 1245,
+          "url": "https://letterboxd.com/peterstanley/list/1001-movies-you-must-see-before-you-die/"
+        },
+        {
+          "title": "Good Films, 90 Minutes or Less",
+          "total": 2438,
+          "url": "https://letterboxd.com/stautis/list/good-films-90-minutes-or-less/"
+        },
+        {
+          "title": "IMDb Top 250",
+          "total": 250,
+          "url": "https://letterboxd.com/dave/list/imdb-top-250/"
+        },
+        {
+          "title": "November Report 2026: Top 25 films of the year so far",
+          "total": 25,
+          "url": "https://letterboxd.com/official/list/november-report-2026-top-25-films-of-the/"
+        },
+        {
+          "title": "Women have superior taste that is why these masterpieces are called chick flicks",
+          "total": 448,
+          "url": "https://letterboxd.com/marialuisacctc/list/women-have-superior-taste-that-is-why-these/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/this/month/page/2/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/this/year/",
+      "state": "succeeded",
+      "seconds": 6.022,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "Letterboxd\u2019s Top 500 Films",
+          "total": 500,
+          "url": "https://letterboxd.com/official/list/letterboxds-top-500-films/"
+        },
+        {
+          "title": "Movies everyone should watch at least once during their lifetime",
+          "total": 800,
+          "url": "https://letterboxd.com/fcbarcelona/list/movies-everyone-should-watch-at-least-once/"
+        },
+        {
+          "title": "Top 250 Films with the Most Fans",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-films-with-the-most-fans/"
+        },
+        {
+          "title": "\u0b6d definition of girly classics \ud83c\udf80 \u02da\u208a\u00b7 \u035f\u035f\u035e\u035e\u27b3\u2765",
+          "total": 271,
+          "url": "https://letterboxd.com/darkestparadise/list/definition-of-girly-classics/"
+        },
+        {
+          "title": "classic movies for beginners.",
+          "total": 135,
+          "url": "https://letterboxd.com/hepburnluv/list/classic-movies-for-beginners/"
+        },
+        {
+          "title": "for when you want to feel something",
+          "total": 187,
+          "url": "https://letterboxd.com/ellefnning/list/for-when-you-want-to-feel-something/"
+        },
+        {
+          "title": "You\u2019re not the same person once the film has finished",
+          "total": 360,
+          "url": "https://letterboxd.com/andredenervaux/list/youre-not-the-same-person-once-the-film-has/"
+        },
+        {
+          "title": "Psychosexual dramas, nihilistic fever dreams & surrealism with a touch of humour",
+          "total": 2393,
+          "url": "https://letterboxd.com/magrosleau/list/psychosexual-dramas-nihilistic-fever-dreams/"
+        },
+        {
+          "title": "chick flicks",
+          "total": 854,
+          "url": "https://letterboxd.com/kaitienk/list/chick-flicks/"
+        },
+        {
+          "title": "MCU",
+          "total": 65,
+          "url": "https://letterboxd.com/arinbicer/list/mcu/"
+        },
+        {
+          "title": "Top 250 Horror Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-horror-films/"
+        },
+        {
+          "title": "Top 250 Animated Films",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-animated-films/"
+        },
+        {
+          "title": "feeling lost in your 20\u2019s",
+          "total": 216,
+          "url": "https://letterboxd.com/adaydreaming/list/feeling-lost-in-your-20s/"
+        },
+        {
+          "title": "\ud83d\udc09\ud83c\udfad\u2728 \ud835\udd4d\ud835\udd40\ud835\udd4a\ud835\udd4c\ud835\udd38\ud835\udd43\ud835\udd43\ud835\udd50 \ud835\ude78\ud835\ude7d\ud835\ude82\ud835\ude70\ud835\ude7d\ud835\ude74\ud83d\udc79\ud83e\uddde\u200d\u2640\ufe0f\ud83d\udc41\ufe0f",
+          "total": 833,
+          "url": "https://letterboxd.com/etolkin/list/filmlist:28697007/"
+        },
+        {
+          "title": "Horror Movies Everyone Should Watch at Least Once",
+          "total": 300,
+          "url": "https://letterboxd.com/browsehorror/list/horror-movies-everyone-should-watch-at-least/"
+        },
+        {
+          "title": "what is reality?",
+          "total": 1636,
+          "url": "https://letterboxd.com/tediously_brief/list/what-is-reality/"
+        },
+        {
+          "title": "Random Movie Roulette",
+          "total": 10988,
+          "url": "https://letterboxd.com/tobiasandersen2/list/random-movie-roulette/"
+        },
+        {
+          "title": "Comfort Movies",
+          "total": 183,
+          "url": "https://letterboxd.com/cinemaparadisa/list/comfort-movies/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/this/year/"
+    }
+  },
+  {
+    "summary": {
+      "url": "https://letterboxd.com/lists/popular/this/year/page/2/",
+      "state": "succeeded",
+      "seconds": 7.013,
+      "count": 18,
+      "error": null
+    },
+    "snapshot": {
+      "anonymous": true,
+      "candidates": [
+        {
+          "title": "1001 Movies You Must See Before You Die",
+          "total": 1245,
+          "url": "https://letterboxd.com/peterstanley/list/1001-movies-you-must-see-before-you-die/"
+        },
+        {
+          "title": "Good Films, 90 Minutes or Less",
+          "total": 2438,
+          "url": "https://letterboxd.com/stautis/list/good-films-90-minutes-or-less/"
+        },
+        {
+          "title": "Top 250 Films by Women Directors",
+          "total": 250,
+          "url": "https://letterboxd.com/official/list/top-250-films-by-women-directors/"
+        },
+        {
+          "title": "IMDb Top 250",
+          "total": 250,
+          "url": "https://letterboxd.com/dave/list/imdb-top-250/"
+        },
+        {
+          "title": "Every A24 Movie Ever",
+          "total": 190,
+          "url": "https://letterboxd.com/a24/list/every-a24-movie-ever/"
+        },
+        {
+          "title": "Women have superior taste that is why these masterpieces are called chick flicks",
+          "total": 448,
+          "url": "https://letterboxd.com/marialuisacctc/list/women-have-superior-taste-that-is-why-these/"
+        },
+        {
+          "title": "a film that breaks your heart open, but carefully stitches it back together before leaving you with a new outlook on love, family, and life.",
+          "total": 119,
+          "url": "https://letterboxd.com/filmbitten/list/a-film-that-breaks-your-heart-open-but-carefully/"
+        },
+        {
+          "title": "sapphic films directed by women",
+          "total": 350,
+          "url": "https://letterboxd.com/caonfilm/list/sapphic-films-directed-by-women/"
+        },
+        {
+          "title": "\ud83c\udfc6 Oscars 2027",
+          "total": 150,
+          "url": "https://letterboxd.com/000_leo/list/oscars-2027/"
+        },
+        {
+          "title": "Horror!!!",
+          "total": 502,
+          "url": "https://letterboxd.com/ale_x/list/horror/"
+        },
+        {
+          "title": "mir\u2019s ultimate guide to romcoms <3",
+          "total": 183,
+          "url": "https://letterboxd.com/mirrrorball/list/mirs-ultimate-guide-to-romcoms-3/"
+        },
+        {
+          "title": "Under 100 Minutes",
+          "total": 14057,
+          "url": "https://letterboxd.com/leumon/list/under-100-minutes/"
+        },
+        {
+          "title": "Movies That Will Make You Say \u201cWhat the Fuck\u201d At Least 3 Times",
+          "total": 356,
+          "url": "https://letterboxd.com/zanderific/list/movies-that-will-make-you-say-what-the-fuck/"
+        },
+        {
+          "title": "marvel",
+          "total": 39,
+          "url": "https://letterboxd.com/brunamofu/list/marvel/"
+        },
+        {
+          "title": "Oscar-winning films: Best Picture",
+          "total": 98,
+          "url": "https://letterboxd.com/oscars/list/oscar-winning-films-best-picture/"
+        },
+        {
+          "title": "Solidarity Cinema Archive",
+          "total": 10722,
+          "url": "https://letterboxd.com/solidaritycine/list/solidarity-cinema-archive/"
+        },
+        {
+          "title": "people say \u201cgreatest movie ever\u201d then it lives up to the hype",
+          "total": 188,
+          "url": "https://letterboxd.com/odynheimer/list/people-say-greatest-movie-ever-then-it-lives/"
+        },
+        {
+          "title": "\ud83d\udcc2  \u2014 youtube",
+          "total": 435,
+          "url": "https://letterboxd.com/s4ppho/list/youtube/"
+        }
+      ],
+      "complete": true,
+      "url": "https://letterboxd.com/lists/popular/this/year/page/2/"
+    }
+  }
+]

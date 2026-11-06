@@ -1,0 +1,44 @@
+{
+  "at": "2026-11-06T16:29:28.127Z",
+  "mode": "before",
+  "settingsMatch": false,
+  "history": {
+    "attempts": 0,
+    "nextAttemptAt": 1793982565485,
+    "lastSuccess": 1793982540485
+  },
+  "results": [
+    {
+      "path": "/status",
+      "status": 200,
+      "ms": 372
+    },
+    {
+      "path": "/settings/jobs",
+      "status": 200,
+      "ms": 29,
+      "weekly": {
+        "id": "weekly-list-discovery",
+        "name": "Weekly Letterboxd Lists (Tuesday; morning continuation)",
+        "type": "process",
+        "interval": "minutes",
+        "cronSchedule": "0 * 7,8 * * *",
+        "nextExecutionTime": "2026-11-07T07:00:00.000-06:00",
+        "running": false
+      }
+    },
+    {
+      "path": "/discovery-lists?filter=discover",
+      "status": 200,
+      "ms": 207,
+      "keys": [
+        "results",
+        "explore",
+        "activity",
+        "unavailable",
+        "unresolvedLiked"
+      ],
+      "count": 141
+    }
+  ]
+}
