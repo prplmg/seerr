@@ -1,0 +1,20 @@
+{
+  "release": "catalogue-20261106100042294-20081",
+  "buildId": "X4DN9Gvt3Uaf1oF4ekm0t",
+  "applicationCommit": "ab316c99",
+  "workerParserCommit": "9bfd6218",
+  "builder": "prpl-pc",
+  "buildSeconds": 80.776,
+  "dependencyLinksVerified": 31,
+  "catalogueBackup": "C:/ProgramData/Seerr/catalogue-20261106100042294-20081-release",
+  "workerBackup": "C:/Users/MSI/MultimeldiaLetterboxdRuntime/weekly-lists-backup-20261106-040659",
+  "workerVersion": "0.2.49",
+  "brandedMaintenanceVerified": true,
+  "nativeHealthVerified": true,
+  "publicHealthAfterLeaseVerified": true,
+  "userBindingsCompared": 6,
+  "existingUserTogglesUnchanged": true,
+  "frontendFilesChanged": 0,
+  "applicationFilesChanged": 13,
+  "pushed": false
+}

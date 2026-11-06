@@ -1,0 +1,168 @@
+--- live/automation.js
+
++++ weekly/automation.js
+
+@@ -163,7 +163,7 @@
+
+     if(job.instance!==instance || !/^[a-zA-Z0-9_]{1,40}$/.test(job.account || '') || !['list_scan','export_scan','identity_probe','watchlist_probe','watchlist_cycle','watchlist_restore','cleanup_tabs','watchlist_scan','close_profile_for_test','media_write','review_observe','review_probe','review_existing_probe','review_history_probe','review_cleanup'].includes(job.action))throw new Error('invalid-job');
+     if(job.action==='list_scan'){
+       let snapshot;
+-      try {snapshot=await scanAnonymousList(chrome,job.url,record);}
++      try {snapshot=await scanAnonymousList(chrome,job.url,record,undefined,{mode:job.mode,maxFilms:job.maxFilms});}
+       catch(error){await record({outcome:'blocked',error:error.message==='incognito-access-required'?error.message:'public-list-unavailable'},true);completed=true;return;}
+       await record({outcome:'succeeded',snapshot},true);
+       completed=true;return;
+--- live/bridge.py
+
++++ weekly/bridge.py
+
+@@ -101,7 +101,7 @@
+
+             if instance not in refreshed_instances:
+                 refreshed_instances.add(instance)
+                 return self.reply(200, {'action':'reload-extension'})
+-            if parse_qs(url.query).get('version') != ['0.2.48']:
++            if parse_qs(url.query).get('version') != ['0.2.49']:
+                 return self.reply(200, {'action':'reload-extension'})
+             # External requests must not delay the local delivery/acknowledgement path.
+             schedule_exchange(instance)
+--- live/catalogue_client.py
+
++++ weekly/catalogue_client.py
+
+@@ -85,7 +85,7 @@
+
+         kinds=list(SUPPORTED_WRITE_KINDS)
+         try:
+             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
+-            if version.get('version')=='0.2.48' and 0 <= time.time()-version.get('seenAt',0) < 600:
++            if version.get('version')=='0.2.49' and 0 <= time.time()-version.get('seenAt',0) < 600:
+                 kinds.append('watched')
+         except (OSError,ValueError,TypeError): pass
+         return kinds
+@@ -251,11 +251,11 @@
+
+         row=self.queue.db.execute("SELECT j.*,p.payload FROM jobs j JOIN list_payloads p ON p.id=j.id LEFT JOIN list_acks a ON a.id=j.id WHERE j.instance=? AND a.id IS NULL AND j.state IN ('succeeded','blocked','unknown') ORDER BY created LIMIT 1",(instance,)).fetchone()
+         try:
+             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
+-            capable=version.get('version')=='0.2.48' and version.get('inPrivateAllowed') is True and 0<=now-version.get('seenAt',0)<600
++            capable=version.get('version')=='0.2.49' and version.get('inPrivateAllowed') is True and 0<=now-version.get('seenAt',0)<600
+         except (OSError,ValueError,TypeError):capable=False
+         if not capable and not row:return
+         if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND state IN ('queued','running','offered')",(instance,)).fetchone():return
+-        payload={'version':1,'instance':instance,'supported':True,'inPrivateAllowed':capable}
++        payload={'version':1,'instance':instance,'supported':True,'inPrivateAllowed':capable,'weeklySupported':capable}
+         if row:
+             result=json.loads(row['result'] or '{}');intent=json.loads(row['payload'])
+             payload['report']={'id':row['id'],'token':intent['token'],'outcome':row['state']}
+--- live/queue_store.py
+
++++ weekly/queue_store.py
+
+@@ -17,10 +17,14 @@
+
+ ACTIONS.add('list_scan')
+ 
+ def list_payload(payload):
+-    if not isinstance(payload,dict) or not isinstance(payload.get('url'),str) or not re.fullmatch(r'https://(?:letterboxd\.com/[a-zA-Z0-9_]+/list/[a-zA-Z0-9-]+/|boxd\.it/[a-zA-Z0-9]+/?)',payload['url']):
+-        raise ValueError('Invalid list URL')
++    if not isinstance(payload,dict): raise ValueError('Invalid list intent')
++    url=payload.get('url','');mode=payload.get('mode')
++    discovery=mode=='discovery' and re.fullmatch(r'https://letterboxd\.com/lists/popular/(?:this/(?:week|month|year)/)?(?:page/2/)?',url)
++    normal=re.fullmatch(r'https://(?:letterboxd\.com/[a-zA-Z0-9_]+/list/(?:[a-zA-Z0-9-]+|filmlist:[1-9][0-9]*)/|boxd\.it/[a-zA-Z0-9]+/?)',url)
++    if not (discovery or (mode in (None,'contents') and normal)):raise ValueError('Invalid list URL')
+     if str(uuid.UUID(payload.get('token',''))) != payload['token']:raise ValueError('Invalid list claim')
+-    return {key:payload[key] for key in ('url','token')}
++    if mode and (type(payload.get('maxFilms')) is not int or payload['maxFilms']!=560):raise ValueError('Invalid automatic cap')
++    return {key:payload[key] for key in ('url','token','mode','maxFilms') if key in payload}
+ 
+ def valid_account_payload(payload):
+     return (isinstance(payload, dict) and type(payload.get('userId')) is int
+--- live/manifest.json
+
++++ weekly/manifest.json
+
+@@ -1,7 +1,7 @@
+
+ {
+   "manifest_version": 3,
+   "name": "Multimeldia Letterboxd pilot",
+-  "version": "0.2.48",
++  "version": "0.2.49",
+   "permissions": ["alarms", "scripting"],
+   "host_permissions": ["https://letterboxd.com/*", "https://boxd.it/*", "http://127.0.0.1:18764/*"],
+   "action": {"default_title": "Letterboxd pilot: OK = completed, WAIT = needs attention"},
+--- live/list-browser.js
+
++++ weekly/list-browser.js
+
+@@ -1,3 +1,21 @@
+
++function anonymousDiscoveryPage() {
++  if(document.querySelector('#challenge-form,[name="cf-turnstile-response"]') || /Just a moment|Verify you are human/i.test(document.title))return {error:'challenge'};
++  const signIn=Array.from(document.querySelectorAll('a')).some(a=>/sign in/i.test(a.textContent)&&/sign-in|signin|login/.test(a.getAttribute('href')||''));
++  if(!signIn||document.querySelector('body.logged-in'))return {error:'anonymous-context-required'};
++  const candidates=[];
++  for(const heading of document.querySelectorAll('h2,h3')){
++    const a=heading.querySelector('a[href*="/list/"]');if(!a)continue;
++    const url=new URL(a.getAttribute('href'),location.href).href;
++    if(!/^https:\/\/letterboxd\.com\/[a-z0-9_]+\/list\/(?:[a-z0-9-]+|filmlist:[1-9][0-9]*)\/$/i.test(url))continue;
++    const card=heading.closest('li')||heading.parentElement;
++    const metadata=card.cloneNode(true);for(const h of metadata.querySelectorAll('h2,h3'))h.remove();
++    const count=metadata.textContent.match(/([\d,]+)\s*films?\b/i);
++    if(!count)return {error:'missing-list-size'};
++    candidates.push({url,title:a.textContent.trim().slice(0,500),total:Number(count[1].replaceAll(',',''))});
++  }
++  if(!candidates.length||candidates.length>100)return {error:'incomplete-discovery'};
++  return {url:location.href,anonymous:true,complete:true,candidates};
++}
+ // Read-only public-list adapter. Only an explicitly permitted InPrivate window
+ // can establish public visibility; authenticated tabs are never used as proof.
+ function anonymousListPage() {
+@@ -8,7 +26,7 @@
+
+   if(!canonical)return {error:'anonymous-list-not-ready'};
+   const root=new URL(canonical,location.href);
+   root.pathname=root.pathname.replace(/page\/\d+\/$/,'');
+-  if(root.origin!=='https://letterboxd.com'||!/^\/[a-z0-9_]+\/list\/[a-z0-9-]+\/$/i.test(root.pathname)||root.search||root.hash)return {error:'invalid-list-page'};
++  if(root.origin!=='https://letterboxd.com'||!/^\/[a-z0-9_]+\/list\/(?:[a-z0-9-]+|filmlist:[1-9][0-9]*)\/$/i.test(root.pathname)||root.search||root.hash)return {error:'invalid-list-page'};
+   if(location.origin!==root.origin||!(location.pathname===root.pathname||new RegExp('^'+root.pathname+'page/[1-9][0-9]*/$').test(location.pathname)))return {error:'invalid-list-page'};
+   const description=document.querySelector('meta[name="description"]')?.content||'';
+   const count=description.match(/(?:list of\s+)?([\d,]+) films?\b/i);
+@@ -30,8 +48,10 @@
+
+   if(next&&(next.origin!==root.origin||next.search||next.hash||!new RegExp('^'+root.pathname+'page/[1-9][0-9]*/$').test(next.pathname)))return {error:'invalid-list-page'};
+   return {url:root.href,title,description:text(document.querySelector('.list-description,.body-text[data-full-text-url="#list-notes"]')),total,items,next:next?.href||null};
+ }
+-async function scanAnonymousList(chrome,url,progress,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms))) {
+-  if(!/^https:\/\/(?:letterboxd\.com\/[a-z0-9_]+\/list\/[a-z0-9-]+\/|boxd\.it\/[a-z0-9]+\/?)$/i.test(url))throw Error('invalid-list-url');
++async function scanAnonymousList(chrome,url,progress,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms)), options={}) {
++  const discovery=options.mode==='discovery';
++  const validDiscovery=/^https:\/\/letterboxd\.com\/lists\/popular\/(?:this\/(?:week|month|year)\/)?(?:page\/2\/)?$/.test(url);
++  if(!(discovery&&validDiscovery)&&!/^https:\/\/(?:letterboxd\.com\/[a-z0-9_]+\/list\/(?:[a-z0-9-]+|filmlist:[1-9][0-9]*)\/|boxd\.it\/[a-z0-9]+\/?)$/i.test(url))throw Error('invalid-list-url');
+   const permitted=await new Promise(resolve=>chrome.extension.isAllowedIncognitoAccess(resolve));
+   if(!permitted)throw Error('incognito-access-required');
+   let window;
+@@ -45,11 +65,13 @@
+
+       let page;
+       for(let attempt=0;attempt<30;attempt++){
+         await wait(500);
+-        try{const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:anonymousListPage});page=r?.result;}catch{continue;}
++        try{const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:discovery?anonymousDiscoveryPage:anonymousListPage});page=r?.result;}catch{continue;}
+         if(page?.error==='challenge')throw Error('challenge');
+         if(page&&!page.error)break;
+       }
+       if(!page||page.error)throw Error('incomplete-list');
++      if(discovery){if(page.url!==url)throw Error('discovery-identity-changed');return page;}
++      if(page.total>(options.maxFilms||10000))throw Error('list-too-large');
+       if(!snapshot){if(url.startsWith('https://letterboxd.com/')&&page.url!==url)throw Error('list-identity-changed');snapshot={url:page.url,title:page.title,description:page.description,total:page.total,items:[],anonymous:true,complete:true};}
+       if(page.url!==snapshot.url||page.total!==snapshot.total)throw Error('list-changed');
+       for(const row of page.items){if(films.has(row.url))throw Error('duplicate-list-film');films.add(row.url);snapshot.items.push(row);}
+@@ -60,4 +82,4 @@
+
+     return snapshot;
+   }finally{if(window?.id!=null)try{await chrome.windows.remove(window.id);}catch{}}
+ }
+-if(typeof module!=='undefined')module.exports={scanAnonymousList,anonymousListPage};
++if(typeof module!=='undefined')module.exports={scanAnonymousList,anonymousListPage,anonymousDiscoveryPage};
