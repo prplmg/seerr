@@ -2163,6 +2163,29 @@ components:
       name: X-Api-Key
 
 paths:
+  /discovery-lists/media/{type}/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DiscoveryPreviewUser'
+    get:
+      summary: Visible lists containing this exact movie or series, without remote lookups
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Lightweight memberships visible to the authenticated viewer
+        '400':
+          description: Invalid media identifier
   /discovery-lists/releases:
     parameters:
       - $ref: '#/components/parameters/DiscoveryPreviewUser'
