@@ -1,0 +1,111 @@
+{
+  "removedCount": 11,
+  "collections": [
+    {
+      "id": "courtroom-showdowns",
+      "before": 26,
+      "after": 23,
+      "removed": [
+        {
+          "type": "movie",
+          "tmdbId": 37257,
+          "title": "Witness for the Prosecution"
+        },
+        {
+          "type": "movie",
+          "tmdbId": 821,
+          "title": "Judgment at Nuremberg"
+        },
+        {
+          "type": "movie",
+          "tmdbId": 35119,
+          "title": "Evil Angels"
+        }
+      ]
+    },
+    {
+      "id": "screwball-sparks",
+      "before": 13,
+      "after": 10,
+      "removed": [
+        {
+          "type": "movie",
+          "tmdbId": 31835,
+          "title": "Twentieth Century"
+        },
+        {
+          "type": "movie",
+          "tmdbId": 29884,
+          "title": "Ball of Fire"
+        },
+        {
+          "type": "movie",
+          "tmdbId": 212,
+          "title": "Arsenic and Old Lace"
+        }
+      ]
+    },
+    {
+      "id": "handmade-movie-magic",
+      "before": 22,
+      "after": 21,
+      "removed": [
+        {
+          "type": "movie",
+          "tmdbId": 18242,
+          "title": "The Secret Adventures of Tom Thumb"
+        }
+      ]
+    },
+    {
+      "id": "animation-after-dark",
+      "before": 21,
+      "after": 20,
+      "removed": [
+        {
+          "type": "movie",
+          "tmdbId": 16306,
+          "title": "Fantastic Planet"
+        }
+      ]
+    },
+    {
+      "id": "food-on-film",
+      "before": 34,
+      "after": 31,
+      "removed": [
+        {
+          "type": "movie",
+          "tmdbId": 766105,
+          "title": "A Taste of Hunger"
+        },
+        {
+          "type": "movie",
+          "tmdbId": 452413,
+          "title": "This Is Not What I Expected"
+        },
+        {
+          "type": "movie",
+          "tmdbId": 964960,
+          "title": "The Taste of Things"
+        }
+      ]
+    }
+  ],
+  "remainingCollections": 118,
+  "remainingMemberships": 2634,
+  "otherCollectionsUnchanged": true,
+  "removedUnusedReleaseDates": [
+    "movie:37257",
+    "movie:821",
+    "movie:35119",
+    "movie:31835",
+    "movie:29884",
+    "movie:212",
+    "movie:16306",
+    "movie:766105",
+    "movie:452413",
+    "movie:964960"
+  ],
+  "deployed": false
+}

@@ -1,0 +1,474 @@
+--- a/server/data/curated-lists.json
++++ b/server/data/curated-lists.json
+@@ -2997,21 +2997,6 @@
+           "type": "movie",
+           "tmdbId": 60243,
+           "title": "A Separation"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 37257,
+-          "title": "Witness for the Prosecution"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 821,
+-          "title": "Judgment at Nuremberg"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 35119,
+-          "title": "Evil Angels"
+         }
+       ]
+     },
+@@ -4846,21 +4831,6 @@
+           "type": "movie",
+           "tmdbId": 32255,
+           "title": "The Palm Beach Story"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 31835,
+-          "title": "Twentieth Century"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 29884,
+-          "title": "Ball of Fire"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 212,
+-          "title": "Arsenic and Old Lace"
+         }
+       ]
+     },
+@@ -6557,11 +6527,6 @@
+           "type": "movie",
+           "tmdbId": 393559,
+           "title": "My Life as a Zucchini"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 18242,
+-          "title": "The Secret Adventures of Tom Thumb"
+         }
+       ]
+     },
+@@ -6675,11 +6640,6 @@
+           "type": "movie",
+           "tmdbId": 489412,
+           "title": "It's Such a Beautiful Day"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 16306,
+-          "title": "Fantastic Planet"
+         }
+       ]
+     },
+@@ -9930,8 +9890,8 @@
+         "es": "La comida en el cine"
+       },
+       "description": {
+-        "en": "Food, appetite and shared meals, expanded from Criterion’s selection with films documented by film institutes and cinematheques. Includes challenging adult films.",
+-        "es": "Comida, apetito y comidas compartidas: una selección ampliada a partir de Criterion con películas documentadas por institutos de cine y cinematecas. Incluye películas desafiantes para adultos."
++        "en": "Food, appetite and shared meals in Criterion’s eclectic selection, including challenging adult films.",
++        "es": "Comida, apetito y mesas compartidas en una selección ecléctica de Criterion que también incluye cine provocador para adultos."
+       },
+       "items": [
+         {
+@@ -10088,21 +10048,6 @@
+           "type": "movie",
+           "tmdbId": 43122,
+           "title": "The Private Life of Henry VIII"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 766105,
+-          "title": "A Taste of Hunger"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 452413,
+-          "title": "This Is Not What I Expected"
+-        },
+-        {
+-          "type": "movie",
+-          "tmdbId": 964960,
+-          "title": "The Taste of Things"
+         }
+       ]
+     },
+--- a/server/data/curated-release-dates.json
++++ b/server/data/curated-release-dates.json
+@@ -2208,16 +2208,6 @@
+   "movie:297393": "2015-04-17",
+   "movie:340017": "2000-11-09",
+   "movie:1115104": "2024-02-09",
+-  "movie:37257": "1957-12-17",
+-  "movie:821": "1961-12-18",
+-  "movie:35119": "1988-11-03",
+-  "movie:31835": "1934-05-11",
+-  "movie:29884": "1941-12-02",
+-  "movie:212": "1944-09-01",
+-  "movie:16306": "1973-12-01",
+-  "movie:766105": "2021-06-24",
+-  "movie:452413": "2017-04-28",
+-  "movie:964960": "2023-11-08",
+   "movie:288": "1952-06-09",
+   "movie:3110": "1953-04-23",
+   "movie:33": "1992-08-07",
+--- a/docs/curation/curated-lists.sources.json
++++ b/docs/curation/curated-lists.sources.json
+@@ -3672,7 +3672,7 @@
+       "sourceTitle": "10 great courtroom dramas",
+       "curator": "Brogan Morris, BFI",
+       "url": "https://www.bfi.org.uk/lists/10-great-courtroom-dramas",
+-      "itemCount": 26,
++      "itemCount": 23,
+       "originalSourceItemCount": 10,
+       "curationStatus": "Original source selections with user-approved editorial additions; additions are not attributed to the original curator.",
+       "editorialAdditions": [
+@@ -3882,51 +3882,6 @@
+             "https://www.rottentomatoes.com/m/a_separation_2011"
+           ],
+           "idEvidenceUrl": "https://letterboxd.com/film/a-separation/"
+-        },
+-        {
+-          "listId": "courtroom-showdowns",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 37257,
+-            "title": "Witness for the Prosecution"
+-          },
+-          "year": 1957,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Criminal trial and courtroom testimony drive the narrative; selected in AFI's courtroom category.",
+-          "sources": [
+-            "https://www.afi.com/afis-10-top-10/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/37257"
+-        },
+-        {
+-          "listId": "courtroom-showdowns",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 821,
+-            "title": "Judgment at Nuremberg"
+-          },
+-          "year": 1961,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "War-crimes tribunal drama; selected in AFI's courtroom category.",
+-          "sources": [
+-            "https://www.afi.com/afis-10-top-10/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/821"
+-        },
+-        {
+-          "listId": "courtroom-showdowns",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 35119,
+-            "title": "Evil Angels"
+-          },
+-          "year": 1988,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Prosecution and wrongful conviction are central; selected in AFI's courtroom category.",
+-          "sources": [
+-            "https://www.afi.com/afis-10-top-10/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/35119"
+         }
+       ]
+     },
+@@ -6333,55 +6288,9 @@
+       "sourceTitle": "10 great screwball comedy films",
+       "curator": "BFI, Sam Wigley",
+       "url": "https://www.bfi.org.uk/lists/10-great-screwball-comedies",
+-      "itemCount": 13,
+-      "editorialAdditions": [
+-        {
+-          "listId": "screwball-sparks",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 31835,
+-            "title": "Twentieth Century"
+-          },
+-          "year": 1934,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "AFI classifies it as screwball comedy; classic Hollywood romantic conflict fits this list's specific era and tone.",
+-          "sources": [
+-            "https://catalog.afi.com/Film/6333-TWENTIETH-CENTURY"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/31835"
+-        },
+-        {
+-          "listId": "screwball-sparks",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 29884,
+-            "title": "Ball of Fire"
+-          },
+-          "year": 1941,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Explicitly identified as screwball by AFI; verbal sparring and romantic misunderstandings.",
+-          "sources": [
+-            "https://www.afi.com/news/afi-movie-club-ball-of-fire/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/29884"
+-        },
+-        {
+-          "listId": "screwball-sparks",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 212,
+-            "title": "Arsenic and Old Lace"
+-          },
+-          "year": 1944,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "FLC identifies this classic Hollywood newlywed farce as screwball comedy.",
+-          "sources": [
+-            "https://www.filmlinc.org/films/arsenic-and-old-lace/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/212"
+-        }
+-      ],
+-      "curationStatus": "Original source selections with user-approved editorial additions; additions are not attributed to the original curator."
++      "itemCount": 10,
++      "editorialAdditions": [],
++      "curationStatus": "Original source selection; no editorial additions."
+     },
+     {
+       "id": "mockumentary-mayhem",
+@@ -8447,7 +8356,7 @@
+       "sourceTitle": "10 great stop-motion animated films",
+       "curator": "BFI, Brogan Morris",
+       "url": "https://www.bfi.org.uk/lists/10-great-stop-motion-animated-films",
+-      "itemCount": 22,
++      "itemCount": 21,
+       "originalSourceItemCount": 10,
+       "curationStatus": "Original source selections with user-approved editorial additions; additions are not attributed to the original curator.",
+       "editorialAdditions": [
+@@ -8630,21 +8539,6 @@
+             "https://gkids.com/films/my-life-as-a-zucchini/"
+           ],
+           "idEvidenceUrl": "https://letterboxd.com/film/my-life-as-a-zucchini/"
+-        },
+-        {
+-          "listId": "handmade-movie-magic",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 18242,
+-            "title": "The Secret Adventures of Tom Thumb"
+-          },
+-          "year": 1993,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Festival archive explicitly documents stop-motion technique, fitting the list's handmade-animation scope.",
+-          "sources": [
+-            "https://archive.encounters.film/films/the-secret-adventures-of-tom-thumb/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/18242"
+         }
+       ]
+     },
+@@ -8653,7 +8547,7 @@
+       "sourceTitle": "10 great dark animated films",
+       "curator": "BFI, George Bass",
+       "url": "https://www.bfi.org.uk/lists/10-great-dark-animated-films",
+-      "itemCount": 21,
++      "itemCount": 20,
+       "originalSourceItemCount": 10,
+       "curationStatus": "Original source selections with user-approved editorial additions; additions are not attributed to the original curator.",
+       "editorialAdditions": [
+@@ -8820,21 +8714,6 @@
+             "https://www.wikidata.org/wiki/Q19880634"
+           ],
+           "idEvidenceUrl": "https://letterboxd.com/film/its-such-a-beautiful-day/"
+-        },
+-        {
+-          "listId": "animation-after-dark",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 16306,
+-            "title": "Fantastic Planet"
+-          },
+-          "year": 1973,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Animated dystopia of enslavement and revolt with unsettling imagery; not merely animation aimed at adults.",
+-          "sources": [
+-            "https://silver.afi.com/movies/detail/0100004203/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/16306"
+         }
+       ]
+     },
+@@ -12006,55 +11885,9 @@
+       "sourceTitle": "Food on Film",
+       "curator": "The Criterion Collection",
+       "url": "https://www.criterion.com/shop/collection/101-food-on-film",
+-      "itemCount": 34,
+-      "editorialAdditions": [
+-        {
+-          "listId": "food-on-film",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 766105,
+-            "title": "A Taste of Hunger"
+-          },
+-          "year": 2021,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Chefs' pursuit of culinary recognition drives the drama; DFI catalogue and Embassy Film Package identify the title.",
+-          "sources": [
+-            "https://www.dfi.dk/files/docs/2021-11/Danish%20Film%20Catalogue%20Fall%202021.pdf"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/766105"
+-        },
+-        {
+-          "listId": "food-on-film",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 452413,
+-            "title": "This Is Not What I Expected"
+-          },
+-          "year": 2017,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "Chef and food-obsessed hotel guest build their relationship through cooking; cuisine is central, not incidental.",
+-          "sources": [
+-            "https://www.filmlinc.org/films/this-is-not-what-i-expected/"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/452413"
+-        },
+-        {
+-          "listId": "food-on-film",
+-          "item": {
+-            "type": "movie",
+-            "tmdbId": 964960,
+-            "title": "The Taste of Things"
+-          },
+-          "year": 2023,
+-          "changeStage": "2026-11-05 institutional expansion",
+-          "fitRationale": "The cinematheque's programme describes cooking and meal preparation as the film's central artistic subject.",
+-          "sources": [
+-            "https://jer-cin.org.il/en/movie/74267"
+-          ],
+-          "idEvidenceUrl": "https://www.themoviedb.org/movie/964960"
+-        }
+-      ],
+-      "curationStatus": "Original source selections with user-approved editorial additions; additions are not attributed to the original curator."
++      "itemCount": 31,
++      "editorialAdditions": [],
++      "curationStatus": "Original source selection; no editorial additions."
+     },
+     {
+       "id": "mexico-noir",
+--- a/server/data/curated-list-sources.json
++++ b/server/data/curated-list-sources.json
+@@ -1660,24 +1660,6 @@
+           "https://www.sonypictures.com/movies/aseparation",
+           "https://www.rottentomatoes.com/m/a_separation_2011"
+         ]
+-      },
+-      {
+-        "title": "Witness for the Prosecution",
+-        "urls": [
+-          "https://www.afi.com/afis-10-top-10/"
+-        ]
+-      },
+-      {
+-        "title": "Judgment at Nuremberg",
+-        "urls": [
+-          "https://www.afi.com/afis-10-top-10/"
+-        ]
+-      },
+-      {
+-        "title": "Evil Angels",
+-        "urls": [
+-          "https://www.afi.com/afis-10-top-10/"
+-        ]
+       }
+     ]
+   },
+@@ -2725,26 +2707,7 @@
+       "curator": "BFI, Sam Wigley",
+       "url": "https://www.bfi.org.uk/lists/10-great-screwball-comedies"
+     },
+-    "additions": [
+-      {
+-        "title": "Twentieth Century",
+-        "urls": [
+-          "https://catalog.afi.com/Film/6333-TWENTIETH-CENTURY"
+-        ]
+-      },
+-      {
+-        "title": "Ball of Fire",
+-        "urls": [
+-          "https://www.afi.com/news/afi-movie-club-ball-of-fire/"
+-        ]
+-      },
+-      {
+-        "title": "Arsenic and Old Lace",
+-        "urls": [
+-          "https://www.filmlinc.org/films/arsenic-and-old-lace/"
+-        ]
+-      }
+-    ]
++    "additions": []
+   },
+   "curated-mockumentary-mayhem": {
+     "original": {
+@@ -3691,12 +3654,6 @@
+           "https://letterboxd.com/film/my-life-as-a-zucchini/",
+           "https://gkids.com/films/my-life-as-a-zucchini/"
+         ]
+-      },
+-      {
+-        "title": "The Secret Adventures of Tom Thumb",
+-        "urls": [
+-          "https://archive.encounters.film/films/the-secret-adventures-of-tom-thumb/"
+-        ]
+       }
+     ]
+   },
+@@ -3769,12 +3726,6 @@
+           "https://letterboxd.com/film/its-such-a-beautiful-day/",
+           "https://www.wikidata.org/wiki/Q19880634"
+         ]
+-      },
+-      {
+-        "title": "Fantastic Planet",
+-        "urls": [
+-          "https://silver.afi.com/movies/detail/0100004203/"
+-        ]
+       }
+     ]
+   },
+@@ -5167,26 +5118,7 @@
+       "curator": "The Criterion Collection",
+       "url": "https://www.criterion.com/shop/collection/101-food-on-film"
+     },
+-    "additions": [
+-      {
+-        "title": "A Taste of Hunger",
+-        "urls": [
+-          "https://www.dfi.dk/files/docs/2021-11/Danish%20Film%20Catalogue%20Fall%202021.pdf"
+-        ]
+-      },
+-      {
+-        "title": "This Is Not What I Expected",
+-        "urls": [
+-          "https://www.filmlinc.org/films/this-is-not-what-i-expected/"
+-        ]
+-      },
+-      {
+-        "title": "The Taste of Things",
+-        "urls": [
+-          "https://jer-cin.org.il/en/movie/74267"
+-        ]
+-      }
+-    ]
++    "additions": []
+   },
+   "curated-mexico-noir": {
+     "original": {

@@ -1,0 +1,9 @@
+
+
+### 2026-11-06 — Eleven additions undone; source byline confirmed
+
+User requested setting aside the11individual additions. Removed exactly that November5batch from the pending seerr-fork dataset and its provenance, restored Food on Film's prior description and removed only newly introduced unused release-date entries. Five collection sizes restored: Courtroom23,Screwball10,Handmade21,Dark Animation20,Food31. They were not below a minimum threshold;11was a selected research batch, not a quota. All other collection objects, including the three AFI drafts, preserved byte-equivalently at the JSON-object level.118draft collections/2634memberships remain. Generator and curated regression validation pass. No production deployment/data change; live never included that batch. Exact reversible delta/receipt retained in docs/curation/undo-eleven-20261106; raw before snapshots in workspace outputs/curation-undo-20261106/before. This patch applies to the pending curation worktree, not the live baseline.
+
+Preferred byline is now `Multimeldia - British Film Institute` (substitute full institution name), in the existing gray curated-author treatment. This supersedes earlier institution-only suggestions. UI not implemented in this turn. Keep detailed provenance distinct where selections have editorial additions.
+
+Research sources: previous seven approvals remain AFI, Danish Film Institute, Cinémathèque française, Cineteca Nacional México, Korean Film Archive, ACMI Australia, Film at Lincoln Center. Add Cinemateca Brasileira (Brazil) to the research shortlist at user's request; official catalogue https://bases.cinemateca.org.br/ and programmes https://cinemateca.org.br/. BFI remains an existing source, separate from the seven-source expansion. Source approval does not approve arbitrary memberships. User will research independently; no broad new research/import or deployment started.
