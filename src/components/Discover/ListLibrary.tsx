@@ -596,10 +596,7 @@ function Library({ explore = false }: { explore?: boolean }) {
             <option value="letterboxd">Letterboxd</option>
             {hasOtherPublicLists ? (
               <option value="public">
-                {t(
-                  "Other users' public created lists",
-                  'Listas públicas creadas por otros usuarios'
-                )}
+                {t('Other users', 'Otros usuarios')}
               </option>
             ) : source === 'public' ? (
               <option value="public" disabled hidden>

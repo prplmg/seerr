@@ -329,7 +329,7 @@ assert(
   )
 );
 membershipError = undefined;
-// Actual card: no membership network call outside viewport, no Lists when empty.
+// Actual card: defer until after initial paint, independent of viewport/input.
 const mediaCard = load('src/components/Discover/MediaLists.tsx').default;
 const props = {
   type: 'movie',
@@ -337,13 +337,43 @@ const props = {
   title: 'Film & Title',
   collection: { id: 1, name: 'Collection' },
 };
+let ready = false;
+mocks.react.useState = () => [
+  ready,
+  (value) => {
+    ready = value;
+  },
+];
+const frames = new Map();
+let frameId = 0;
+global.requestAnimationFrame = (fn) => {
+  const id = ++frameId;
+  frames.set(id, fn);
+  return id;
+};
+global.cancelAnimationFrame = (id) => frames.delete(id);
+const advanceFrame = () => {
+  const pending = [...frames.values()];
+  frames.clear();
+  pending.forEach((fn) => fn());
+};
 viewport = false;
 requests = [];
+effects = [];
 membershipResponse = undefined;
 tree = mediaCard(props);
 assert(!requests.some(Boolean));
 assert.equal(nodes(tree).filter((n) => n.type === 'link').length, 1);
-viewport = true;
+const cancelDeferred = effects[0]();
+advanceFrame();
+assert.equal(ready, false, 'first paint is not blocked');
+advanceFrame();
+assert.equal(
+  ready,
+  true,
+  'starts after initial paint without viewport or input'
+);
+cancelDeferred();
 membershipResponse = { results: [] };
 assert.equal(
   nodes(mediaCard(props)).filter((n) => n.type === 'link').length,
@@ -361,11 +391,25 @@ assert(
   )
 );
 assert(
-  nodes(tree).some((n) => String(n.props?.className).includes('grid-cols-2'))
+  nodes(tree).some((n) => String(n.props?.className).includes('grid-cols-1'))
 );
 membershipResponse = { results: [] };
 tree = mediaCard({ ...props, collection: null });
 assert(!nodes(tree).some((n) => n.type === 'link'));
+ready = false;
+effects = [];
+mediaCard(props);
+const cancelBeforePaint = effects[0]();
+advanceFrame();
+cancelBeforePaint();
+advanceFrame();
+assert.equal(ready, false, 'unmounted component cancels deferred update');
+assert(
+  !nodes(renderExplore()).some(
+    (n) => n.props?.['aria-label'] === 'Choose media'
+  ),
+  'no general media selector is added'
+);
 console.log(
   'PASS: media/source/search intersection, scope removal, loading/error/invalid/empty states, deferred card lookup and hidden empty card'
 );
