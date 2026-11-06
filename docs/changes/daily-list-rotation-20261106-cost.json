@@ -1,0 +1,9 @@
+{
+  "pool": 159,
+  "users": 14,
+  "runs": 1000,
+  "medianMs": 0.11050000000000182,
+  "p95Ms": 0.13433299999996962,
+  "cards": 24,
+  "scope": "Local selection function only; no HTTP/database calls; not a page-load benchmark"
+}

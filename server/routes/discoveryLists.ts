@@ -348,16 +348,9 @@ router.get('/', async (req, res, next) => {
       results: rows,
       ...(filter === 'discover'
         ? {
-            explore: exploreLists(
-              d.lists.filter(
-                (list) =>
-                  !d.feed.activity.some((a) => a.list.id === list.id) &&
-                  !d.feed.continueLists.some((l) => l.id === list.id)
-              ),
-              d.store,
-              d.users.map((u) => u.id),
-              res.locals.discoveryUserId
-            ).map(d.summary),
+            explore: exploreLists(d.lists, d.store, d.exploreUserIds).map(
+              d.summary
+            ),
           }
         : {}),
       activity: d.feed.activity,

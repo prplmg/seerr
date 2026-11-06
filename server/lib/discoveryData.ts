@@ -399,6 +399,11 @@ async function buildDiscoveryData(userId: number) {
         return false;
       }
     },
+    // Unlike personal history, the shared rotation must not add the viewer
+    // back into a hidden-user set. Existing social privacy still applies.
+    exploreUserIds: users
+      .filter((u) => social && !hidden.includes(u.id))
+      .map((u) => u.id),
     users: visibleUsers.map((u) => ({
       id: u.id,
       name: u.displayName,
