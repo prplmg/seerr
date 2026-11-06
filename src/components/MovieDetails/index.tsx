@@ -781,6 +781,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
             id={data.id}
             collection={data.collection}
             backdropPath={data.backdropPath}
+            title={data.title}
           />
           <div className="media-facts">
             <div className="media-ratings">

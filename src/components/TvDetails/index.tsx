@@ -1158,7 +1158,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
           </div>
         </div>
         <div className="media-overview-right">
-          <MediaLists type="tv" id={data.id} backdropPath={data.backdropPath} />
+          <MediaLists
+            type="tv"
+            id={data.id}
+            backdropPath={data.backdropPath}
+            title={data.name}
+          />
           <div className="media-facts">
             <div className="media-ratings">
               {ratingData?.criticsRating && !!ratingData?.criticsScore && (

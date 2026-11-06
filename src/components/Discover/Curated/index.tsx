@@ -41,9 +41,14 @@ function CategoryCard({
   fullWidth?: boolean;
 }) {
   const text = useText();
-  const { enabled, read, previewUserId } = useDiscovery();
+  const { enabled, loading, read, previewUserId } = useDiscovery();
+  const t = usePartyText();
   const { user } = useUser();
-  const { data: summaries } = useSWR<{ results: List[] }>(
+  const {
+    data: summaries,
+    error: summaryError,
+    mutate,
+  } = useSWR<{ results: List[] }>(
     enabled
       ? ['/api/v1/discovery-lists?filter=discover', user?.id, previewUserId]
       : null,
@@ -60,9 +65,14 @@ function CategoryCard({
   const { data, error } = useSWR<{
     backdropPath?: string;
     posterPath?: string;
-  }>(inView && cover ? `/api/v1/${cover.type}/${cover.tmdbId}` : null, {
-    revalidateOnFocus: false,
-  });
+  }>(
+    !enabled && !loading && user && inView && cover
+      ? `/api/v1/${cover.type}/${cover.tmdbId}`
+      : null,
+    {
+      revalidateOnFocus: false,
+    }
+  );
   const image =
     !failedBackdrop && data?.backdropPath
       ? data.backdropPath
@@ -73,6 +83,28 @@ function CategoryCard({
       setFailedBackdrop(false);
     }
   }, [cover, error, data, image]);
+  // A missing summary is a pending/failed full card, not a legacy UI signal.
+  if (!user || loading || (enabled && !summary))
+    return (
+      <div
+        className={`${fullWidth ? 'w-full' : 'w-[min(24rem,calc(100vw-3rem))]'} h-full min-h-48 min-w-0 rounded-xl border border-gray-700 bg-gray-800 p-4 text-gray-400`}
+        role={summaryError || summaries ? 'alert' : 'status'}
+      >
+        {summaryError || summaries ? (
+          <>
+            <p>{t('List unavailable.', 'Lista no disponible.')}</p>
+            <button
+              className="mt-2 text-purple-300"
+              onClick={() => void mutate()}
+            >
+              {t('Retry', 'Reintentar')}
+            </button>
+          </>
+        ) : (
+          <span className="animate-pulse">{t('Loading…', 'Cargando…')}</span>
+        )}
+      </div>
+    );
   if (enabled && summary)
     return (
       <div
@@ -128,13 +160,17 @@ function CategoryCard({
 }
 export default function CuratedSlider() {
   const t = usePartyText();
+  const { href } = useDiscovery();
   const { data, error } = useSWR<{ day: string; results: Category[] }>(
     '/api/v1/curated',
     { refreshInterval: 60000, revalidateOnFocus: true }
   );
   const heading = (
     <h2>
-      <Link href="/discover/curated" className="slider-title">
+      <Link
+        href={href('/lists/explore?source=curated')}
+        className="slider-title"
+      >
         <span>{t('Curated Lists', 'Listas seleccionadas')}</span>
         <ArrowRightCircleIcon />
       </Link>

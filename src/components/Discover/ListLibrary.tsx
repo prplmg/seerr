@@ -476,12 +476,54 @@ function Library({ explore = false }: { explore?: boolean }) {
       : null,
     read
   );
+  const hasMediaFilter =
+    explore &&
+    (router.query.mediaType !== undefined ||
+      router.query.mediaId !== undefined);
+  const mediaType = String(router.query.mediaType || '');
+  const mediaId = String(router.query.mediaId || '');
+  const validMediaFilter =
+    (mediaType === 'movie' || mediaType === 'tv') &&
+    /^[1-9]\d*$/.test(mediaId) &&
+    Number.isSafeInteger(Number(mediaId));
+  const {
+    data: memberships,
+    error: membershipError,
+    mutate: retryMemberships,
+  } = useSWR<{ results: { id: string }[] }>(
+    enabled && hasMediaFilter && validMediaFilter
+      ? [
+          `/api/v1/discovery-lists/media/${mediaType}/${mediaId}`,
+          user?.id,
+          previewUserId,
+        ]
+      : null,
+    read,
+    { revalidateOnFocus: false, dedupingInterval: 15000 }
+  );
+  const memberIds = new Set(memberships?.results.map((list) => list.id));
+  const source = ['curated', 'letterboxd', 'public'].includes(
+    String(router.query.source || '')
+  )
+    ? String(router.query.source)
+    : 'all';
+  const isOtherPublicList = (list: List) =>
+    list.source === 'catalogue' &&
+    list.visibility === 'public' &&
+    list.owned === false &&
+    !list.virtual;
+  const hasOtherPublicLists = data?.results.some(isOtherPublicList);
   const matchingLists = data?.results.filter(
     (list) =>
       !explore ||
-      `${list.title} ${list.creator} ${list.description}`
-        .toLocaleLowerCase()
-        .includes(String(router.query.q || '').toLocaleLowerCase())
+      ((!hasMediaFilter || (validMediaFilter && memberIds.has(list.id))) &&
+        (source === 'all' ||
+          (source === 'public'
+            ? isOtherPublicList(list)
+            : list.source === source)) &&
+        `${list.title} ${list.creator} ${list.description}`
+          .toLocaleLowerCase()
+          .includes(String(router.query.q || '').toLocaleLowerCase()))
   );
   return (
     <>
@@ -499,24 +541,93 @@ function Library({ explore = false }: { explore?: boolean }) {
           <ArrowRightCircleIcon className="h-5 w-5" />
         </Link>
       )}
+      {hasMediaFilter && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-purple-400/40 bg-purple-400/10 px-4 py-3 text-purple-200">
+          <span className="min-w-0 break-words">
+            {t('Lists featuring', 'Listas con')}{' '}
+            {String(
+              router.query.mediaTitle ||
+                (mediaType === 'tv'
+                  ? t('this series', 'esta serie')
+                  : t('this movie', 'esta película'))
+            )}
+          </span>
+          <button
+            type="button"
+            className="shrink-0 rounded-full px-2 py-1 hover:bg-purple-400/20"
+            aria-label={t('Remove media filter', 'Quitar filtro de título')}
+            onClick={() => {
+              const query = { ...router.query };
+              delete query.mediaType;
+              delete query.mediaId;
+              delete query.mediaTitle;
+              void router.push(
+                { pathname: router.pathname, query },
+                undefined,
+                { shallow: true, scroll: false }
+              );
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       {explore ? (
-        <input
-          className={`${style} mb-4 w-full`}
-          type="search"
-          aria-label={t('Search lists', 'Buscar listas')}
-          placeholder={t('Search lists', 'Buscar listas')}
-          value={String(router.query.q || '')}
-          onChange={(e) =>
-            void router.replace(
-              {
-                pathname: router.pathname,
-                query: { ...router.query, q: e.target.value },
-              },
-              undefined,
-              { shallow: true, scroll: false }
-            )
-          }
-        />
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <select
+            className={`${style} w-full min-w-0 sm:w-auto`}
+            aria-label={t('List source', 'Origen de listas')}
+            value={source}
+            onChange={(e) =>
+              void router.push(
+                {
+                  pathname: router.pathname,
+                  query: { ...router.query, source: e.target.value },
+                },
+                undefined,
+                { shallow: true, scroll: false }
+              )
+            }
+          >
+            <option value="all">
+              {t('All sources', 'Todos los orígenes')}
+            </option>
+            <option value="curated">{t('Curated', 'Seleccionadas')}</option>
+            <option value="letterboxd">Letterboxd</option>
+            {hasOtherPublicLists ? (
+              <option value="public">
+                {t(
+                  "Other users' public created lists",
+                  'Listas públicas creadas por otros usuarios'
+                )}
+              </option>
+            ) : source === 'public' ? (
+              <option value="public" disabled hidden>
+                {t(
+                  'Public created lists unavailable',
+                  'Listas públicas creadas no disponibles'
+                )}
+              </option>
+            ) : null}
+          </select>
+          <input
+            className={`${style} w-full min-w-0 flex-1`}
+            type="search"
+            aria-label={t('Search lists', 'Buscar listas')}
+            placeholder={t('Search lists', 'Buscar listas')}
+            value={String(router.query.q || '')}
+            onChange={(e) =>
+              void router.replace(
+                {
+                  pathname: router.pathname,
+                  query: { ...router.query, q: e.target.value },
+                },
+                undefined,
+                { shallow: true, scroll: false }
+              )
+            }
+          />
+        </div>
       ) : (
         <div className="flex items-center gap-3">
           <select
@@ -658,7 +769,23 @@ function Library({ explore = false }: { explore?: boolean }) {
             <SaveList id={id} saved={true} onChange={() => void mutate()} />
           </div>
         ))}
-      {filter === 'watchlists' ? null : error ? (
+      {filter === 'watchlists' ? null : hasMediaFilter && !validMediaFilter ? (
+        <p role="alert">
+          {t(
+            'Invalid media filter. Remove it to explore all lists.',
+            'Filtro de título no válido. Quítalo para explorar todas las listas.'
+          )}
+        </p>
+      ) : hasMediaFilter && membershipError ? (
+        <button className={style} onClick={() => void retryMemberships()}>
+          {t(
+            'Could not load matching lists. Retry',
+            'No se pudieron cargar las listas. Reintentar'
+          )}
+        </button>
+      ) : hasMediaFilter && !memberships ? (
+        <LoadingState />
+      ) : error ? (
         <p role="alert">{t('Lists unavailable.', 'Listas no disponibles.')}</p>
       ) : !data ? (
         <LoadingState />
