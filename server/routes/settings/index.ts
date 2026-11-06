@@ -732,7 +732,7 @@ settingsRoutes.post<{ jobId: JobId }>(
       return next({ status: 404, message: 'Job not found.' });
     }
 
-    const result = rescheduleJob(scheduledJob.job, req.body.schedule);
+    const result = rescheduleJob(scheduledJob.job, scheduledJob.id === 'weekly-list-discovery' ? { rule: req.body.schedule, tz: 'America/Merida' } : req.body.schedule);
     const settings = getSettings();
 
     if (result) {

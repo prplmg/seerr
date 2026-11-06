@@ -11,11 +11,19 @@ import {
 } from './discoveryListImport';
 import { setListSaved, updateListStore } from './discoveryLists';
 import { readBrowserState } from './letterboxdBrowser';
+import {
+  validateDiscoverySnapshot,
+  weeklyDiscoveryPages,
+} from './weeklyListsPolicy';
+import { weeklyListsPermitted } from './weeklyListsState';
 type Snapshot = ReturnType<typeof parseOwnedList>;
 type Job = {
   id: string;
   url: string;
   users: number[];
+  weekly?: 'discovery' | 'contents';
+  discovery?: ReturnType<typeof validateDiscoverySnapshot>;
+  updatedAt?: number;
   created: number;
   state:
     | 'fetching'
@@ -101,6 +109,53 @@ export function queueBrowserList(
   if (direct) setImmediate(() => void fetchDirect(id));
   return id;
 }
+export function queueWeeklyBrowserList(url: string, discovery = false) {
+  if (
+    discovery ? !weeklyDiscoveryPages.includes(url) : safeListUrl(url) !== url
+  )
+    throw Error('Invalid weekly list URL');
+  let id = '';
+  update((jobs) => {
+    const old = jobs.find(
+      (j) =>
+        j.weekly &&
+        j.url === url &&
+        ['queued', 'running', 'received'].includes(j.state)
+    );
+    if (old) {
+      id = old.id;
+      return;
+    }
+    id = randomUUID();
+    jobs.push({
+      id,
+      url,
+      users: [],
+      created: Date.now(),
+      state: 'queued',
+      weekly: discovery ? 'discovery' : 'contents',
+    });
+  });
+  return id;
+}
+export function weeklyBrowserResult(id: string) {
+  update((jobs) => {
+    const job = jobs.find((j) => j.id === id && j.weekly);
+    if (
+      job &&
+      ['queued', 'running'].includes(job.state) &&
+      Date.now() - (job.updatedAt || job.created) > 86400000
+    ) {
+      job.state = 'blocked';
+      job.error =
+        'Automatic list browser unavailable for a day; retry scheduled';
+    }
+  });
+  const j = read().find((j) => j.id === id && j.weekly);
+  return (
+    j && { state: j.state, rows: j.discovery, error: j.error, listId: j.listId }
+  );
+}
 const directPending = new Set<string>();
 async function fetchDirect(id: string) {
   if (directPending.has(id) || directPending.size >= 2) return;
@@ -138,7 +193,8 @@ function expire() {
     for (const job of jobs)
       if (
         ['queued', 'running'].includes(job.state) &&
-        Date.now() - job.created > 3600000
+        Date.now() - (job.updatedAt || job.created) > 3600000 &&
+        (!job.weekly || job.state === 'running')
       ) {
         job.state = 'blocked';
         job.error =
@@ -167,7 +223,9 @@ export function pendingBrowserList(instance: string) {
   if (!bindings.some((b) => b.instance === instance)) return { pending: false };
   const job =
     read().find((j) => j.state === 'running' && j.instance === instance) ||
-    read().find((j) => j.state === 'queued');
+    read().find(
+      (j) => j.state === 'queued' && (!j.weekly || weeklyListsPermitted())
+    );
   return job
     ? {
         pending: true,
@@ -238,8 +296,19 @@ async function finish(id: string) {
   processing.add(id);
   try {
     const job = read().find((j) => j.id === id && j.state === 'received');
-    if (!job?.snapshot) return;
-    const listId = await applyPublicList(job.url, job.snapshot);
+    if (!job?.snapshot || (job.weekly && !weeklyListsPermitted())) return;
+    const listId = await applyPublicList(
+      job.url,
+      job.snapshot,
+      job.weekly
+        ? () => {
+            if (!weeklyListsPermitted())
+              throw Object.assign(Error('Weekly window closed'), {
+                code: 'weekly-deferred',
+              });
+          }
+        : undefined
+    );
     // Re-read subscribers after metadata lookups; another user may have joined.
     const current = read().find((j) => j.id === id)!;
     updateListStore((s) => {
@@ -252,6 +321,7 @@ async function finish(id: string) {
       delete j.snapshot;
     });
   } catch (error) {
+    if (error?.code === 'weekly-deferred') return;
     logger.warn('Public list metadata import failed', {
       label: 'Discovery lists',
       jobId: id,
@@ -282,7 +352,8 @@ export function exchangeBrowserLists(
     snapshot?: unknown;
     error?: string;
   },
-  inPrivateAllowed = false
+  inPrivateAllowed = false,
+  weeklySupported = false
 ) {
   const binding = readBrowserState().bindings.find(
     (b) => b.instance === instance && b.enabled
@@ -309,7 +380,14 @@ export function exchangeBrowserLists(
       if (!job) throw Error('Wrong list delivery');
       if (['received', 'succeeded', 'blocked'].includes(job.state)) return;
       if (report.outcome === 'succeeded') {
+        if (job.weekly === 'discovery') {
+          job.discovery = validateDiscoverySnapshot(report.snapshot, job.url);
+          job.state = 'succeeded';
+          return;
+        }
         const snapshot = validateBrowserList(report.snapshot);
+        if (job.weekly && snapshot.items.length > 560)
+          throw Error('Automatic list exceeds 560 items');
         if (
           new URL(job.url).hostname === 'letterboxd.com' &&
           snapshot.url !== job.url
@@ -325,7 +403,9 @@ export function exchangeBrowserLists(
             : 'Browser could not verify the public list. Check for a challenge or unavailable list, then retry.';
       } else throw Error('Invalid list outcome');
     });
-  for (const job of read().filter((j) => j.state === 'received'))
+  for (const job of read().filter(
+    (j) => j.state === 'received' && (!j.weekly || (j.retryAt || 0) <= now)
+  ))
     setImmediate(() => void finish(job.id));
   let response: Record<string, unknown> = { action: 'idle' };
   // A result may be acknowledged after permission was revoked; never dispatch
@@ -335,7 +415,8 @@ export function exchangeBrowserLists(
     for (const j of jobs)
       if (
         ['queued', 'running'].includes(j.state) &&
-        now - j.created > 3600000
+        now - (j.updatedAt || j.created) > 3600000 &&
+        (!j.weekly || j.state === 'running')
       ) {
         j.state = 'blocked';
         j.error =
@@ -348,11 +429,16 @@ export function exchangeBrowserLists(
     const job =
       outstanding ||
       (jobs.filter((j) => j.state === 'running').length < 2
-        ? jobs.find((j) => j.state === 'queued')
+        ? jobs.find(
+            (j) =>
+              j.state === 'queued' &&
+              (!j.weekly || (weeklySupported && weeklyListsPermitted()))
+          )
         : undefined);
     if (!job) return;
     if (!outstanding) {
       job.state = 'running';
+      job.updatedAt = now;
       job.instance = instance;
       job.account = binding.username;
       job.token = randomUUID();
@@ -364,6 +450,7 @@ export function exchangeBrowserLists(
       account: job.account,
       url: job.url,
       token: job.token,
+      ...(job.weekly ? { mode: job.weekly, maxFilms: 560 } : {}),
     };
   });
   return response;

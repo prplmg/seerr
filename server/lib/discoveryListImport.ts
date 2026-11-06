@@ -15,6 +15,12 @@ import { readLetterboxdArchive } from './letterboxdArchive';
 import { parseExportSnapshot } from './letterboxdExportSnapshot';
 import { parseCsv, parseCsvRows, plainReview } from './letterboxdImport';
 import { fetchLetterboxd, resolveReview } from './reviews';
+import {
+  flushWeeklyFilms,
+  rememberWeeklyFilm,
+  weeklyFilmMatch,
+} from './weeklyFilmMatches';
+import { readWeeklyLists } from './weeklyListsState';
 
 export function safeListUrl(value: string, short = false) {
   const u = new URL(value);
@@ -27,7 +33,9 @@ export function safeListUrl(value: string, short = false) {
     u.hash ||
     (!(
       u.hostname === 'letterboxd.com' &&
-      /^\/[a-z0-9_]+\/list\/[a-z0-9-]+\/$/i.test(u.pathname)
+      /^\/[a-z0-9_]+\/list\/(?:[a-z0-9-]+|filmlist:[1-9][0-9]*)\/$/i.test(
+        u.pathname
+      )
     ) &&
       !(
         short &&
@@ -99,45 +107,58 @@ async function canonicalOwnedList(
 }
 async function resolveFilms(
   rows: { title: string; year: string; url: string; note: string }[],
-  unmatched?: UnmatchedListFilm[]
+  unmatched?: UnmatchedListFilm[],
+  checkpoint?: () => void
 ) {
   const items: ListFilm[] = [];
-  for (const row of rows) {
-    const entry = {
-      key: row.url,
-      title: row.title,
-      year: row.year,
-      externalUrl: row.url,
-      rating: null,
-      text: '',
-      spoiler: false,
-      publishedAt: '1970-01-01T00:00:00Z',
-      watchedDate: null,
-      mediaType: 'movie' as 'movie' | 'tv',
-    };
-    const tmdbId = await resolveReview(entry);
-    if (!tmdbId && unmatched) {
-      // Only explicit invalid TMDB identities qualify. Network/challenge failures
-      // still retain the previous snapshot, rather than silently losing matches.
-      const html = await fetchLetterboxd(row.url);
-      if (
-        !/cf-chl-|Just a moment/i.test(html) &&
-        (/themoviedb\.org\/(?:movie|tv)\/0\//i.test(html) ||
-          /data-tmdb-type=["'](?:movie|tv)["']\s+data-tmdb-id=["']["']/i.test(
-            html
-          ))
-      ) {
-        unmatched.push({ ...row, position: rows.indexOf(row) + 1 });
+  try {
+    for (const row of rows) {
+      checkpoint?.();
+      const known = checkpoint && weeklyFilmMatch(row.url);
+      if (known) {
+        items.push({ tmdbId: known.id, type: known.type, note: row.note });
         continue;
       }
+      if (checkpoint) await new Promise((resolve) => setTimeout(resolve, 250));
+      const entry = {
+        key: row.url,
+        title: row.title,
+        year: row.year,
+        externalUrl: row.url,
+        rating: null,
+        text: '',
+        spoiler: false,
+        publishedAt: '1970-01-01T00:00:00Z',
+        watchedDate: null,
+        mediaType: 'movie' as 'movie' | 'tv',
+      };
+      const tmdbId = await resolveReview(entry);
+      if (!tmdbId && unmatched) {
+        // Only explicit invalid TMDB identities qualify. Network/challenge failures
+        // still retain the previous snapshot, rather than silently losing matches.
+        const html = await fetchLetterboxd(row.url);
+        if (
+          !/cf-chl-|Just a moment/i.test(html) &&
+          (/themoviedb\.org\/(?:movie|tv)\/0\//i.test(html) ||
+            /data-tmdb-type=["'](?:movie|tv)["']\s+data-tmdb-id=["']["']/i.test(
+              html
+            ))
+        ) {
+          unmatched.push({ ...row, position: rows.indexOf(row) + 1 });
+          continue;
+        }
+      }
+      if (!tmdbId)
+        throw Error(
+          `List contains an unresolved film: ${row.url}; previous snapshot retained`
+        );
+      if (checkpoint) rememberWeeklyFilm(row.url, tmdbId, entry.mediaType);
+      items.push({ tmdbId, type: entry.mediaType, note: row.note });
     }
-    if (!tmdbId)
-      throw Error(
-        `List contains an unresolved film: ${row.url}; previous snapshot retained`
-      );
-    items.push({ tmdbId, type: entry.mediaType, note: row.note });
+    return items;
+  } finally {
+    if (checkpoint) flushWeeklyFilms();
   }
-  return items;
 }
 // No cookies or arbitrary redirect targets: an anonymous read is public evidence.
 async function publicGet(value: string, short = false) {
@@ -221,11 +242,12 @@ export async function importPublicList(value: string) {
 }
 export async function applyPublicList(
   value: string,
-  parsed: ReturnType<typeof parseOwnedList>
+  parsed: ReturnType<typeof parseOwnedList>,
+  checkpoint?: () => void
 ) {
   const canonical = safeListUrl(parsed.url);
   const unmatched: UnmatchedListFilm[] = [];
-  const items = await resolveFilms(parsed.items, unmatched),
+  const items = await resolveFilms(parsed.items, unmatched, checkpoint),
     now = Date.now();
   const next: DiscoveryList = {
     id: listId(canonical),
@@ -239,11 +261,13 @@ export async function applyPublicList(
     items,
     unmatched,
     history: [],
+    ...(checkpoint ? { automatic: true } : {}),
   };
   updateListStore((s) => {
     const old =
       s.lists.find((l) => l.id === next.id) ||
       s.lists.find((l) => l.url === value);
+    if (old?.automatic) next.automatic = true;
     if (
       old?.ownerId &&
       old.creator.toLowerCase() === next.creator.toLowerCase()
@@ -259,6 +283,16 @@ export async function applyPublicList(
         ];
     }
     replaceList(s, next, now);
+    if (
+      checkpoint &&
+      !next.ownerId &&
+      !Object.values(s.saved).some((ids) => ids.includes(next.id)) &&
+      !Object.values(s.liked).some(
+        (refs) => refs.includes(next.url!) || refs.includes(next.id)
+      )
+    ) {
+      next.history = next.history.slice(-1);
+    }
     for (const user of Object.keys(s.liked))
       s.liked[user] = [
         ...new Set(
@@ -325,7 +359,9 @@ export async function refreshDiscoveryLists() {
   refreshing = true;
   try {
     const store = readListStore(),
-      urls = new Set<string>(popularListUrls);
+      urls = new Set<string>(
+        readWeeklyLists().discoveredAt ? [] : popularListUrls
+      );
     for (const ids of Object.values(store.saved))
       for (const id of ids) {
         const l = store.lists.find((l) => l.id === id);

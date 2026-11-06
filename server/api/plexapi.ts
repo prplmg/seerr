@@ -126,6 +126,14 @@ class PlexAPI extends ExternalAPI {
     );
   }
 
+  public async hasBackgroundActivities(): Promise<boolean> {
+    const data = await this.get<{ MediaContainer: { Activity?: unknown[] } }>(
+      '/activities'
+    );
+    if (!data?.MediaContainer) throw Error('Plex activity health unavailable');
+    return !!data.MediaContainer.Activity?.length;
+  }
+
   public async getStatus(): Promise<PlexStatusResponse> {
     return await this.get('/');
   }

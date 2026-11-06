@@ -358,6 +358,7 @@ interface JobSettings {
 
 export type JobId =
   | 'letterboxd-publication-sync'
+  | 'weekly-list-discovery'
   | 'letterboxd-browser-sync'
   | 'letterboxd-browser-health'
   | 'catalogue-history-refresh'
@@ -580,6 +581,7 @@ class Settings {
       },
       jobs: {
         'letterboxd-publication-sync': { schedule: '0 0 9,21 * * *' },
+        'weekly-list-discovery': { schedule: '0 * 7,8 * * *' },
         'letterboxd-browser-sync': { schedule: '0 0 */12 * * *' },
         'letterboxd-browser-health': { schedule: '0 */5 * * * *' },
         'catalogue-history-refresh': { schedule: '0 */2 * * * *' },

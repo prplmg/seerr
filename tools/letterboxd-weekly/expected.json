@@ -1,0 +1,8 @@
+{
+  "automation.js": "25a37acaab56c17d28e408a02f6b31c5ac95c640891df46ab322603f688368e4",
+  "bridge.py": "0acb4d2b69dc8b330cd04df13fe84789005a88be129baa780b92756683300595",
+  "queue_store.py": "d7ce643f74624ffc09e9096f6a0cfd70a8a70dba2fc5144b9992cb138c6b2be1",
+  "manifest.json": "67d10098bfc56431bda73023ade4e61496a18b9303573b4f55c1ff87adf469fe",
+  "list-browser.js": "4dbd9a957cf9de754dc7e4de5d70eeb6a4e91a16a84221eae60f09f39a7d7ef1",
+  "catalogue_client.py": "c9a373877e9024aa56c21deaef3c103c48ca9f58a86c400f9db3c8ca01572214"
+}

@@ -24,6 +24,7 @@ export type DiscoveryList = {
   visibility: 'public' | 'private' | 'unknown';
   checkedAt: number;
   unavailable?: boolean;
+  automatic?: boolean;
   deletedAt?: number;
   items: ListFilm[];
   unmatched?: UnmatchedListFilm[];
@@ -60,7 +61,8 @@ export function visibleList(
       (list.visibility === 'public' &&
         (list.source === 'curated' ||
           list.source === 'catalogue' ||
-          now - list.checkedAt < 24 * 60 * 60 * 1000)))
+          now - list.checkedAt <
+            (list.automatic ? 15 : 1) * 24 * 60 * 60 * 1000)))
   );
 }
 export function cleanFilms(items: ListFilm[]) {

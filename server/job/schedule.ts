@@ -1,23 +1,27 @@
+import PlexAPI from '@server/api/plexapi';
 import { MediaServerType } from '@server/constants/server';
+import { getRepository } from '@server/datasource';
+import { User } from '@server/entity/User';
 import blocklistedTagsProcessor from '@server/job/blocklistedTagsProcessor';
 import { syncMappedAvatars } from '@server/lib/accountAvatarSync';
 import availabilitySync from '@server/lib/availabilitySync';
+import { runScheduledWork } from '@server/lib/backgroundContext';
 import { avatarMigrationActive } from '@server/lib/catalogueMigration';
-import { refreshDiscoveryReleases } from '@server/lib/discoveryReleases';
 import {
   refreshCuratedMetadata,
   scheduledProfileWatchlistRefresh,
 } from '@server/lib/catalogueRefreshJobs';
+import { refreshDiscoveryReleases } from '@server/lib/discoveryReleases';
 import downloadTracker from '@server/lib/downloadtracker';
 import ImageProxy from '@server/lib/imageproxy';
 import {
   monitorLetterboxdBrowsers,
-  scheduleBrowserScans,
   scheduleBrowserExports,
+  scheduleBrowserScans,
 } from '@server/lib/letterboxdBrowser';
 import { prepareLetterboxdPlaybackPublications } from '@server/lib/letterboxdPlaybackContinuation';
-import { publicationSchedule } from '@server/lib/letterboxdPublicationSchedule';
 import { prepareLetterboxdPublications } from '@server/lib/letterboxdPublicationContinuation';
+import { publicationSchedule } from '@server/lib/letterboxdPublicationSchedule';
 import refreshToken from '@server/lib/refreshToken';
 import { pollReviews } from '@server/lib/reviews';
 import {
@@ -30,10 +34,13 @@ import { sonarrScanner } from '@server/lib/scanners/sonarr';
 import type { JobId } from '@server/lib/settings';
 import { getSettings } from '@server/lib/settings';
 import watchlistSync from '@server/lib/watchlistsync';
+import { runWeeklyLists } from '@server/lib/weeklyLists';
 import logger from '@server/logger';
-import { refreshCatalogueHistory, refreshRecentMoviePlayback } from '@server/routes/social';
+import {
+  refreshCatalogueHistory,
+  refreshRecentMoviePlayback,
+} from '@server/routes/social';
 import schedule from 'node-schedule';
-import { runScheduledWork } from '@server/lib/backgroundContext';
 
 interface ScheduledJob {
   id: JobId;
@@ -52,11 +59,16 @@ let avatarRunning = false;
 
 export async function runReviewRssJob(force = false): Promise<void> {
   if (reviewRssRunning) {
-    logger.info('Review RSS refresh skipped: already running', { label: 'Letterboxd' });
+    logger.info('Review RSS refresh skipped: already running', {
+      label: 'Letterboxd',
+    });
     return;
   }
   reviewRssRunning = true;
-  logger.info('Review RSS refresh started', { label: 'Letterboxd', trigger: force ? 'manual' : 'scheduled' });
+  logger.info('Review RSS refresh started', {
+    label: 'Letterboxd',
+    trigger: force ? 'manual' : 'scheduled',
+  });
   try {
     await runScheduledWork(() => pollReviews(force));
     logger.info('Review RSS refresh finished', { label: 'Letterboxd' });
@@ -95,11 +107,43 @@ export const startJobs = (): void => {
       fallback: '0 0 */12 * * *',
       run: async () => {
         scheduleBrowserScans();
-        const { resumeDiscoveryImports } = await import('../lib/discoveryImportInbox');
+        const { resumeDiscoveryImports } =
+          await import('../lib/discoveryImportInbox');
         await resumeDiscoveryImports();
-        const { refreshDiscoveryLists } = await import('../lib/discoveryListImport');
+        const { refreshDiscoveryLists } =
+          await import('../lib/discoveryListImport');
         await refreshDiscoveryLists();
       },
+    },
+    {
+      id: 'weekly-list-discovery' as const,
+      name: 'Weekly Letterboxd Lists (Tuesday; morning continuation)',
+      fallback: '0 * 7,8 * * *',
+      run: () =>
+        runWeeklyLists(async () => {
+          if (
+            scheduledJobs.some(
+              (j) =>
+                /plex-full|radarr|sonarr|curated-metadata|publication-sync/.test(
+                  j.id
+                ) && j.running?.()
+            )
+          )
+            return true;
+          try {
+            const owner = await getRepository(User).findOne({
+              where: { id: 1 },
+              select: { id: true, plexToken: true },
+            });
+            if (!owner?.plexToken) return true;
+            return await new PlexAPI({
+              plexToken: owner.plexToken,
+              timeout: 5000,
+            }).hasBackgroundActivities();
+          } catch {
+            return true;
+          }
+        }),
     },
     {
       id: 'letterboxd-browser-health' as const,
@@ -121,8 +165,11 @@ export const startJobs = (): void => {
       name: 'Catalogue Watch History Refresh',
       fallback: '0 */2 * * * *',
       run: async () => {
-        try { await refreshCatalogueHistory(); }
-        finally { await refreshDiscoveryReleases(); }
+        try {
+          await refreshCatalogueHistory();
+        } finally {
+          await refreshDiscoveryReleases();
+        }
       },
     },
     {
@@ -143,14 +190,20 @@ export const startJobs = (): void => {
     const publishing =
       definition.id === 'letterboxd-publication-sync'
         ? publicationSchedule(jobs[definition.id]?.schedule)
-        : null;
+        : definition.id === 'weekly-list-discovery'
+          ? {
+              cron: jobs[definition.id]?.schedule ?? definition.fallback,
+              timeZone: 'America/Merida',
+            }
+          : null;
     const cronSchedule =
       publishing?.cron ?? jobs[definition.id]?.schedule ?? definition.fallback;
     scheduledJobs.push({
       id: definition.id,
       name: definition.name,
       type: 'process',
-      interval: definition.id === 'letterboxd-playback-refresh' ? 'seconds' : 'minutes',
+      interval:
+        definition.id === 'letterboxd-playback-refresh' ? 'seconds' : 'minutes',
       cronSchedule,
       job: schedule.scheduleJob(
         definition.id,
@@ -160,10 +213,14 @@ export const startJobs = (): void => {
         async () => {
           if (running) return;
           running = true;
-          logger[definition.id === 'letterboxd-playback-refresh' ? 'debug' : 'info']('Catalogue refresh started', { label: 'Jobs', job: definition.id });
+          logger[
+            definition.id === 'letterboxd-playback-refresh' ? 'debug' : 'info'
+          ]('Catalogue refresh started', { label: 'Jobs', job: definition.id });
           try {
             await runScheduledWork(() => definition.run());
-            logger[definition.id === 'letterboxd-playback-refresh' ? 'debug' : 'info']('Catalogue refresh completed', {
+            logger[
+              definition.id === 'letterboxd-playback-refresh' ? 'debug' : 'info'
+            ]('Catalogue refresh completed', {
               label: 'Jobs',
               job: definition.id,
             });
@@ -222,10 +279,8 @@ export const startJobs = (): void => {
       type: 'process',
       interval: 'minutes',
       cronSchedule,
-      job: schedule.scheduleJob(
-        'letterboxd-review-rss',
-        cronSchedule,
-        () => runReviewRssJob()
+      job: schedule.scheduleJob('letterboxd-review-rss', cronSchedule, () =>
+        runReviewRssJob()
       ),
       running: () => reviewRssRunning,
     });
@@ -403,9 +458,11 @@ export const startJobs = (): void => {
       logger.debug('Starting scheduled job: Download Sync', {
         label: 'Jobs',
       });
-      void runScheduledWork(() => downloadTracker.updateDownloads()).catch(() => {
-        logger.warn('Download refresh failed', { label: 'Jobs' });
-      });
+      void runScheduledWork(() => downloadTracker.updateDownloads()).catch(
+        () => {
+          logger.warn('Download refresh failed', { label: 'Jobs' });
+        }
+      );
     }),
     running: () => downloadTracker.isRunning(),
   });

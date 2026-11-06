@@ -2671,6 +2671,7 @@ paths:
                 instance: { type: string, format: uuid }
                 supported: { type: boolean, enum: [true] }
                 inPrivateAllowed: { type: boolean, default: false }
+                weeklySupported: { type: boolean, default: false }
                 report: { type: object, additionalProperties: true }
       responses:
         '200': { description: List scan or idle }

@@ -38,7 +38,8 @@ router.post('/lists', (req, res) => {
       exchangeBrowserLists(
         req.body.instance,
         req.body.report,
-        req.body.inPrivateAllowed === true
+        req.body.inPrivateAllowed === true,
+        req.body.weeklySupported === true
       )
     );
   } catch (error) {

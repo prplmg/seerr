@@ -1,0 +1,17 @@
+{
+  "files": [
+    "seerr-api.yml",
+    "server/api/plexapi.ts",
+    "server/job/schedule.ts",
+    "server/lib/discoveryBrowser.ts",
+    "server/lib/discoveryListImport.ts",
+    "server/lib/discoveryLists.ts",
+    "server/lib/settings/index.ts",
+    "server/lib/weeklyFilmMatches.ts",
+    "server/lib/weeklyLists.ts",
+    "server/lib/weeklyListsPolicy.ts",
+    "server/lib/weeklyListsState.ts",
+    "server/routes/letterboxdWorker.ts",
+    "server/routes/settings/index.ts"
+  ]
+}

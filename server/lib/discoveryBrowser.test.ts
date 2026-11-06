@@ -45,6 +45,8 @@ function harness() {
     ).outputText;
     new Function('require', 'exports', 'setImmediate', source)(
       (name: string) => {
+        if (name === './weeklyListsState') return { weeklyListsPermitted: () => false };
+        if (name === './weeklyListsPolicy') return { weeklyDiscoveryPages: [] };
         if (name === '@server/logger') return { warn: () => {} };
         if (name === '@server/utils/appDataVolume')
           return { appDataPath: () => dir };
