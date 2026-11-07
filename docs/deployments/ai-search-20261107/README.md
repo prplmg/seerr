@@ -1,0 +1,13 @@
+# AI Search — LIVE 2026-11-07
+
+Build `zuA42wr8PmtWqIRWVpXCJ`, release `catalogue-20261107134322907-99423`, source commits18ac9362 and9bc05ae5; credential-test receipt979c2807. Exactly eight application files in the scoped manifest deployed. Live baseline of the four existing edited files matched pre-AI source; unrelated next-env.d.ts and all other work excluded. No remote Git push.
+
+Mini launcher now calls tools/startup/Start-Seerr.ps1, preserving its existing environment, working directory and log redirection. The S4U minilie process reads Windows Generic Credential Multimeldia/OpenAI and supplies OPENAI_API_KEY only to child Node. Credential remains on Mini, outside release artifacts and PRPL-PC. Missing vault access disables AI Search without blocking catalogue startup. Original launcher: C:/ProgramData/Seerr/run-seerr.before-ai-20261107.cmd. Existing Seerr task principal unchanged.
+
+Preflight caught JSON-mode HTTP400 when the instruction was supplied only as Responses instructions. Fixed by placing the contract in a developer input message, separate from the user message; regression test added. Actual Terra/medium request passed in2.76s:358input+84output tokens (442total). Five focused tests, server/client types, focused lint and mobile/desktop fixture checks passed. Startup -Probe confirmed a child Node process received the credential under minilie.
+
+Single PRPL-PC build, no build/log progress polling; terminal outcome awaited. Install3.543s/build78.673s,31dependency junctions reconstructed and Mini loopback login/JS/server/SQLite checks passed. Branded public maintenance page verified before stopping Seerr; native APIs verified under lease; lease cleared and public health passed. Account mappings and publication settings unchanged. No reboot.
+
+Live acceptance: unauthenticated POST rejected401; authenticated objective search returned20results in4668ms; identical cached repeat157ms; subjective Arrival-style query returned7resolved movies with reasons in7132ms. These are individual acceptance measurements, not a general performance benchmark. Saved server receipt tools/startup/ai-search-live-verification.json, local evidence outputs/ai-search-rollout-20261107. No actual-key output or plaintext secret files.
+
+Rollback: prior buildYLP4dXyOIb_9sGXSysFi2 in C:/ProgramData/Seerr/catalogue-20261107134322907-99423-release/previous; state/database/source backups retained in release. Use maintenance-aware rollback. Wrapper is compatible with the prior app; restore run-seerr.before-ai-20261107.cmd if also reverting credential loading. Credential can remain stored. Cold-boot access has not been tested; separate fresh S4U process access with no interactive login was verified.
