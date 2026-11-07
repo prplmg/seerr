@@ -7081,6 +7081,32 @@ paths:
                       $ref: '#/components/schemas/MediaInfo'
                   playCount:
                     type: number
+  /ai-search:
+    post:
+      summary: Interpret a natural-language catalogue search
+      tags: [search]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+      responses:
+        '200':
+          description: Validated catalogue matches and interpreted filters
+        '400':
+          description: Invalid search
+        '429':
+          description: Search limit reached
+        '503':
+          description: Search or watch history unavailable
   /search:
     get:
       summary: Search for movies, TV shows, or people

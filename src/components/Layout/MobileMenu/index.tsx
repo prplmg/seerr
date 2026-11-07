@@ -148,6 +148,13 @@ const MobileMenu = ({
       requiredPermission: Permission.ADMIN,
       dataTestId: 'sidebar-menu-settings',
     },
+    {
+      href: '/ai-search',
+      content: 'AI Search',
+      svgIcon: <SparklesIcon className="mr-3 h-6 w-6" />,
+      svgIconSelected: <FilledSparklesIcon className="mr-3 h-6 w-6" />,
+      activeRegExp: /^\/ai-search/,
+    },
   ];
 
   const discoveryLinks: MenuLink[] = discovery
