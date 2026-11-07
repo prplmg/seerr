@@ -1,3 +1,4 @@
+import type { WorkerRuntime } from '@server/lib/letterboxdSyncHealth';
 import axios from 'axios';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -9,7 +10,7 @@ type Binding = {
   username: string;
   enabled: boolean;
   syncHealth?: {
-    runtime: string;
+    runtime: WorkerRuntime;
     pauseReason?: string;
     unsupportedQueued: number | null;
     oldestQueuedAt: number | null;
@@ -40,7 +41,11 @@ export default function LetterboxdBrowserStatus({
 }) {
   const es = useIntl().locale.startsWith('es');
   const { data, error, mutate } = useSWR<{
-    sharedHistory?: { attempts: number; nextAttemptAt: number; error?: {stage: string; code: string} };
+    sharedHistory?: {
+      attempts: number;
+      nextAttemptAt: number;
+      error?: { stage: string; code: string };
+    };
     configured: boolean;
     bindings: Binding[];
   }>('/api/v1/settings/letterboxd-browser', { refreshInterval: 30000 });
@@ -143,8 +148,11 @@ export default function LetterboxdBrowserStatus({
         <>
           {!!data.sharedHistory?.attempts && (
             <p role="status" className="text-yellow-300">
-              {es ? 'La lectura compartida del historial de Plex está fallando; se reintentará automáticamente. No indica un fallo de publicación.' : 'The shared Plex history check is failing; it will retry automatically. This does not indicate a failed publication.'}
-              {' '}{data.sharedHistory.error?.stage}: {data.sharedHistory.error?.code}
+              {es
+                ? 'La lectura compartida del historial de Plex está fallando; se reintentará automáticamente. No indica un fallo de publicación.'
+                : 'The shared Plex history check is failing; it will retry automatically. This does not indicate a failed publication.'}{' '}
+              {data.sharedHistory.error?.stage}:{' '}
+              {data.sharedHistory.error?.code}
             </p>
           )}
           {!data.configured && (
@@ -188,9 +196,13 @@ export default function LetterboxdBrowserStatus({
                       ? es
                         ? 'publicación pausada'
                         : 'publishing paused'
-                      : es
-                        ? 'estado reciente no disponible'
-                        : 'fresh runtime status unavailable'}
+                      : row.syncHealth?.runtime === 'blocked'
+                        ? es
+                          ? 'operaciones en cola bloqueadas por capacidades del navegador'
+                          : 'queued operations blocked by worker capabilities'
+                        : es
+                          ? 'estado reciente no disponible'
+                          : 'fresh runtime status unavailable'}
                 </p>
                 {row.syncHealth?.runtime === 'paused' && (
                   <p>

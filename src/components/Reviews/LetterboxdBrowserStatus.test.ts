@@ -1,4 +1,4 @@
-import { summarizeWorkerHealth } from '../../../server/lib/letterboxdSyncHealth';
+import { summarizeWorkerHealth } from '@server/lib/letterboxdSyncHealth';
 /* eslint-disable @typescript-eslint/no-explicit-any -- Inspect transpiled React element trees without mounting a browser. */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -191,12 +191,15 @@ it('GET summarizes only the bound user and account without leaking write payload
     userId: 1,
     account: 'prplmg',
     state,
-    desired: { text: 'PRIVATE REVIEW' },
+    kind: 'diary',
+    created: Date.now() - 1000,
+    desired: { rating: 0, text: 'PRIVATE REVIEW' },
     token: 'SECRET',
   }));
   const exports = {};
   new Function('require', 'exports', routeCode)((name: string) => {
-    if (name === '@server/lib/letterboxdHistoryHealth') return {readHistoryHealth:()=>({attempts:0,nextAttemptAt:0})};
+    if (name === '@server/lib/letterboxdHistoryHealth')
+      return { readHistoryHealth: () => ({ attempts: 0, nextAttemptAt: 0 }) };
     if (name === '@server/lib/letterboxdSyncHealth')
       return { summarizeWorkerHealth };
     if (name === 'express') return { Router: () => router };
@@ -214,6 +217,13 @@ it('GET summarizes only the bound user and account without leaking write payload
               userId: 1,
               username: 'prplmg',
               snapshot: { items: ['PRIVATE SNAPSHOT'] },
+              workerHealth: {
+                receivedAt: Date.now(),
+                paused: false,
+                pauseReason: 'none',
+                supportedWriteKinds: ['diary'],
+                errors: [],
+              },
             },
           ],
         }),
@@ -243,6 +253,8 @@ it('GET summarizes only the bound user and account without leaking write payload
       },
     }
   );
+  assert.equal(result.bindings[0].syncHealth.runtime, 'blocked');
+  assert.equal(result.bindings[0].syncHealth.unsupportedQueued, 1);
   assert.deepEqual(result.bindings[0].writeQueue, {
     queued: 1,
     dispatched: 1,
@@ -337,4 +349,32 @@ it('shows runtime pauses despite enabled publishing, and missing reports stay un
     harness({ writeEnabled: true }).text,
     /fresh runtime status unavailable/
   );
+});
+
+it('renders actual capability-blocked health distinctly from ready, paused and stale', () => {
+  const syncHealth = summarizeWorkerHealth(
+    {
+      receivedAt: 1000,
+      paused: false,
+      pauseReason: 'none',
+      supportedWriteKinds: ['diary'],
+      errors: [],
+    },
+    [{ kind: 'diary', state: 'queued', created: 900, desired: { rating: 0 } }],
+    1000
+  );
+  for (const locale of ['en', 'es', 'es-MX']) {
+    const view = harness({ writeEnabled: true, syncHealth }, locale);
+    assert.match(
+      view.text,
+      locale === 'en'
+        ? /queued operations blocked by worker capabilities/
+        : /operaciones en cola bloqueadas por capacidades/
+    );
+    assert.doesNotMatch(
+      view.text,
+      /Worker: ready|Navegador: listo|fresh runtime status unavailable|estado reciente no disponible|publishing paused/
+    );
+    assert.equal(view.calls.length, 0);
+  }
 });

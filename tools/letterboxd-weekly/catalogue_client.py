@@ -12,6 +12,8 @@ from urllib.error import HTTPError
 
 ENDPOINT = 'https://catalogue.prpl.com.mx:8443/api/v1/letterboxd-worker/exchange'
 SUPPORTED_WRITE_KINDS = ('rating', 'review', 'diary')
+# Explicitly tested adapters; the release contract test checks the bundled manifest.
+DIARY_CONTENT_ADAPTERS = frozenset(('0.2.46', '0.2.47', '0.2.48', '0.2.49'))
 
 class CatalogueOriginConnection(HTTPSConnection):
     """Dial our LAN origin, retaining the public hostname for TLS verification."""
@@ -125,7 +127,7 @@ class CatalogueClient:
         try:
             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
             age=time.time()-version.get('seenAt',0)
-            return version.get('version') in ('0.2.46','0.2.47','0.2.48') and 0 <= age < 600
+            return version.get('version') in DIARY_CONTENT_ADAPTERS and 0 <= age < 600
         except (OSError,ValueError,TypeError):
             return False
 

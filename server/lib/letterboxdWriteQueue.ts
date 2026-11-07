@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { letterboxdEntryIdentity } from './letterboxdImport';
+import { supportsWriteIntent } from './letterboxdWriteCapabilities';
 
 export type WriteKind = 'watchlist' | 'rating' | 'review' | 'watched' | 'diary';
 export type WriteIntent = {
@@ -278,12 +279,7 @@ export function claimWrite(
       prior.account === account &&
       prior.state === 'dispatched' &&
       prior.durableDelivery &&
-      supported.includes(prior.kind) &&
-      !(
-        prior.kind === 'diary' &&
-        'rating' in prior.desired &&
-        !supported.includes('diary-content')
-      )
+      supportsWriteIntent(prior, supported)
     )
       return prior;
   }
@@ -301,13 +297,7 @@ export function claimWrite(
       i.userId === userId &&
       i.account === account &&
       i.state === 'queued' &&
-      i.kind !== 'watchlist' &&
-      supported.includes(i.kind) &&
-      !(
-        i.kind === 'diary' &&
-        'rating' in i.desired &&
-        !supported.includes('diary-content')
-      )
+      supportsWriteIntent(i, supported)
   );
   if (job) {
     job.state = 'dispatched';

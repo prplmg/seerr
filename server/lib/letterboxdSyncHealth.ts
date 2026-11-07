@@ -1,3 +1,13 @@
+import { supportsWriteIntent } from './letterboxdWriteCapabilities';
+import type { WriteIntent } from './letterboxdWriteQueue';
+
+export type WorkerRuntime =
+  | 'unknown'
+  | 'stale'
+  | 'paused'
+  | 'blocked'
+  | 'ready';
+
 export type WorkerHealth = {
   receivedAt: number;
   paused: boolean;
@@ -65,24 +75,29 @@ export function parseWorkerHealth(
 }
 export function summarizeWorkerHealth(
   health: WorkerHealth | undefined,
-  intents: { state: string; kind: string; created: number }[],
+  intents: Pick<WriteIntent, 'state' | 'kind' | 'created' | 'desired'>[],
   now = Date.now()
 ) {
   const fresh = !!health && now - health.receivedAt <= 10 * 60 * 1000;
   const queued = intents.filter((i) => i.state === 'queued');
+  const unsupportedQueued = fresh
+    ? queued.filter(
+        (intent) => !supportsWriteIntent(intent, health!.supportedWriteKinds)
+      ).length
+    : null;
+  const runtime: WorkerRuntime = !health
+    ? 'unknown'
+    : !fresh
+      ? 'stale'
+      : health.paused
+        ? 'paused'
+        : unsupportedQueued
+          ? 'blocked'
+          : 'ready';
   return {
-    runtime: !health
-      ? 'unknown'
-      : !fresh
-        ? 'stale'
-        : health.paused
-          ? 'paused'
-          : 'ready',
+    runtime,
     pauseReason: health?.pauseReason,
-    unsupportedQueued: fresh
-      ? queued.filter((i) => !health!.supportedWriteKinds.includes(i.kind))
-          .length
-      : null,
+    unsupportedQueued,
     oldestQueuedAt: queued.length
       ? Math.min(...queued.map((i) => i.created))
       : null,
