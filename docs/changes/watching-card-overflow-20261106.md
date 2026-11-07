@@ -1,9 +1,9 @@
-# Watching now roster overflow — local, pending deployment
+# Watching now roster layout
 
-User-approved behavior:1–3standalone viewers retain avatar/name rows;4+switch to horizontal avatar-only layout. ResizeObserver measures available width and overflow button, preserving all faces that fit; +N opens a portaled accessible names/profile-picture popover. Party pills use the same bounded roster in list cards while keeping group/own-party styling and YouTube actions. Detail rosters unchanged.
+1–3 standalone viewers keep avatar/name rows; 4+ use wrapping avatar-only rows. Other parties wrap too. Cards containing your own party use a single-line roster with +N so playback controls retain their space. +N opens names/profile pictures for hidden viewers. Detail-page roster behavior is preserved.
 
-WatchingCard height152px mobile/200px desktop. The roster area can scroll for multiple groups without displacing playback controls or growing the card. No server/API/sync-setting changes.5focused tests, client TypeScript, formatting and ESLint passed (existing image warnings only).
+Cards retain 152px mobile / 200px desktop height. Multiple groups can scroll inside the roster area independently of playback controls. No server/API or sync-setting changes.
 
-Actual components bundled with mocked media/activity and image fixtures, verified in browser at320/375/1280px. Six scenarios:3/4/12standalone viewers,12-person party, own-party plus mixed groups, and mixed groups. All mobile cards152high/288wide; all desktop200high/384wide, no card horizontal overflow. +N click exposed the correct hidden people; Escape closed it. Temporary viewport override reset. Screenshot: workspace outputs/watching-card-20261106/desktop.png. Fixture people/media only; no production playback interaction. Preview at http://127.0.0.1:8767/ while local server remains running.
+Validation: five focused layout/roster tests and client TypeScript passed. Actual components with mock data were visually checked at 375px: 12 standalone viewers, another 12-member party, and your own 12-member party. Screenshot: workspace outputs/watching-card-20261106/wrapped-mobile.png. Earlier checks also covered 320px/1280px and overflow-popover interaction.
 
-Not deployed. Preserve unrelated next-env.d.ts; no remote push.
+Scoped release manifest: outputs/watching-rollout-20261106/release.json. Exclude unrelated next-env.d.ts and all other pending work. No remote push authorized.

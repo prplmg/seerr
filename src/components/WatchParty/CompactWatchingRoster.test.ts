@@ -112,12 +112,21 @@ it('retains vertical names for 1–3 standalone viewers and leaves detail roster
       count
     );
   }
+  const wrapped = rosterModule.WatchingPeople({
+    item: { viewers: people(12), parties: [] },
+    list: true,
+  });
+  assert(wrapped.props.className.includes('flex-wrap'));
+  assert.equal(nodes(wrapped).filter((n) => n.props?.person).length, 12);
+  assert(!nodes(wrapped).some((n) => n.type === Compact));
+  const otherParty = rosterModule.WatchingPeople({
+    item: { viewers: [], parties: [{ ...party, mine: false }] },
+    list: true,
+  });
   assert.equal(
-    rosterModule.WatchingPeople({
-      item: { viewers: people(4), parties: [] },
-      list: true,
-    }).type,
-    Compact
+    nodes(otherParty).find((n) => n.type === rosterModule.PartyPill).props
+      .compact,
+    false
   );
   const details = rosterModule.WatchingPeople({
     item: { viewers: people(12), parties: [party] },
@@ -139,7 +148,7 @@ it('preserves mixed party groups, own-party distinction and YouTube return contr
     item: { viewers: people(4), parties },
     list: true,
   });
-  assert(tree.props.className.includes('overflow-y-auto'));
+  assert(tree.props.className.includes('flex-col'));
   const pills = nodes(tree).filter((n) => n.type === rosterModule.PartyPill);
   assert.equal(pills.length, 2);
   for (const pill of pills)

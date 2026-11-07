@@ -152,7 +152,13 @@ export function WatchingPeople({
 }) {
   const own = item.parties.some((p) => p.mine);
   if (!item.parties.length && list && item.viewers.length >= 4)
-    return <CompactWatchingRoster people={item.viewers} />;
+    return (
+      <div className="flex flex-wrap items-center gap-1">
+        {item.viewers.map((person) => (
+          <Avatar key={person.id} person={person} />
+        ))}
+      </div>
+    );
   if (!item.parties.length && list)
     return (
       <div className="flex flex-col gap-1.5">
@@ -168,12 +174,18 @@ export function WatchingPeople({
     <div
       className={
         list
-          ? 'flex max-h-[76px] flex-col items-start gap-1.5 overflow-y-auto overscroll-contain'
+          ? 'flex flex-col items-start gap-1.5'
           : 'flex flex-wrap items-center gap-1.5'
       }
     >
-      {list ? (
+      {list && own ? (
         <CompactWatchingRoster people={item.viewers} />
+      ) : list ? (
+        <div className="flex flex-wrap items-center gap-1">
+          {item.viewers.map((p) => (
+            <Avatar key={p.id} person={p} />
+          ))}
+        </div>
       ) : (
         item.viewers.map((p) => <Avatar key={p.id} person={p} />)
       )}
@@ -182,7 +194,7 @@ export function WatchingPeople({
           key={p.id}
           className={`min-w-0 max-w-full ${list ? 'flex-none' : ''}`}
         >
-          <PartyPill party={p} hasOwnParty={own} compact={list} />
+          <PartyPill party={p} hasOwnParty={own} compact={list && own} />
           {list && p.external && (
             <a
               href={p.external.url}
