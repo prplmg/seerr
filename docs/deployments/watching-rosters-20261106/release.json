@@ -1,0 +1,8 @@
+{
+  "files": [
+    "src/components/Discover/WatchingNowSlider.tsx",
+    "src/components/WatchParty/index.tsx",
+    "src/components/WatchParty/CompactWatchingRoster.tsx",
+    "src/components/WatchParty/compactRosterLayout.ts"
+  ]
+}

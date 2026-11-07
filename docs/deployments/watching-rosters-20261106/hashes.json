@@ -1,0 +1,22 @@
+[
+  {
+    "file": "src/components/Discover/WatchingNowSlider.tsx",
+    "before": "7efb0adc7519e4c2f3a2d7e143e3a4c303797b90431b1ca456bb6bb17d84fcb1",
+    "after": "cb4e5fafcd5088ba96404678c4ba7711bbca01ad355260927093972431cbd853"
+  },
+  {
+    "file": "src/components/WatchParty/index.tsx",
+    "before": "6af041500cb31328101ec9fab3d9885e173ba5e7e965af4686103331b45244fb",
+    "after": "0ca13c662cf89cd3c23c0b5c751aed2b52e1a9a2a5a333147807142119d6d0ba"
+  },
+  {
+    "file": "src/components/WatchParty/CompactWatchingRoster.tsx",
+    "before": null,
+    "after": "1d76faf7d8bfdee8b1b6502bf4f00d785f9ad4d4a51cb56044d9f08b30820033"
+  },
+  {
+    "file": "src/components/WatchParty/compactRosterLayout.ts",
+    "before": null,
+    "after": "2c00e62e1a810ebce2e5549e64a15f0a50c1ec5997a16679e1c57e4453235422"
+  }
+]
