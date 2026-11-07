@@ -1,6 +1,10 @@
 import { rssReviews, type ImportedReview } from './letterboxdImport';
 
 export type HistoryRow = {
+  media_type?: string;
+  grandparent_rating_key?: unknown;
+  parent_media_index?: unknown;
+  media_index?: unknown;
   row_id?: unknown;
   reference_id?: unknown;
   stopped: number;
@@ -47,35 +51,45 @@ export async function executeBackgroundTask(
     const payload = JSON.parse(await read(page)).response;
     if (payload?.result !== 'success' || !Array.isArray(payload.data?.data))
       throw Error('History unavailable');
-    for (const row of payload.data.data) {
-      if (!['movie', 'episode'].includes(row.media_type)) continue;
+    for (const value of payload.data.data) {
+      const row = value && typeof value === 'object' ? value : {};
+      // Keep unsupported/malformed rows as continuity barriers; consumers filter
+      // media only after attribution reconciliation of the global snapshot.
       const stamp = Number(row.stopped || row.date || row.started);
       const key = String(
         row.media_type === 'episode'
           ? row.grandparent_rating_key
           : row.rating_key
       );
-      if (Number.isFinite(stamp) && stamp > 0 && key && key !== 'undefined')
-        rows.push({
-          row_id: row.row_id,
-          reference_id: row.reference_id,
-          stopped: Number(row.stopped),
-          plexId: String(row.user_id),
-          key,
-          type: row.media_type === 'episode' ? 'tv' : 'movie',
-          stamp,
-          user_id: String(row.user_id),
-          rating_key: String(row.rating_key),
-          machine_id: row.machine_id,
-          started: Number(row.started),
-          watched_status: Number(row.watched_status),
-          season:
-            row.media_type === 'episode'
-              ? Number(row.parent_media_index)
-              : undefined,
-          episode:
-            row.media_type === 'episode' ? Number(row.media_index) : undefined,
-        });
+      rows.push({
+        media_type: row.media_type,
+        grandparent_rating_key: row.grandparent_rating_key,
+        parent_media_index: row.parent_media_index,
+        media_index: row.media_index,
+        row_id: row.row_id,
+        reference_id: row.reference_id,
+        stopped: Number(row.stopped),
+        plexId: String(row.user_id),
+        key,
+        type:
+          row.media_type === 'episode'
+            ? 'tv'
+            : row.media_type === 'movie'
+              ? 'movie'
+              : 'unsupported',
+        stamp,
+        user_id: String(row.user_id),
+        rating_key: String(row.rating_key),
+        machine_id: row.machine_id,
+        started: Number(row.started),
+        watched_status: Number(row.watched_status),
+        season:
+          row.media_type === 'episode'
+            ? Number(row.parent_media_index)
+            : undefined,
+        episode:
+          row.media_type === 'episode' ? Number(row.media_index) : undefined,
+      });
     }
     if (
       page * 500 + payload.data.data.length >=

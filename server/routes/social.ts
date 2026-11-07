@@ -23,6 +23,7 @@ import {
   attributedViewers,
   sessionIdentity,
   readAttributions,
+  reconcileAttributions,
 } from '@server/lib/viewingAttribution';
 import { appDataPath } from '@server/utils/appDataVolume';
 import axios from 'axios';
@@ -236,6 +237,14 @@ let recentCache:
 let recentPending: Promise<RecentWatch[]> | undefined;
 let recentPendingSource: string | undefined;
 async function recentHistory(p: Policy): Promise<RecentWatch[]> {
+  const rows = await recentHistorySnapshot(p);
+  // Unfiltered rows, including interruption barriers, and fresh explicit state.
+  reconcileAttributions(rows);
+  // Preserve existing consumer semantics after using every raw row as a barrier.
+  return rows.filter(row => ['movie', 'tv'].includes(row.type) &&
+    Number.isFinite(row.stamp) && row.stamp > 0 && row.key && row.key !== 'undefined');
+}
+async function recentHistorySnapshot(p: Policy): Promise<RecentWatch[]> {
   const source = `${p.tautulliUrl}:${p.tautulliKey}`;
   if (
     recentCache &&
@@ -798,11 +807,13 @@ router.get('/:type/:id', async (req, res) => {
     >();
     let historyAvailable = true;
     let historyStale = false;
-    const attribution = readAttributions();
     try {
       for (const key of media ? historyKeys(media, p) : []) {
         const snapshot = await history(String(key), type, p);
         historyStale ||= snapshot.stale;
+        // A title-filtered snapshot cannot establish continuity. Only consume
+        // persisted decisions; never replay a potentially stale global cache here.
+        const attribution = readAttributions();
         for (const row of snapshot.value) {
           const lastWatched = row.stamp;
           for (const userId of historyViewers(

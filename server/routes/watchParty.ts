@@ -13,6 +13,7 @@ import {
   canAssignViewer,
   isPlaybackViewer,
   readAttributions,
+  reconcileAttributions,
   saveAttribution,
   sessionIdentity,
 } from '@server/lib/viewingAttribution';
@@ -204,7 +205,7 @@ router.use((_req, res, next) => {
   next();
 });
 async function liveActivity(policy: Social): Promise<ActivityRow[]> {
-  return snapshot(`activity:${policy.tautulliUrl}`, async () => {
+  const result = await snapshot(`activity:${policy.tautulliUrl}`, async () => {
     const query = async (cmd: string, extra = {}) => {
       const result = (
         await axios.get(`${policy.tautulliUrl.replace(/\/$/, '')}/api/v2`, {
@@ -225,7 +226,7 @@ async function liveActivity(policy: Social): Promise<ActivityRow[]> {
     ]);
     if (!Array.isArray(activity.sessions) || !Array.isArray(history.data))
       throw Error('Activity unavailable');
-    return activity.sessions.map((row: ActivityRow) => {
+    const sessions = activity.sessions.map((row: ActivityRow) => {
       const match = history.data.find(
         (h: ActivityRow) =>
           h.session_key != null &&
@@ -240,7 +241,11 @@ async function liveActivity(policy: Social): Promise<ActivityRow[]> {
         watched_status: match ? Number(match.watched_status) : undefined,
       };
     });
+    return { sessions, history: history.data };
   });
+  // Reapply current explicit actions even when the raw snapshot is cached.
+  reconcileAttributions(result.history);
+  return result.sessions;
 }
 function userMappings(users: User[], policy: Social) {
   const mapped = new Map<string, number>();

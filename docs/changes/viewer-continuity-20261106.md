@@ -1,0 +1,13 @@
+# Viewer continuity after interruptions and episode transitions
+
+Requested behavior: retain manually assigned co-viewers when playback resumes within 20 minutes, and carry viewers into subsequent episodes on the same player. Each episode still requires its own watched completion. Explicit removals must persist; unrelated playback, account/player changes and longer gaps must not inherit viewers.
+
+Confirmed incident (read-only audit): Cyberpunk: Edgerunners S2E1 on avellana's playback had prplmg, ykrn and art assigned. The original session stopped at 85%; a new session started 13 seconds later and completed at 98%, but had no assignments. S2E2's subsequent sessions likewise had none. Assignments were keyed to account, player, episode and start time, with no continuity reconciliation.
+
+Implementation: a shared chronological reconciliation pass over existing, unfiltered Tautulli snapshots persists inherited roster intent. Same Plex account and player, gap 0–1200 seconds inclusive, same movie or next played episode of the same Plex series (including season transitions/manual episode selections). Destination completion is never inherited. Explicit destination actions win. Other playback/account switches, ambiguous evidence and larger gaps break continuity; negative evidence prevents an older cached subset from restoring invalid assignments. Timestamped malformed rows only block relevant intervals. Filtered media-specific endpoints consume persisted decisions, not inferred continuity from incomplete timelines.
+
+No new upstream requests. Cached snapshots reuse reconciliation while the attribution file identity/timestamps remain unchanged. Explicit actions invalidate this cache; no-op reconciliation does not rewrite state. Existing response privacy and publication opt-in gates remain in place.
+
+Local timing (synthetic stress data, not a page-load benchmark): pure reconciliation median ~1.6ms for500 rows and ~57ms for20,000; cached persistence path average0.009ms/0.004ms respectively over100 calls. Benchmark fixture/results remain in workspace outputs/viewer-continuity-20261106. 13 focused tests passed, including actual route/cache integration with request-count assertions; server TypeScript, focused ESLint and diff checks passed. Independent focused review found no remaining blockers. Tests use temporary storage and mocks, not production writes.
+
+No production history edits or deployment are included in this task. Existing historical assignments can reconcile when a successful unfiltered snapshot includes their sessions after deployment; the confirmed Cyberpunk record has not been changed live.
