@@ -1,0 +1,15 @@
+# Kubo diary capability recovery — 2026-11-06 Mérida
+
+LIVE build cWFQ5RLqwjN_gaZSJ26Pr, source db2494a5. Worker and catalogue fixes only; no unrelated changes.
+
+Root cause: native bridge workflow_capable accepted extension0.2.46–0.2.48 but the deployed extension was0.2.49. It therefore omitted diary-content, correctly preventing dispatch of rating/review-containing diary writes. Catalogue health incorrectly checked only base kind and said ready. No failed Kubo write had occurred; the original entry was queued.
+
+Worker: explicitly allow tested0.2.49 alongside prior versions. New contract test reads the actual bundled manifest and proves it advertises diary-content in both health and exchange; unknown versions and stale/future heartbeats remain rejected.5capability/weekly tests and2existing durable-delivery/account-identity tests passed. Live source matched tracked tools/letterboxd-weekly/catalogue_client.py before patch. Installed only this file after idle checks, baseline hash verification, exact runtime process shutdown/absence verification and unchanged config/account pauses. Backup C:/Users/MSI/MultimeldiaLetterboxdRuntime/kubo-capability-backup-20261106-180844. Worker SHA25679e28b9b82257775ed68ce42857cead9ccea287159c7f995da3d793eaff18659. Installer retained here; no browser extension reinstall or user toggle change.
+
+Original intent5cf6d5eb-48e7-4940-8ed0-4e5f9633ce83 progressed queued→dispatched→verified at2026-11-07T00:10:29.069Z (Nov6 18:10:29 Mérida). Same existing viewing/review, rating4, watchedDate2026-11-06, verified identity jairoheredia. External entry https://letterboxd.com/jairoheredia/film/kubo-and-the-two-strings/. No new intent/resubmission. After release, authenticated user4 reviews API returns exactly one visible Kubo review with that external URL; publication has no unsettled intent and effective worker health ready with diary-content.
+
+Catalogue: health, fresh claims and durable replay share supportsWriteIntent; missing diary-content is counted as unsupported and shows blocked in bilingual status UI. No changes to opt-in, account matching or uncertain-write protection.39focused tests passed, client/server types and focused lint passed; independent review passed. Four-runtime-file manifest excludes tests, worker file and unrelated next-env.d.ts.
+
+Canonical PRPL-PC build awaited to completion without build/status/log polling. Install3.716s/build79.749s,31verified dependency links. Mini loopback login/3JS chunks/server/SQLite passed; branded maintenance before stop, native API under lease, clear lease then public health passed. Source hashes match all4files. All6binding settings, publication toggles and weekly/browser/publication schedules compare unchanged.
+
+Release catalogue-20261107001039305-64437; rollback previous x3_Inyb4oyy-hg7McyMs_ retained at C:/ProgramData/Seerr/catalogue-20261107001039305-64437-release/previous. Use maintenance-aware rollback, preserve current user data. Worker rollback would reintroduce the capability bug; never replay verified writes to work around it. Network journal updated; local commits only, no push.

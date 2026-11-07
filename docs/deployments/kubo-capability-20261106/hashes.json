@@ -1,0 +1,22 @@
+[
+  {
+    "file": "server/lib/letterboxdWriteCapabilities.ts",
+    "before": null,
+    "after": "2c343258014151ac616a9ea6ea4d66054ec46e9dd9d8e8a4f593d05a5c9ab869"
+  },
+  {
+    "file": "server/lib/letterboxdWriteQueue.ts",
+    "before": "3d6ee7b2fea68031949d4466fc9ca323cf23c7f4ec5b3fc453fb23a1ab7f9499",
+    "after": "3a23c72e6372807ef5937a3497e7a8446345e6809582f76d457ce0e9b5dd583d"
+  },
+  {
+    "file": "server/lib/letterboxdSyncHealth.ts",
+    "before": "061bbcb3b1f4e8bd7856f1380f7f7e4ee831168ef23f665463f8a28ed44d044f",
+    "after": "191aefc80876ad02487353596e89740a458765429cf79e41ab8a00b5ebda15e0"
+  },
+  {
+    "file": "src/components/Reviews/LetterboxdBrowserStatus.tsx",
+    "before": "a43f4cf920bb7105f1313242ca15419acceef32251c04eb2308a5a075a3b5d60",
+    "after": "febf829e16533531c181a9b65d81068c0fcb1523d99148d61c3316bc75622157"
+  }
+]

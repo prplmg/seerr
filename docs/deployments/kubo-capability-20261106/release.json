@@ -1,0 +1,8 @@
+{
+  "files": [
+    "server/lib/letterboxdWriteCapabilities.ts",
+    "server/lib/letterboxdWriteQueue.ts",
+    "server/lib/letterboxdSyncHealth.ts",
+    "src/components/Reviews/LetterboxdBrowserStatus.tsx"
+  ]
+}
