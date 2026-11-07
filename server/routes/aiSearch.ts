@@ -1,9 +1,11 @@
 import TheMovieDb from '@server/api/themoviedb';
 import { MediaStatus } from '@server/constants/media';
 import Media from '@server/entity/Media';
+import { searchPeople } from '@server/lib/aiSearchPeople';
 import { matchesAiFilters, normalizedTitle } from '@server/lib/aiSearchPlan';
 import { interpretAiSearch } from '@server/lib/aiSearchProvider';
 import { discoveryData } from '@server/lib/discoveryData';
+import { togetherSeen } from '@server/lib/discoveryRecommendations';
 import {
   mapMovieResult,
   mapTvResult,
@@ -13,6 +15,18 @@ import {
 import { Router } from 'express';
 
 const router = Router();
+router.get('/people', async (req, res, next) => {
+  try {
+    const d = await discoveryData(req.user!.id);
+    if (!d.visibilityStillValid()) return res.sendStatus(409);
+    return res.json({ users: d.users, selfId: req.user!.id });
+  } catch {
+    return next({
+      status: 503,
+      message: 'People are temporarily unavailable.',
+    });
+  }
+});
 router.post('/', async (req, res, next) => {
   try {
     const query =
@@ -22,16 +36,38 @@ router.post('/', async (req, res, next) => {
         status: 400,
         message: 'Enter a search of up to 1,000 characters.',
       });
-    const { plan, cached } = await interpretAiSearch(req.user!.id, query);
-    const f = plan.filters;
+    if (!process.env.OPENAI_API_KEY)
+      return next({ status: 503, message: 'AI Search is not configured yet.' });
     const d = await discoveryData(req.user!.id);
+    const people = searchPeople(req.user!.id, req.body.people, query, d.users);
+    if (people.ids.length > 1 && !d.historyAvailable)
+      return next({
+        status: 503,
+        message: 'Watch history is temporarily unavailable. Please retry.',
+      });
+    const { plan, cached } = await interpretAiSearch(
+      req.user!.id,
+      people.query
+    );
+    const f = {
+      ...plan.filters,
+      unwatched:
+        plan.filters.unwatched ||
+        people.ids.length > 1 ||
+        /\bunwatched by\b/i.test(query),
+    };
+    const seen = togetherSeen(people.ids, d.ratings, d.watched);
     if (f.unwatched && !d.historyAvailable)
       return next({
         status: 503,
         message: 'Watch history is temporarily unavailable. Please retry.',
       });
     const tmdb = new TheMovieDb();
-    const candidates: { media: MovieResult | TvResult; reason: string }[] = [];
+    const candidates: {
+      media: MovieResult | TvResult;
+      reason: string;
+      runtime?: number | null;
+    }[] = [];
     if (plan.suggestions.length) {
       // Small batches bound metadata concurrency; never trust model-supplied IDs.
       for (let i = 0; i < plan.suggestions.length; i += 3) {
@@ -126,7 +162,7 @@ router.post('/', async (req, res, next) => {
           const key = `${f.type}:${r.media.id}`;
           if (
             (f.available && !d.available.has(key)) ||
-            (f.unwatched && d.seen.has(key))
+            (f.unwatched && seen.has(key))
           )
             return null;
           let runtime: number | null = null;
@@ -148,14 +184,14 @@ router.post('/', async (req, res, next) => {
           if (
             !matchesAiFilters(f, {
               available: d.available.has(key),
-              watched: d.seen.has(key),
+              watched: seen.has(key),
               runtime,
               year,
               genres: r.media.genreIds,
             })
           )
             return null;
-          return { ...r, media: { ...r.media, mediaInfo: m } };
+          return { ...r, runtime, media: { ...r.media, mediaInfo: m } };
         })
       );
       results.push(
@@ -167,6 +203,7 @@ router.post('/', async (req, res, next) => {
     return res.json({
       results: results.slice(0, 20),
       filters: f,
+      people: d.users.filter((u) => people.ids.includes(u.id)),
       note: plan.note,
       cached,
       limited: true,

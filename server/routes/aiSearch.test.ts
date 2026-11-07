@@ -106,9 +106,17 @@ test('resolved results enforce availability, watched state, runtime and blocklis
       ({
         historyAvailable: true,
         available: new Set(['movie:1', 'movie:2', 'movie:3', 'movie:4']),
-        seen: new Set(['movie:2']),
+        users: [
+          { id: 98703, name: 'Self' },
+          { id: 98704, name: 'ykrn' },
+        ],
+        ratings: [],
+        watched: [
+          { userId: 98703, type: 'movie', tmdbId: 2 },
+          { userId: 98704, type: 'movie', tmdbId: 1 },
+        ],
         visibilityStillValid: () => true,
-      }) as Awaited<ReturnType<typeof discovery.discoveryData>>
+      }) as unknown as Awaited<ReturnType<typeof discovery.discoveryData>>
   );
   t.mock.method(
     Media,
@@ -178,5 +186,30 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     upstream.mock.callCount(),
     3,
     'skip runtime fetch for unavailable, watched and blocked films'
+  );
+  const hidden = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: 'test constraints', people: [123] });
+  assert.equal(hidden.status, 400);
+  const grouped = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: 'test constraints', people: [98704] });
+  assert.equal(grouped.status, 200, JSON.stringify(grouped.body));
+  assert.deepEqual(grouped.body.results, []);
+  assert.equal(
+    grouped.body.cached,
+    true,
+    'Changing people reuses interpretation; history stays local'
+  );
+  assert.equal(result.body.results[0].runtime, 90);
+  const visible = await request(app)
+    .get('/api/v1/ai-search/people')
+    .set('test-user', '1');
+  assert.equal(visible.status, 200);
+  assert.deepEqual(
+    visible.body.users.map((u: { id: number }) => u.id),
+    [98703, 98704]
   );
 });

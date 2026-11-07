@@ -115,6 +115,19 @@ export function tasteNeighbours(userId: number, input: TasteRating[]) {
     .filter((n) => n.similarity > 0)
     .sort((a, b) => b.similarity - a.similarity);
 }
+/** Shared watched exclusion for Watch Together and AI Search. */
+export function togetherSeen(
+  userIds: number[],
+  input: TasteRating[],
+  watched: Viewing[]
+) {
+  const members = new Set(userIds);
+  return new Set(
+    [...watched, ...latestRatings(input)]
+      .filter((row) => members.has(row.userId))
+      .map(filmKey)
+  );
+}
 export function recommend(
   userIds: number[],
   input: TasteRating[],
@@ -122,10 +135,7 @@ export function recommend(
   candidates: ListFilm[]
 ) {
   const rows = latestRatings(input),
-    seen = new Set(
-      watched.filter((v) => userIds.includes(v.userId)).map(filmKey)
-    );
-  for (const r of rows) if (userIds.includes(r.userId)) seen.add(filmKey(r));
+    seen = togetherSeen(userIds, rows, watched);
   const neighbours = new Map(
     userIds.map((id) => [id, tasteNeighbours(id, rows)])
   );

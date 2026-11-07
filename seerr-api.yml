@@ -7081,6 +7081,12 @@ paths:
                       $ref: '#/components/schemas/MediaInfo'
                   playCount:
                     type: number
+  /ai-search/people:
+    get:
+      summary: Visible people for local AI Search watched filtering
+      responses:
+        '200':
+          description: People permitted by the existing social visibility policy
   /ai-search:
     post:
       summary: Interpret a natural-language catalogue search
@@ -7098,6 +7104,13 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 1000
+                people:
+                  type: array
+                  maxItems: 5
+                  uniqueItems: true
+                  items:
+                    type: integer
+                    minimum: 1
       responses:
         '200':
           description: Validated catalogue matches and interpreted filters

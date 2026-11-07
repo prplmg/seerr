@@ -1,16 +1,32 @@
+import CachedImage from '@app/components/Common/CachedImage';
 import PageTitle from '@app/components/Common/PageTitle';
 import TitleCard from '@app/components/TitleCard';
 import type { AiFilters } from '@server/lib/aiSearchPlan';
 import type { MovieResult, TvResult } from '@server/models/Search';
 import axios from 'axios';
 import { useState } from 'react';
+import useSWR from 'swr';
 
 interface SearchResponse {
-  results: { media: MovieResult | TvResult; reason: string }[];
+  results: {
+    media: MovieResult | TvResult;
+    reason: string;
+    runtime?: number | null;
+  }[];
   filters: AiFilters;
   note: string;
+  people?: { id: number; name: string }[];
 }
 export default function AiSearchPage() {
+  const {
+    data: peopleData,
+    error: peopleError,
+    mutate: retryPeople,
+  } = useSWR<{
+    users: { id: number; name: string; avatar?: string }[];
+    selfId: number;
+  }>('/api/v1/ai-search/people');
+  const [people, setPeople] = useState<number[]>([]);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -23,8 +39,13 @@ export default function AiSearchPage() {
     try {
       const { data } = await axios.post<SearchResponse>('/api/v1/ai-search', {
         query: query.trim(),
+        people,
       });
       setResponse(data);
+      if (data.people && peopleData)
+        setPeople(
+          data.people.filter((p) => p.id !== peopleData.selfId).map((p) => p.id)
+        );
       setSubmitted(query.trim());
     } catch (e) {
       setError(
@@ -41,9 +62,6 @@ export default function AiSearchPage() {
     <>
       <PageTitle title="AI Search" />
       <h1 className="mb-3 text-3xl font-bold text-purple-300">AI Search</h1>
-      <p className="mb-6 text-gray-300">
-        Describe what you feel like watching.
-      </p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -61,11 +79,77 @@ export default function AiSearchPage() {
           maxLength={1000}
           rows={3}
           className="w-full rounded-xl border border-gray-600 bg-gray-900 p-3 text-white"
-          placeholder="A clever sci-fi movie under two hours, available and unwatched…"
+          placeholder="A horror movie like The Witch, from the 2010s, under two hours, available and unwatched by ykrn and I…"
         />
+        <details className="mt-3 rounded-lg border border-gray-700 px-3 py-2">
+          <summary className="cursor-pointer text-sm text-purple-300">
+            Watching with · {people.length ? `You + ${people.length}` : 'You'}
+          </summary>
+          <p className="my-2 text-xs text-gray-400">
+            You’re included. Choose up to five others to exclude anything any of
+            you has watched.
+          </p>
+          {peopleError ? (
+            <button
+              type="button"
+              onClick={() => void retryPeople()}
+              className="text-sm text-purple-300"
+            >
+              Couldn’t load people. Retry
+            </button>
+          ) : !peopleData ? (
+            <p role="status" className="text-sm text-gray-400">
+              Loading people…
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {peopleData.users
+                .filter((u) => u.id !== peopleData.selfId)
+                .map((u) => (
+                  <label
+                    key={u.id}
+                    className="flex min-w-0 items-center gap-2 rounded-lg bg-gray-900 p-2"
+                  >
+                    {u.avatar ? (
+                      <CachedImage
+                        type="avatar"
+                        src={u.avatar}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-700">
+                        {u.name.slice(0, 1)}
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1 break-words text-sm">
+                      {u.name}
+                    </span>
+                    <input
+                      type="checkbox"
+                      aria-label={u.name}
+                      checked={people.includes(u.id)}
+                      disabled={
+                        busy || (people.length >= 5 && !people.includes(u.id))
+                      }
+                      onChange={(e) =>
+                        setPeople(
+                          e.target.checked
+                            ? [...people, u.id]
+                            : people.filter((id) => id !== u.id)
+                        )
+                      }
+                    />
+                  </label>
+                ))}
+            </div>
+          )}
+        </details>
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="text-sm text-gray-400">
-            Only searches when you submit.
+            AI makes mistakes. Edit to refine results
           </span>
           <button
             type="submit"
@@ -98,7 +182,9 @@ export default function AiSearchPage() {
             {[
               f.type === 'movie' ? 'Movies' : 'Series',
               f.available ? 'Available' : null,
-              f.unwatched ? 'Unwatched' : null,
+              f.unwatched
+                ? `Unwatched${response.people?.length ? ' by ' + response.people.map((p) => p.name).join(', ') : ''}`
+                : null,
               f.maxRuntime
                 ? `Up to ${f.maxRuntime} min${f.type === 'tv' ? ' / episode' : ''}`
                 : null,
@@ -116,19 +202,20 @@ export default function AiSearchPage() {
           {response.note && (
             <p className="mb-4 text-amber-200">{response.note}</p>
           )}
-          <p className="mb-5 text-sm text-gray-400">
-            A shortlist, not an exhaustive search. Edit your description to
-            refine it. AI suggestions can miss the mark.
-          </p>
           {!response.results.length && (
             <p className="py-8 text-gray-300">
               No verified matches in this shortlist. Try a broader description.
             </p>
           )}
           <ul className="cards-vertical">
-            {response.results.map(({ media: m, reason }) => (
+            {response.results.map(({ media: m, reason, runtime }) => (
               <li key={`${m.mediaType}:${m.id}`} className="min-w-0">
                 <TitleCard
+                  posterBadge={
+                    f.maxRuntime !== null && runtime
+                      ? `${runtime} min`
+                      : undefined
+                  }
                   id={m.id}
                   image={m.posterPath}
                   status={m.mediaInfo?.status}
