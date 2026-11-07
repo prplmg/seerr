@@ -23,3 +23,5 @@ Letterboxd score filtering/badges remain unimplemented. Recommended later: use e
 ## Verification
 
 23 focused tests passed, including existing Watch Together regressions, identity/privacy/bounds, grouped watched exclusion, cache reuse with changed group, duration response and log sanitization. Server/client typechecks, focused lint and diff check passed. Actual page/TitleCard fixtures checked at320/390/1440px: no horizontal overflow, no AI call while typing/selecting, selected people included on submit, and duration badges rendered. Evidence outputs/ai-search-group-20261107. No production deploy or Git push.
+
+Follow-up: placeholder now says “unwatched by prplmg and I”, as requested. Copy-only change; diff check passed. Still not deployed.

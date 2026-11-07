@@ -79,7 +79,7 @@ export default function AiSearchPage() {
           maxLength={1000}
           rows={3}
           className="w-full rounded-xl border border-gray-600 bg-gray-900 p-3 text-white"
-          placeholder="A horror movie like The Witch, from the 2010s, under two hours, available and unwatched by ykrn and I…"
+          placeholder="A horror movie like The Witch, from the 2010s, under two hours, available and unwatched by prplmg and I…"
         />
         <details className="mt-3 rounded-lg border border-gray-700 px-3 py-2">
           <summary className="cursor-pointer text-sm text-purple-300">
