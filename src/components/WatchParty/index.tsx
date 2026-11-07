@@ -1,6 +1,7 @@
 import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
 import Modal from '@app/components/Common/Modal';
+import CompactWatchingRoster from '@app/components/WatchParty/CompactWatchingRoster';
 import { activeWatching } from '@app/components/WatchParty/activeWatching';
 import { partyBridge } from '@app/components/WatchParty/bridge';
 import { usePartyText } from '@app/components/WatchParty/messages';
@@ -39,9 +40,11 @@ function Avatar({ person }: { person: WatchingPerson }) {
 export function PartyPill({
   party,
   hasOwnParty,
+  compact = false,
 }: {
   party: WatchingParty;
   hasOwnParty: boolean;
+  compact?: boolean;
 }) {
   const t = usePartyText();
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -65,16 +68,18 @@ export function PartyPill({
   return (
     <span
       title={`${party.mine ? t('Your party', 'Tu grupo') + ': ' : ''}${party.members.map((p) => p.name).join(', ')}`}
-      className={`inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border px-1.5 py-1 ${!hasOwnParty || party.mine ? 'border-purple-400 bg-purple-600/25' : 'border-gray-500 bg-gray-600/30'}`}
+      className={`inline-flex max-w-full ${compact ? 'min-w-0 flex-nowrap' : 'flex-wrap'} items-center gap-1 rounded-full border px-1.5 py-1 ${!hasOwnParty || party.mine ? 'border-purple-400 bg-purple-600/25' : 'border-gray-500 bg-gray-600/30'}`}
     >
-      {party.members.map((p) => (
-        <Avatar key={p.id} person={p} />
-      ))}
+      {compact ? (
+        <CompactWatchingRoster people={party.members} />
+      ) : (
+        party.members.map((p) => <Avatar key={p.id} person={p} />)
+      )}
       {party.mine && (
         <span className="sr-only">{t('Your party', 'Tu grupo')}</span>
       )}
       {party.external && (
-        <Popover className="inline-flex">
+        <Popover className="inline-flex flex-none">
           <Popover.Button
             aria-label={t(
               `Currently on YouTube: ${party.external.title}`,
@@ -146,6 +151,8 @@ export function WatchingPeople({
   list?: boolean;
 }) {
   const own = item.parties.some((p) => p.mine);
+  if (!item.parties.length && list && item.viewers.length >= 4)
+    return <CompactWatchingRoster people={item.viewers} />;
   if (!item.parties.length && list)
     return (
       <div className="flex flex-col gap-1.5">
@@ -158,13 +165,24 @@ export function WatchingPeople({
       </div>
     );
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {item.viewers.map((p) => (
-        <Avatar key={p.id} person={p} />
-      ))}
+    <div
+      className={
+        list
+          ? 'flex max-h-[76px] flex-col items-start gap-1.5 overflow-y-auto overscroll-contain'
+          : 'flex flex-wrap items-center gap-1.5'
+      }
+    >
+      {list ? (
+        <CompactWatchingRoster people={item.viewers} />
+      ) : (
+        item.viewers.map((p) => <Avatar key={p.id} person={p} />)
+      )}
       {item.parties.map((p) => (
-        <div key={p.id} className="min-w-0 max-w-full">
-          <PartyPill party={p} hasOwnParty={own} />
+        <div
+          key={p.id}
+          className={`min-w-0 max-w-full ${list ? 'flex-none' : ''}`}
+        >
+          <PartyPill party={p} hasOwnParty={own} compact={list} />
           {list && p.external && (
             <a
               href={p.external.url}
