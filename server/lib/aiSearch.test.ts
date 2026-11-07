@@ -93,6 +93,11 @@ test('provider uses server secret, caches per user, and sanitizes upstream failu
     ) => {
       assert.equal(body.model, AI_SEARCH_MODEL);
       assert.equal(body.store, false);
+      const messages = body.input as { role: string; content: string }[];
+      assert.equal(messages[0].role, 'developer');
+      assert.match(messages[0].content, /JSON/);
+      assert.equal(messages[1].role, 'user');
+      assert.equal(messages[1].content, 'test');
       assert.equal(
         options.headers.Authorization,
         'Bearer test-only-not-a-real-key'

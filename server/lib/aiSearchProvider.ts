@@ -34,8 +34,10 @@ export async function interpretAiSearch(userId: number, query: string) {
       'https://api.openai.com/v1/responses',
       {
         model: AI_SEARCH_MODEL,
-        instructions,
-        input: query,
+        input: [
+          { role: 'developer', content: instructions },
+          { role: 'user', content: query },
+        ],
         reasoning: { effort: 'medium' },
         max_output_tokens: 4000,
         store: false,
