@@ -1,0 +1,48 @@
+{
+  "films": [
+    {
+      "tmdbId": 1653,
+      "status": 5
+    },
+    {
+      "tmdbId": 433808,
+      "status": 5
+    },
+    {
+      "tmdbId": 1096228,
+      "status": 5
+    }
+  ],
+  "at": "2026-11-07T05:31:42.977Z",
+  "build": "YLP4dXyOIb_9sGXSysFi2",
+  "sourceHashesMatch": true,
+  "togglesUnchanged": true,
+  "schedulesUnchanged": true,
+  "invalidIdRejected": true,
+  "checks": [
+    {
+      "userId": 1,
+      "media": "movie/843",
+      "status": 200,
+      "lists": 12
+    },
+    {
+      "userId": 1,
+      "media": "tv/1437",
+      "status": 200,
+      "lists": 0
+    },
+    {
+      "userId": 4,
+      "media": "movie/843",
+      "status": 200,
+      "lists": 12
+    },
+    {
+      "userId": 4,
+      "media": "tv/1437",
+      "status": 200,
+      "lists": 0
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+continuity benchmark 500: initial=1.5ms no-op=1.3ms
+continuity benchmark 20000: initial=53.6ms no-op=32.1ms
+✔ observed 13s resume -> 46s next playback -> 14s resume inherits roster but never completion (1.408167ms)
+✔ next played same-series episode carries across seasons and manual selections with valid metadata (0.121542ms)
+✔ explicit destination choices and leave win, including propagation after a cached snapshot (0.286917ms)
+✔ enforces inclusive 20 minute gap, same account/device/media and valid endpoint evidence (0.222208ms)
+✔ intervening media and A -> B -> A account switch on one player break continuity (0.14425ms)
+✔ new ambiguous or intervening evidence revokes derived credit, never explicit entries; stale snapshots cannot resurrect it (0.222458ms)
+✔ preserves legacy entries outside snapshots and movie resume without crossing movies (0.079875ms)
+✔ background normalization retains raw series evidence and unsupported/malformed interruption barriers (0.266417ms)
+✔ persists once, reuses fresh explicit state on repeated raw-cache reads, and preserves no-op mtime (21.0345ms)
+✔ benchmarks bounded 500 and 20000 row reconciliation with unchanged second pass (90.254334ms)
+✔ negative evidence predating inheritance prevents older cached subsets from bridging an account switch (0.170541ms)
+✔ timestamped ambiguous rows block candidate intervals, not all future history on the account (0.08225ms)
+✔ live and global route caches reconcile current assignments without extra upstream calls (67.021125ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1732.026208

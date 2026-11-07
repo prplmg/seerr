@@ -1,0 +1,46 @@
+{
+  "at": "2026-11-07T05:31:41.663Z",
+  "status": 200,
+  "activityAvailable": true,
+  "attributions": {
+    "original": {
+      "added": [
+        1,
+        4,
+        16
+      ],
+      "excluded": [],
+      "completed": []
+    },
+    "resumed": {
+      "added": [
+        1,
+        4,
+        16
+      ],
+      "excluded": [],
+      "completed": [],
+      "inheritedFrom": "097649c57cd484db9a8eddb973f717b0f426b3869fed3026af2577c39d43460b"
+    },
+    "nextEpisode": {
+      "added": [
+        1,
+        4,
+        16
+      ],
+      "excluded": [],
+      "completed": [],
+      "inheritedFrom": "3fb32e9358dd08a7af01eab378a7eb753af6deb8ca5226404767239c033efaca"
+    },
+    "resumedNext": {
+      "added": [
+        1,
+        4,
+        16
+      ],
+      "excluded": [],
+      "completed": [],
+      "inheritedFrom": "94f65979ae7c9630e0c00136fd22645d56c00456bad684c73b94fce860e81277"
+    }
+  }
+}

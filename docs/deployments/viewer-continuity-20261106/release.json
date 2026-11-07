@@ -1,0 +1,8 @@
+{
+  "files": [
+    "server/lib/backgroundWorkTasks.ts",
+    "server/lib/viewingAttribution.ts",
+    "server/routes/social.ts",
+    "server/routes/watchParty.ts"
+  ]
+}
