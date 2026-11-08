@@ -141,7 +141,8 @@ export default function FilterChips({
           )}
           {editing === 1 && group && (
             <p className="text-xs text-gray-400">
-              Remove other viewers in “Watching with” to include watched titles.
+              Use the people icon above to remove other viewers and include
+              watched titles.
             </p>
           )}
           {editing === 2 && (
