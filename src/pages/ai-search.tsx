@@ -1,3 +1,5 @@
+import FilterChips from '@app/components/AiSearch/FilterChips';
+import { searchStream } from '@app/components/AiSearch/searchStream';
 import CachedImage from '@app/components/Common/CachedImage';
 import PageTitle from '@app/components/Common/PageTitle';
 import TitleCard from '@app/components/TitleCard';
@@ -43,6 +45,7 @@ export default function AiSearchPage() {
   const [people, setPeople] = useState<number[]>([]);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState('Finding titles…');
   const [error, setError] = useState('');
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [submitted, setSubmitted] = useState('');
@@ -86,15 +89,25 @@ export default function AiSearchPage() {
       window.removeEventListener('pagehide', save);
     };
   }, [user, query, people, response, submitted]);
-  async function search(searchQuery = query, selectedPeople = people) {
+  async function search(
+    searchQuery = query,
+    selectedPeople = people,
+    filters?: AiFilters
+  ) {
     if (busy || !searchQuery.trim()) return;
     setBusy(true);
+    setProgress('Checking your catalogue…');
     setError('');
     try {
-      const { data } = await axios.post<SearchResponse>('/api/v1/ai-search', {
-        query: searchQuery.trim(),
-        people: selectedPeople,
-      });
+      const data = await searchStream<SearchResponse>(
+        {
+          query: searchQuery.trim(),
+          people: selectedPeople,
+          filters,
+          stream: true,
+        },
+        setProgress
+      );
       setResponse(data);
       if (data.people && peopleData)
         setPeople(
@@ -106,7 +119,9 @@ export default function AiSearchPage() {
       setError(
         axios.isAxiosError(e)
           ? e.response?.data?.message || 'Search failed. Please try again.'
-          : 'Search failed. Please try again.'
+          : e instanceof Error
+            ? e.message
+            : 'Search failed. Please try again.'
       );
     } finally {
       setBusy(false);
@@ -172,7 +187,7 @@ export default function AiSearchPage() {
                       setQuery(entry.query);
                       setPeople(entry.people);
                       setHistoryOpen(false);
-                      void search(entry.query, entry.people);
+                      void search(entry.query, entry.people, entry.filters);
                     }}
                   >
                     <span className="block break-words">{entry.query}</span>
@@ -296,8 +311,15 @@ export default function AiSearchPage() {
         </p>
       )}
       {busy && (
-        <p role="status" className="mb-5 text-purple-300">
-          Finding titles and checking catalogue matches…
+        <p
+          role="status"
+          className="mb-5 flex items-center gap-2 text-purple-300"
+        >
+          <span
+            aria-hidden="true"
+            className="h-4 w-4 animate-spin rounded-full border-2 border-purple-300 border-t-transparent"
+          />
+          {progress}
         </p>
       )}
       {response && f && (
@@ -305,27 +327,13 @@ export default function AiSearchPage() {
           <p className="mb-3 break-words text-gray-300">
             Results for “{submitted}”
           </p>
-          <div className="mb-4 flex flex-wrap gap-2 text-sm">
-            {[
-              f.type === 'movie' ? 'Movies' : 'Series',
-              f.available ? 'Available' : null,
-              f.unwatched
-                ? `Unwatched${response.people?.length ? ' by ' + response.people.map((p) => p.name).join(', ') : ''}`
-                : null,
-              f.maxRuntime
-                ? `Up to ${f.maxRuntime} min${f.type === 'tv' ? ' / episode' : ''}`
-                : null,
-              f.yearFrom || f.yearTo
-                ? `${f.yearFrom ?? 'Any year'}–${f.yearTo ?? 'now'}`
-                : null,
-            ]
-              .filter(Boolean)
-              .map((t) => (
-                <span key={t} className="rounded-full bg-gray-700 px-3 py-1">
-                  {t}
-                </span>
-              ))}
-          </div>
+          <FilterChips
+            key={JSON.stringify([submitted, f])}
+            filters={f}
+            busy={busy}
+            group={people.length > 0}
+            onApply={(filters) => void search(submitted, people, filters)}
+          />
           {response.note && (
             <p className="mb-4 text-amber-200">{response.note}</p>
           )}

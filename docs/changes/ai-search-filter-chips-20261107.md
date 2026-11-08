@@ -1,0 +1,13 @@
+# AI Search editable chips and real progress (local only)
+
+Not deployed. Builds, paid API requests and live toggles untouched. Extends the pending seven-day history/cache change (175d1d8d).
+
+Editable availability, watched, runtime, release-year and genre chips each open a compact editor for that filter. Up to three genres use AND semantics. Movie/series type remains a contextual badge: edit the description to request a different type or subjective shortlist. Group searches continue to require unwatched-by-everyone; the UI explains this. Subjective searches refine the original shortlist, not a newly generated recommendation set. Objective discover searches rerun with the updated constraints. Cheap release/genre checks precede runtime retrieval.
+
+Chip edits send validated filters and reuse the versioned per-user interpretation cache, never calling AI on a miss. Expired searches return an explicit instruction to submit again rather than silently spending tokens. Edited filters persist in history, participate in entry deduplication, and replay with the selected people. Existing browser snapshots preserve edited filters/results on Back/reload.
+
+Optional stream:true on the existing authenticated POST returns NDJSON progress/result/error events. Normal JSON clients remain supported. Stages reflect actual work: checking catalogue, interpreting or reusing the search, finding movies/series, checking applicable filters, and checking runtimes only if runtime retrieval occurs. No polling, artificial stage timers, new background jobs or percent estimates. One same-origin browser request; UTF-8 chunk boundaries, streamed errors, incomplete responses and HTTP failures handled. no-cache/no-transform response header requests unbuffered delivery; end-to-end production proxy behavior awaits a future authorized rollout. “Titles” is the recommended mixed-content term; current AI Search selects one type per search.
+
+No Letterboxd filtering implemented.
+
+Verification:11 focused unit/API tests passed, including real OpenAPI middleware with edited/streamed requests; cache-only edits/no model spend, expired-cache handling, history filters, runtime pruning, privacy/group exclusions, stream decoding/errors and legacy JSON requests. Client/server typechecks, focused lint and diff checks passed. Actual page components tested with mocked responses at320/390/1440px: history, progress, per-chip edit/apply payloads, Back/reload preservation and no horizontal overflow. Local preview chrome/data are fixtures; stage delays in screenshots are fixture-only. Evidence outputs/ai-search-chips-20261107. No deployment or push; unrelated next-env.d.ts preserved.

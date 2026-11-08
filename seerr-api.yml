@@ -7110,6 +7110,49 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 1000
+                stream:
+                  type: boolean
+                filters:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    [
+                      type,
+                      available,
+                      unwatched,
+                      maxRuntime,
+                      yearFrom,
+                      yearTo,
+                      genres,
+                    ]
+                  properties:
+                    type:
+                      type: string
+                      enum: [movie, tv]
+                    available:
+                      type: boolean
+                    unwatched:
+                      type: boolean
+                    maxRuntime:
+                      type: integer
+                      nullable: true
+                      minimum: 1
+                      maximum: 600
+                    yearFrom:
+                      type: integer
+                      nullable: true
+                      minimum: 1870
+                      maximum: 2100
+                    yearTo:
+                      type: integer
+                      nullable: true
+                      minimum: 1870
+                      maximum: 2100
+                    genres:
+                      type: array
+                      maxItems: 3
+                      items:
+                        type: integer
                 people:
                   type: array
                   maxItems: 5

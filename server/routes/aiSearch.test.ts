@@ -71,7 +71,7 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     if (old === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = old;
   });
-  t.mock.method(axios, 'post', async () => ({
+  const model = t.mock.method(axios, 'post', async () => ({
     data: {
       status: 'completed',
       output: [
@@ -148,6 +148,13 @@ test('resolved results enforce availability, watched state, runtime and blocklis
   );
   const app = express();
   app.use(express.json());
+  app.use(
+    OpenApiValidator.middleware({
+      apiSpec: path.resolve('seerr-api.yml'),
+      validateRequests: true,
+      validateSecurity: false,
+    })
+  );
   app.use((req, _res, next) => {
     if (req.header('test-user'))
       req.user = {
@@ -223,4 +230,47 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     (await request(app).get('/api/v1/ai-search/history')).status,
     403
   );
+  const calls = model.mock.callCount();
+  const edits = { ...result.body.filters, maxRuntime: null, unwatched: false };
+  const edited = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: 'test constraints', filters: edits, stream: true });
+  assert.match(edited.headers['content-type'], /application\/x-ndjson/);
+  const events = edited.text
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  assert.equal(events[0].kind, 'progress');
+  assert.ok(events.some((event) => event.message === 'Finding movies…'));
+  assert.ok(!events.some((event) => event.message === 'Checking runtimes…'));
+  const payload = events.at(-1).data;
+  assert.deepEqual(
+    payload.results.map((r: { media: { id: number } }) => r.media.id),
+    [1, 2, 3]
+  );
+  assert.equal(payload.cached, true);
+  assert.equal(model.mock.callCount(), calls, 'filter edits never call AI');
+  const changedHistory = await request(app)
+    .get('/api/v1/ai-search/history')
+    .set('test-user', '1');
+  assert.deepEqual(changedHistory.body.searches[0].filters, edits);
+  const expired = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: 'not cached', filters: edits, stream: true });
+  assert.equal(
+    JSON.parse(expired.text.trim().split('\n').at(-1)!).kind,
+    'error'
+  );
+  assert.equal(
+    model.mock.callCount(),
+    calls,
+    'expired chip edits must not silently spend tokens'
+  );
+  const invalid = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: 'test constraints', filters: { ...edits, maxRuntime: -1 } });
+  assert.equal(invalid.status, 400);
 });

@@ -3,7 +3,11 @@ import { MediaStatus } from '@server/constants/media';
 import Media from '@server/entity/Media';
 import { readSearchHistory, rememberSearch } from '@server/lib/aiSearchHistory';
 import { searchPeople } from '@server/lib/aiSearchPeople';
-import { matchesAiFilters, normalizedTitle } from '@server/lib/aiSearchPlan';
+import {
+  matchesAiFilters,
+  normalizedTitle,
+  parseAiFilters,
+} from '@server/lib/aiSearchPlan';
 import { interpretAiSearch } from '@server/lib/aiSearchProvider';
 import { discoveryData } from '@server/lib/discoveryData';
 import { togetherSeen } from '@server/lib/discoveryRecommendations';
@@ -39,6 +43,11 @@ router.get('/people', async (req, res, next) => {
   }
 });
 router.post('/', async (req, res, next) => {
+  const emit = (event: unknown) => {
+    if (req.body.stream && !res.destroyed)
+      res.write(JSON.stringify(event) + '\n');
+  };
+  const progress = (message: string) => emit({ kind: 'progress', message });
   try {
     const query =
       typeof req.body.query === 'string' ? req.body.query.trim() : '';
@@ -49,30 +58,54 @@ router.post('/', async (req, res, next) => {
       });
     if (!process.env.OPENAI_API_KEY)
       return next({ status: 503, message: 'AI Search is not configured yet.' });
+    let overrides;
+    if (req.body.filters !== undefined) {
+      try {
+        overrides = parseAiFilters(req.body.filters);
+      } catch {
+        return next({ status: 400, message: 'Invalid search filters.' });
+      }
+    }
+    if (req.body.stream) {
+      res.setHeader('Content-Type', 'application/x-ndjson');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('X-Accel-Buffering', 'no');
+      res.flushHeaders();
+    }
+    progress('Checking your catalogue…');
     const d = await discoveryData(req.user!.id);
     const people = searchPeople(req.user!.id, req.body.people, query, d.users);
     if (people.ids.length > 1 && !d.historyAvailable)
-      return next({
-        status: 503,
-        message: 'Watch history is temporarily unavailable. Please retry.',
-      });
+      throw Object.assign(
+        Error('Watch history is temporarily unavailable. Please retry.'),
+        { status: 503 }
+      );
+    progress(overrides ? 'Reusing your search…' : 'Understanding your search…');
     const { plan, cached } = await interpretAiSearch(
       req.user!.id,
-      people.query
+      people.query,
+      Boolean(overrides)
     );
+    if (overrides && overrides.type !== plan.filters.type)
+      throw Object.assign(
+        Error('Change movies or series in your description and search again.'),
+        { status: 400 }
+      );
+    const base = overrides ?? plan.filters;
     const f = {
-      ...plan.filters,
+      ...base,
       unwatched:
-        plan.filters.unwatched ||
+        base.unwatched ||
         people.ids.length > 1 ||
-        /\bunwatched by\b/i.test(query),
+        (!overrides && /\bunwatched by\b/i.test(query)),
     };
     const seen = togetherSeen(people.ids, d.ratings, d.watched);
     if (f.unwatched && !d.historyAvailable)
-      return next({
-        status: 503,
-        message: 'Watch history is temporarily unavailable. Please retry.',
-      });
+      throw Object.assign(
+        Error('Watch history is temporarily unavailable. Please retry.'),
+        { status: 503 }
+      );
+    progress(f.type === 'movie' ? 'Finding movies…' : 'Finding series…');
     const tmdb = new TheMovieDb();
     const candidates: {
       media: MovieResult | TvResult;
@@ -154,11 +187,23 @@ router.post('/', async (req, res, next) => {
     const unique = [
       ...new Map(candidates.map((r) => [r.media.id, r])).values(),
     ];
+    const checks = [
+      f.available ? 'availability' : null,
+      f.unwatched ? 'watched status' : null,
+      f.yearFrom || f.yearTo ? 'release years' : null,
+      f.genres.length ? 'genres' : null,
+    ].filter(Boolean);
+    progress(
+      checks.length
+        ? `Checking ${checks.join(', ')}…`
+        : 'Checking catalogue matches…'
+    );
     const related = await Media.getRelatedMedia(
       req.user,
       unique.map((r) => ({ tmdbId: r.media.id, mediaType: f.type }))
     );
     const results: typeof candidates = [];
+    let runtimeProgress = false;
     for (let i = 0; i < unique.length && results.length < 20; i += 3) {
       const batch = await Promise.all(
         unique.slice(i, i + 3).map(async (r) => {
@@ -176,8 +221,31 @@ router.post('/', async (req, res, next) => {
             (f.unwatched && seen.has(key))
           )
             return null;
+          const year = Number(
+            (r.media.mediaType === 'movie'
+              ? r.media.releaseDate
+              : r.media.firstAirDate
+            )?.slice(0, 4)
+          );
+          if (
+            !matchesAiFilters(
+              { ...f, maxRuntime: null },
+              {
+                available: d.available.has(key),
+                watched: seen.has(key),
+                runtime: null,
+                year,
+                genres: r.media.genreIds,
+              }
+            )
+          )
+            return null;
           let runtime: number | null = null;
           if (f.maxRuntime !== null) {
+            if (!runtimeProgress) {
+              runtimeProgress = true;
+              progress('Checking runtimes…');
+            }
             if (f.type === 'movie')
               runtime = (await tmdb.getListMovie(r.media.id)).runtime || null;
             else {
@@ -186,12 +254,6 @@ router.post('/', async (req, res, next) => {
               runtime = times?.length ? Math.max(...times) : null;
             }
           }
-          const year = Number(
-            (r.media.mediaType === 'movie'
-              ? r.media.releaseDate
-              : r.media.firstAirDate
-            )?.slice(0, 4)
-          );
           if (
             !matchesAiFilters(f, {
               available: d.available.has(key),
@@ -210,17 +272,33 @@ router.post('/', async (req, res, next) => {
       );
     }
     if (!d.visibilityStillValid())
-      return next({ status: 409, message: 'Catalogue changed. Please retry.' });
-    await rememberSearch(req.user!.id, query, people.ids);
-    return res.json({
+      throw Object.assign(Error('Catalogue changed. Please retry.'), {
+        status: 409,
+      });
+    await rememberSearch(req.user!.id, query, people.ids, overrides);
+    const response = {
       results: results.slice(0, 20),
       filters: f,
       people: d.users.filter((u) => people.ids.includes(u.id)),
       note: plan.note,
       cached,
       limited: true,
-    });
+    };
+    if (req.body.stream) {
+      emit({ kind: 'result', data: response });
+      return res.end();
+    }
+    return res.json(response);
   } catch (e) {
+    if (res.headersSent) {
+      emit({
+        kind: 'error',
+        message: e.status
+          ? e.message
+          : 'Could not load catalogue results. Please retry.',
+      });
+      return res.end();
+    }
     // Provider errors are sanitized; never serialize upstream errors or headers.
     return next({
       status: e.status || 502,

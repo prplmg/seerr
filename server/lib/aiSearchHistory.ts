@@ -2,7 +2,7 @@ import { appDataPath } from '@server/utils/appDataVolume';
 import { createHash, randomUUID } from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { AiPlan } from './aiSearchPlan';
+import type { AiFilters, AiPlan } from './aiSearchPlan';
 
 export const SEARCH_RETENTION = 7 * 24 * 60 * 60 * 1000;
 export interface SearchHistoryEntry {
@@ -10,6 +10,7 @@ export interface SearchHistoryEntry {
   query: string;
   people: number[];
   searchedAt: number;
+  filters?: AiFilters;
 }
 interface SearchStore {
   history: SearchHistoryEntry[];
@@ -69,7 +70,8 @@ export const readSearchHistory = (userId: number) =>
 export const rememberSearch = (
   userId: number,
   query: string,
-  people: number[]
+  people: number[],
+  filters?: AiFilters
 ) =>
   store(
     userId,
@@ -78,10 +80,10 @@ export const rememberSearch = (
         .filter((id) => id !== userId)
         .sort((a, b) => a - b);
       const id = createHash('sha256')
-        .update(JSON.stringify([query, selected]))
+        .update(JSON.stringify([query, selected, filters]))
         .digest('hex');
       data.history = [
-        { id, query, people: selected, searchedAt: Date.now() },
+        { id, query, people: selected, filters, searchedAt: Date.now() },
         ...data.history.filter((entry) => entry.id !== id),
       ];
     },
