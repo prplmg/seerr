@@ -7112,6 +7112,20 @@ paths:
                   maxLength: 1000
                 stream:
                   type: boolean
+                sort:
+                  type: array
+                  maxItems: 2
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [field, direction]
+                    properties:
+                      field:
+                        type: string
+                        enum: [rating, runtime, year]
+                      direction:
+                        type: string
+                        enum: [asc, desc]
                 filters:
                   type: object
                   additionalProperties: false

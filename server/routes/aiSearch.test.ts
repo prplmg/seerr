@@ -59,6 +59,17 @@ test('AI search contract accepts valid requests and rejects malformed bodies bef
 });
 
 test('resolved results enforce availability, watched state, runtime and blocklist', async (t) => {
+  const sortMetadata = await import('@server/lib/listSort');
+  t.mock.method(
+    sortMetadata,
+    'collectListRuntimes',
+    async () =>
+      new Map([
+        ['movie:1', 90],
+        ['movie:2', 110],
+        ['movie:3', 120],
+      ])
+  );
   const axios = (await import('axios')).default;
   const Media = (await import('@server/entity/Media')).default;
   const TheMovieDb = (await import('@server/api/themoviedb')).default;
@@ -259,6 +270,29 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     changedHistory.body.searches[0].filters,
     grouped.body.filters
   );
+  const sorted = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({
+      query: 'test constraints',
+      filters: edits,
+      sort: [{ field: 'runtime', direction: 'desc' }],
+    });
+  assert.equal(sorted.status, 200, JSON.stringify(sorted.body));
+  assert.deepEqual(
+    sorted.body.results.map((r: { media: { id: number } }) => r.media.id),
+    [3, 2, 1]
+  );
+  assert.equal(model.mock.callCount(), calls, 'sort changes never call AI');
+  const invalidSort = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({
+      query: 'test constraints',
+      filters: edits,
+      sort: [{ field: 'nope', direction: 'asc' }],
+    });
+  assert.equal(invalidSort.status, 400);
   const expired = await request(app)
     .post('/api/v1/ai-search')
     .set('test-user', '1')

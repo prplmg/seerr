@@ -29,6 +29,9 @@ function harness(
         async getListMovie(id: number) {
           return { runtime: await lookup('runtime', id) };
         }
+        async getTvShow({ tvId }: { tvId: number }) {
+          return { episode_run_time: [await lookup('runtime', tvId)] };
+        }
         getMovie() {
           throw Error('Full movie lookup must not be used');
         }
@@ -141,3 +144,20 @@ for (const first of ['rating', 'runtime'] as const) {
     assert.equal(api.listSortReadiness(films, 'runtime-asc').state, 'ready');
   });
 }
+
+it('AI runtime collection shares the bounded cache for movies and episode lengths', async () => {
+  const calls: number[] = [];
+  const { api } = harness(async (_field, id) => {
+    calls.push(id);
+    return id === 1 ? 100 : 45;
+  });
+  const films: ListFilm[] = [
+    { type: 'movie', tmdbId: 1 },
+    { type: 'tv', tmdbId: 2 },
+  ];
+  const times = await api.collectListRuntimes(films, undefined, 1000);
+  assert.equal(times.get('movie:1'), 100);
+  assert.equal(times.get('tv:2'), 45);
+  await api.collectListRuntimes(films, undefined, 1000);
+  assert.deepEqual(calls, [1, 2]);
+});

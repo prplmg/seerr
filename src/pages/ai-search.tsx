@@ -1,4 +1,5 @@
 import FilterChips from '@app/components/AiSearch/FilterChips';
+import SortControl from '@app/components/AiSearch/SortControl';
 import {
   readSearchScreen,
   saveSearchScreen,
@@ -16,6 +17,7 @@ import {
   letterboxdFilterLabel,
   type AiFilters,
 } from '@server/lib/aiSearchPlan';
+import type { AiSort } from '@server/lib/aiSearchSort';
 import type { MovieResult, TvResult } from '@server/models/Search';
 import axios from 'axios';
 import { useRouter } from 'next/router';
@@ -24,6 +26,8 @@ import { FormattedRelativeTime } from 'react-intl';
 import useSWR from 'swr';
 
 interface SearchResponse {
+  sort?: AiSort;
+  suggestedSort?: AiSort;
   results: {
     media: MovieResult | TvResult;
     reason: string;
@@ -134,7 +138,8 @@ export default function AiSearchPage() {
   async function search(
     searchQuery = query,
     selectedPeople = people,
-    filters?: AiFilters
+    filters?: AiFilters,
+    sort?: AiSort
   ) {
     if (busy || !searchQuery.trim()) return;
     setBusy(true);
@@ -146,6 +151,7 @@ export default function AiSearchPage() {
           query: searchQuery.trim(),
           people: selectedPeople,
           filters,
+          sort,
           stream: true,
         },
         setProgress
@@ -456,7 +462,17 @@ export default function AiSearchPage() {
             filters={f}
             busy={busy}
             group={people.length > 0}
-            onApply={(filters) => void search(submitted, people, filters)}
+            onApply={(filters) =>
+              void search(submitted, people, filters, response.sort)
+            }
+            sortControl={
+              <SortControl
+                value={response.sort ?? []}
+                suggested={response.suggestedSort ?? []}
+                busy={busy}
+                onApply={(sort) => void search(submitted, people, f, sort)}
+              />
+            }
           />
           {response.ratingCoverage && response.ratingCoverage.unknown > 0 && (
             <p className="mb-4 text-sm text-amber-200">
@@ -480,8 +496,12 @@ export default function AiSearchPage() {
                   <TitleCard
                     posterBadge={
                       letterboxdRating !== undefined
-                        ? `★ ${letterboxdRating.toFixed(2)}${f.maxRuntime !== null && runtime ? ` · ${runtime} min` : ''}`
-                        : f.maxRuntime !== null && runtime
+                        ? `★ ${letterboxdRating.toFixed(2)}${(f.maxRuntime !== null || response.sort?.some((s) => s.field === 'runtime')) && runtime ? ` · ${runtime} min` : ''}`
+                        : (f.maxRuntime !== null ||
+                              response.sort?.some(
+                                (s) => s.field === 'runtime'
+                              )) &&
+                            runtime
                           ? `${runtime} min`
                           : undefined
                     }

@@ -15,7 +15,7 @@ export type ListSort =
 type Value = { value: number | null; until: number };
 const values = new Map<string, Value>();
 const waiting = new Set<string>();
-const ratingObservers = new Set<() => void>();
+const metadataObservers = new Set<() => void>();
 const queue: { key: string; film: ListFilm; field: 'rating' | 'runtime' }[] =
   [];
 const activeByField = { rating: 0, runtime: 0 };
@@ -78,6 +78,12 @@ function pump() {
           value =
             (await new TheMovieDb().getListMovie(task.film.tmdbId)).runtime ||
             null;
+        else {
+          const times = (
+            await new TheMovieDb().getTvShow({ tvId: task.film.tmdbId })
+          ).episode_run_time;
+          value = times?.length ? Math.max(...times) || null : null;
+        }
       } catch {
         /* Missing values stay last and are retried later. */
       }
@@ -93,8 +99,7 @@ function pump() {
       active--;
       activeByField[task.field]--;
       waiting.delete(task.key);
-      if (task.field === 'rating')
-        for (const notify of ratingObservers) notify();
+      for (const notify of metadataObservers) notify();
       pump();
       if (!active && !queue.length) persist();
     });
@@ -203,7 +208,8 @@ export function sortedList(items: ListFilm[], sort: ListSort) {
 }
 
 /** Await the existing shared queue, never create a second pool for AI Search. */
-export function collectListRatings(
+function collectListValues(
+  field: 'rating' | 'runtime',
   items: ListFilm[],
   onProgress: (completed: number, total: number) => void = () => undefined,
   timeoutMs = 90000
@@ -211,30 +217,41 @@ export function collectListRatings(
   const unique = [
     ...new Map(items.map((film) => [filmKey(film), film])).values(),
   ];
-  sortedList(unique, 'rating-desc');
+  sortedList(unique, field === 'rating' ? 'rating-desc' : 'runtime-asc');
   return new Promise((resolve) => {
     const snapshot = () =>
       new Map(
         unique.map((film) => [
           filmKey(film),
-          values.get(`rating:${filmKey(film)}`)?.value ?? null,
+          values.get(`${field}:${filmKey(film)}`)?.value ?? null,
         ])
       );
     const finish = () => {
       clearTimeout(timer);
-      ratingObservers.delete(check);
+      metadataObservers.delete(check);
       resolve(snapshot());
     };
     const check = () => {
       const completed = unique.filter((film) => {
-        const entry = values.get(`rating:${filmKey(film)}`);
+        const entry = values.get(`${field}:${filmKey(film)}`);
         return entry && (entry.value !== null || entry.until > Date.now());
       }).length;
       onProgress(completed, unique.length);
       if (completed === unique.length) finish();
     };
     const timer = setTimeout(finish, timeoutMs);
-    ratingObservers.add(check);
+    metadataObservers.add(check);
     check();
   });
 }
+
+export const collectListRatings = (
+  items: ListFilm[],
+  onProgress?: (completed: number, total: number) => void,
+  timeoutMs?: number
+) => collectListValues('rating', items, onProgress, timeoutMs);
+export const collectListRuntimes = (
+  items: ListFilm[],
+  onProgress?: (completed: number, total: number) => void,
+  timeoutMs?: number
+) => collectListValues('runtime', items, onProgress, timeoutMs);

@@ -9,9 +9,14 @@ import {
   parseAiFilters,
 } from '@server/lib/aiSearchPlan';
 import { interpretAiSearch } from '@server/lib/aiSearchProvider';
+import {
+  parseAiSort,
+  sortSearchResults,
+  suggestAiSort,
+} from '@server/lib/aiSearchSort';
 import { discoveryData } from '@server/lib/discoveryData';
 import { togetherSeen } from '@server/lib/discoveryRecommendations';
-import { collectListRatings } from '@server/lib/listSort';
+import { collectListRatings, collectListRuntimes } from '@server/lib/listSort';
 import {
   mapMovieResult,
   mapTvResult,
@@ -67,6 +72,18 @@ router.post('/', async (req, res, next) => {
         return next({ status: 400, message: 'Invalid search filters.' });
       }
     }
+    let requestedSort;
+    try {
+      requestedSort =
+        req.body.sort === undefined ? undefined : parseAiSort(req.body.sort);
+    } catch {
+      return next({ status: 400, message: 'Invalid search sort.' });
+    }
+    if (requestedSort && !overrides)
+      return next({
+        status: 400,
+        message: 'Sort changes require the existing search filters.',
+      });
     if (req.body.stream) {
       res.setHeader('Content-Type', 'application/x-ndjson');
       res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -304,6 +321,34 @@ router.post('/', async (req, res, next) => {
       });
       ratingCoverage = { checked: results.length - unknown, unknown };
     }
+    const suggestedSort = suggestAiSort(query, plan.filters);
+    const sort = requestedSort ?? suggestedSort;
+    // Sort exactly the same returned shortlist; do not widen it on a sort change.
+    const shortlist = filteredResults.slice(0, 20);
+    if (
+      sort.some((s) => s.field === 'rating') &&
+      shortlist.some((r) => r.letterboxdRating == null)
+    ) {
+      const scores = await collectListRatings(
+        shortlist.map((r) => ({ tmdbId: r.media.id, type: f.type })),
+        (done, total) =>
+          progress(`Checking Letterboxd ratings… ${done}/${total}`)
+      );
+      for (const row of shortlist)
+        row.letterboxdRating =
+          scores.get(`${f.type}:${row.media.id}`) ?? undefined;
+    }
+    if (
+      sort.some((s) => s.field === 'runtime') &&
+      shortlist.some((r) => r.runtime == null)
+    ) {
+      const times = await collectListRuntimes(
+        shortlist.map((r) => ({ tmdbId: r.media.id, type: f.type })),
+        (done, total) => progress(`Checking runtimes… ${done}/${total}`)
+      );
+      for (const row of shortlist)
+        row.runtime = times.get(`${f.type}:${row.media.id}`) ?? null;
+    }
     if (!d.visibilityStillValid())
       throw Object.assign(Error('Catalogue changed. Please retry.'), {
         status: 409,
@@ -312,7 +357,9 @@ router.post('/', async (req, res, next) => {
     // overwrite a history entry with manually changed filters.
     if (!overrides) await rememberSearch(req.user!.id, query, people.ids, f);
     const response = {
-      results: filteredResults.slice(0, 20),
+      results: sortSearchResults(shortlist, sort),
+      sort,
+      suggestedSort,
       ratingCoverage,
       filters: f,
       people: d.users.filter((u) => people.ids.includes(u.id)),

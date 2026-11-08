@@ -6,7 +6,7 @@ import {
   tvGenres,
   type AiFilters,
 } from '@server/lib/aiSearchPlan';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 const genreNames: Record<number, string> = {
   28: 'Action',
   12: 'Adventure',
@@ -41,7 +41,9 @@ export default function FilterChips({
   group,
   busy,
   onApply,
+  sortControl,
 }: {
+  sortControl?: ReactNode;
   filters: AiFilters;
   group: boolean;
   busy: boolean;
@@ -147,6 +149,7 @@ export default function FilterChips({
             </Popover.Panel>
           </>
         )}
+        {sortControl}
       </Popover>
       {draft && (
         <form
