@@ -681,3 +681,17 @@
 .ptr--box {
   margin-bottom: -13px !important;
 }
+
+/* Use field width rather than viewport width: sidebar, avatar and PWA back
+   controls all affect the space available for the search placeholder. */
+.search-placeholder-short {
+  display: none;
+}
+@container search-field (max-width: 17rem) {
+  .search-placeholder-full {
+    display: none;
+  }
+  .search-placeholder-short {
+    display: inline;
+  }
+}

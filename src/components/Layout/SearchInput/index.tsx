@@ -1,6 +1,6 @@
 import useSearchInput from '@app/hooks/useSearchInput';
 import defineMessages from '@app/utils/defineMessages';
-import { SparklesIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { XCircleIcon } from '@heroicons/react/24/outline';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -9,6 +9,7 @@ import { useIntl } from 'react-intl';
 
 const messages = defineMessages('components.Layout.SearchInput', {
   searchPlaceholder: 'Search Movies & Series',
+  searchPlaceholderShort: 'Search Titles',
 });
 
 const SearchInput = () => {
@@ -18,7 +19,10 @@ const SearchInput = () => {
   const { searchValue, setSearchValue, setIsOpen, clear } = useSearchInput();
   return (
     <div className="flex min-w-0 flex-1 items-center">
-      <div className="flex w-full min-w-0">
+      <div
+        className="flex w-full min-w-0"
+        style={{ containerType: 'inline-size', containerName: 'search-field' }}
+      >
         <label htmlFor="search_field" className="sr-only">
           Search
         </label>
@@ -31,7 +35,7 @@ const SearchInput = () => {
             style={{
               paddingRight: searchValue.length > 0 ? '2.5rem' : '1rem',
             }}
-            className="block min-h-[44px] w-full min-w-0 rounded-full border border-gray-600 bg-gray-900/80 py-2 pl-10 text-white placeholder-gray-300 hover:border-gray-500 focus:border-gray-500 focus:bg-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
+            className="peer block min-h-[44px] w-full min-w-0 rounded-full border border-gray-600 bg-gray-900/80 py-2 pl-10 text-white placeholder-transparent hover:border-gray-500 focus:border-gray-500 focus:bg-gray-900 focus:placeholder-transparent focus:outline-none focus:ring-0 sm:text-base"
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
             type="search"
             autoComplete="off"
@@ -50,6 +54,17 @@ const SearchInput = () => {
               }
             }}
           />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-10 right-4 hidden overflow-hidden whitespace-nowrap text-gray-300 peer-placeholder-shown:block"
+          >
+            <span className="search-placeholder-full">
+              {intl.formatMessage(messages.searchPlaceholder)}
+            </span>
+            <span className="search-placeholder-short">
+              {intl.formatMessage(messages.searchPlaceholderShort)}
+            </span>
+          </span>
           {searchValue.length > 0 && (
             <button
               className="absolute inset-y-0 right-2 m-auto h-7 w-7 border-none p-1 text-gray-400 outline-none transition hover:text-white focus:border-none focus:outline-none"
@@ -77,11 +92,19 @@ const SearchInput = () => {
             </linearGradient>
           </defs>
         </svg>
-        <SparklesIcon
-          className="h-5 w-5"
-          style={{ stroke: `url(#${gradientId})` }}
+        <svg
+          className="h-6 w-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={`url(#${gradientId})`}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           aria-hidden="true"
-        />
+        >
+          <circle cx="9.5" cy="10.5" r="6.5" />
+          <path d="m14.2 15.2 6.3 6.3M18 1.5l.9 2.6 2.6.9-2.6.9L18 8.5l-.9-2.6-2.6-.9 2.6-.9ZM21 10v3m-1.5-1.5h3" />
+        </svg>
       </Link>
     </div>
   );
