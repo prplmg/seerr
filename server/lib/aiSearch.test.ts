@@ -2,6 +2,7 @@ import axios from 'axios';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  letterboxdFilterLabel,
   matchesAiFilters,
   normalizedTitle,
   parseAiPlan,
@@ -47,6 +48,33 @@ test('rejects malformed plans and unsafe constraints', () => {
     assert.throws(() => parseAiPlan(value));
   assert.deepEqual(parseAiPlan(plan), plan);
   assert.equal(normalizedTitle('Amélie!'), normalizedTitle('Amelie'));
+});
+test('Letterboxd bounds validate ranges, accept zero and label both ends', () => {
+  assert.deepEqual(
+    parseAiPlan({ ...plan, filters: { ...filters, maxLetterboxdRating: 0 } })
+      .filters,
+    { ...filters, maxLetterboxdRating: 0 }
+  );
+  for (const bounds of [
+    { maxLetterboxdRating: 5.1 },
+    { maxLetterboxdRating: '4' },
+    { minLetterboxdRating: 4.5, maxLetterboxdRating: 3.5 },
+  ])
+    assert.throws(() =>
+      parseAiPlan({ ...plan, filters: { ...filters, ...bounds } })
+    );
+  assert.equal(
+    letterboxdFilterLabel({ ...filters, maxLetterboxdRating: 3 }),
+    'LB ≤ 3 ★'
+  );
+  assert.equal(
+    letterboxdFilterLabel({
+      ...filters,
+      minLetterboxdRating: 3.5,
+      maxLetterboxdRating: 4.5,
+    }),
+    'LB 3.5–4.5 ★'
+  );
 });
 test('hard constraints never accept unknown runtime or watched/unavailable titles', () => {
   const f = {

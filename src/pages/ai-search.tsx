@@ -6,7 +6,10 @@ import TitleCard from '@app/components/TitleCard';
 import { useUser } from '@app/hooks/useUser';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import type { SearchHistoryEntry } from '@server/lib/aiSearchHistory';
-import type { AiFilters } from '@server/lib/aiSearchPlan';
+import {
+  letterboxdFilterLabel,
+  type AiFilters,
+} from '@server/lib/aiSearchPlan';
 import type { MovieResult, TvResult } from '@server/models/Search';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +27,8 @@ interface SearchResponse {
   ratingCoverage?: { checked: number; unknown: number };
   people?: { id: number; name: string }[];
 }
+const searchPlaceholder =
+  'A horror movie like The Witch, from the 2010s, under two hours, available and unwatched by prplmg and I, with a Letterboxd score between 3.5 and 4.5…';
 export default function AiSearchPage() {
   const { user } = useUser();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -46,6 +51,43 @@ export default function AiSearchPage() {
   }>('/api/v1/ai-search/people');
   const [people, setPeople] = useState<number[]>([]);
   const [query, setQuery] = useState('');
+  const queryInput = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const input = queryInput.current;
+    if (!input) return;
+    const resize = () => {
+      const mirror = input.cloneNode() as HTMLTextAreaElement;
+      mirror.value = input.value || input.placeholder;
+      Object.assign(mirror.style, {
+        position: 'absolute',
+        visibility: 'hidden',
+        pointerEvents: 'none',
+        left: '-9999px',
+        height: '0px',
+        minHeight: '0px',
+        maxHeight: 'none',
+        width: `${input.getBoundingClientRect().width}px`,
+      });
+      mirror.removeAttribute('id');
+      mirror.setAttribute('aria-hidden', 'true');
+      mirror.tabIndex = -1;
+      document.body.appendChild(mirror);
+      const height = Math.max(128, Math.min(320, mirror.scrollHeight + 2));
+      mirror.remove();
+      input.style.height = `${height}px`;
+    };
+    resize();
+    let width = input.getBoundingClientRect().width;
+    const observer = new ResizeObserver(() => {
+      const next = input.getBoundingClientRect().width;
+      if (next !== width) {
+        width = next;
+        resize();
+      }
+    });
+    observer.observe(input);
+    return () => observer.disconnect();
+  }, [query, historyOpen]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('Finding titles…');
   const [error, setError] = useState('');
@@ -204,8 +246,9 @@ export default function AiSearchPage() {
                           entry.filters.yearFrom || entry.filters.yearTo
                             ? `${entry.filters.yearFrom ?? 'Any year'}–${entry.filters.yearTo ?? 'now'}`
                             : null,
-                          entry.filters.minLetterboxdRating != null
-                            ? `LB ≥ ${entry.filters.minLetterboxdRating} ★`
+                          entry.filters.minLetterboxdRating != null ||
+                          entry.filters.maxLetterboxdRating != null
+                            ? letterboxdFilterLabel(entry.filters)
                             : null,
                           entry.filters.genres.length
                             ? `${entry.filters.genres.length} genres`
@@ -241,12 +284,13 @@ export default function AiSearchPage() {
           </label>
           <textarea
             id="ai-query"
+            ref={queryInput}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             maxLength={1000}
-            rows={3}
-            className="w-full rounded-xl border border-gray-600 bg-gray-900 p-3 text-white"
-            placeholder="A horror movie like The Witch, from the 2010s, under two hours, available and unwatched by prplmg and I…"
+            rows={4}
+            className="min-h-32 w-full resize-none rounded-xl border border-gray-600 bg-gray-900 p-3 text-white"
+            placeholder={searchPlaceholder}
           />
           <details className="mt-3 rounded-lg border border-gray-700 px-3 py-2">
             <summary className="cursor-pointer text-sm text-purple-300">

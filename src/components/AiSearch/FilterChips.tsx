@@ -1,5 +1,6 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
 import {
+  letterboxdFilterLabel,
   movieGenres,
   tvGenres,
   type AiFilters,
@@ -63,9 +64,7 @@ export default function FilterChips({
     filters.genres.length
       ? filters.genres.map((g) => genreNames[g]).join(' + ')
       : 'Any genre',
-    filters.minLetterboxdRating != null
-      ? `LB ≥ ${filters.minLetterboxdRating} ★`
-      : 'Any LB rating',
+    letterboxdFilterLabel(filters),
   ];
   return (
     <div className="mb-4">
@@ -218,30 +217,52 @@ export default function FilterChips({
             </fieldset>
           )}
           {editing === 5 && (
-            <label className="block text-sm">
-              Minimum Letterboxd score (out of 5)
-              <input
-                type="number"
-                min="0"
-                max="5"
-                step="0.01"
-                placeholder="Any rating"
-                value={draft.minLetterboxdRating ?? ''}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    minLetterboxdRating: e.target.value
-                      ? Number(e.target.value)
-                      : null,
-                  })
-                }
-                className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-900 p-2"
-              />
-              <span className="mt-2 block text-xs text-gray-400">
+            <div>
+              <p className="mb-2 text-sm text-gray-400">
+                Letterboxd score out of 5 · leave either bound blank for no
+                limit.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {(['minLetterboxdRating', 'maxLetterboxdRating'] as const).map(
+                  (key) => (
+                    <label key={key} className="min-w-0 text-sm">
+                      {key === 'minLetterboxdRating'
+                        ? 'Minimum score'
+                        : 'Maximum score'}
+                      <input
+                        type="number"
+                        min={
+                          key === 'maxLetterboxdRating'
+                            ? (draft.minLetterboxdRating ?? 0)
+                            : 0
+                        }
+                        max={
+                          key === 'minLetterboxdRating'
+                            ? (draft.maxLetterboxdRating ?? 5)
+                            : 5
+                        }
+                        step="0.01"
+                        placeholder="No limit"
+                        value={draft[key] ?? ''}
+                        onChange={(e) =>
+                          setDraft({
+                            ...draft,
+                            [key]: e.target.value
+                              ? Number(e.target.value)
+                              : null,
+                          })
+                        }
+                        className="mt-1 block w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-2"
+                      />
+                    </label>
+                  )
+                )}
+              </div>
+              <p className="mt-2 text-xs text-gray-400">
                 Missing scores are checked before showing matches. Titles
                 without a verified score are excluded.
-              </span>
-            </label>
+              </p>
+            </div>
           )}
           <div className="flex justify-end gap-3">
             <button

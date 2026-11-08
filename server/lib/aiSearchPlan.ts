@@ -7,6 +7,7 @@ export type AiFilters = {
   yearTo: number | null;
   genres: number[];
   minLetterboxdRating?: number | null;
+  maxLetterboxdRating?: number | null;
 };
 export type AiPlan = {
   filters: AiFilters;
@@ -30,11 +31,17 @@ export function parseAiFilters(value: unknown): AiFilters {
     !['movie', 'tv'].includes(f.type) ||
     typeof f.available !== 'boolean' ||
     typeof f.unwatched !== 'boolean' ||
+    [f.minLetterboxdRating, f.maxLetterboxdRating].some(
+      (score) =>
+        score != null &&
+        (typeof score !== 'number' ||
+          !Number.isFinite(score) ||
+          score < 0 ||
+          score > 5)
+    ) ||
     (f.minLetterboxdRating != null &&
-      (typeof f.minLetterboxdRating !== 'number' ||
-        !Number.isFinite(f.minLetterboxdRating) ||
-        f.minLetterboxdRating < 0 ||
-        f.minLetterboxdRating > 5)) ||
+      f.maxLetterboxdRating != null &&
+      f.minLetterboxdRating > f.maxLetterboxdRating) ||
     !Array.isArray(f.genres) ||
     f.genres.length > 3 ||
     f.genres.some(
@@ -53,6 +60,9 @@ export function parseAiFilters(value: unknown): AiFilters {
     yearFrom: f.yearFrom,
     yearTo: f.yearTo,
     genres: [...new Set(f.genres)],
+    ...(f.maxLetterboxdRating !== undefined
+      ? { maxLetterboxdRating: f.maxLetterboxdRating }
+      : {}),
     ...(f.minLetterboxdRating !== undefined
       ? { minLetterboxdRating: f.minLetterboxdRating }
       : {}),
@@ -112,4 +122,12 @@ export function normalizedTitle(title: string) {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]/gu, '');
+}
+
+export function letterboxdFilterLabel(filters: AiFilters): string {
+  const { minLetterboxdRating: min, maxLetterboxdRating: max } = filters;
+  if (min != null && max != null) return `LB ${min}–${max} ★`;
+  if (min != null) return `LB ≥ ${min} ★`;
+  if (max != null) return `LB ≤ ${max} ★`;
+  return 'Any LB rating';
 }

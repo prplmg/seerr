@@ -209,7 +209,10 @@ router.post('/', async (req, res, next) => {
     for (
       let i = 0;
       i < unique.length &&
-      results.length < (f.minLetterboxdRating != null ? 60 : 20);
+      results.length <
+        (f.minLetterboxdRating != null || f.maxLetterboxdRating != null
+          ? 60
+          : 20);
       i += 3
     ) {
       const batch = await Promise.all(
@@ -280,7 +283,7 @@ router.post('/', async (req, res, next) => {
     }
     let filteredResults = results;
     let ratingCoverage: { checked: number; unknown: number } | undefined;
-    if (f.minLetterboxdRating != null) {
+    if (f.minLetterboxdRating != null || f.maxLetterboxdRating != null) {
       const scores = await collectListRatings(
         results.map((row) => ({ tmdbId: row.media.id, type: f.type })),
         (completed, total) =>
@@ -293,7 +296,9 @@ router.post('/', async (req, res, next) => {
           unknown++;
           return [];
         }
-        return score >= f.minLetterboxdRating!
+        return (f.minLetterboxdRating == null ||
+          score >= f.minLetterboxdRating) &&
+          (f.maxLetterboxdRating == null || score <= f.maxLetterboxdRating)
           ? [{ ...row, letterboxdRating: score }]
           : [];
       });

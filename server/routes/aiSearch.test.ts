@@ -321,4 +321,36 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     )
   );
   assert.equal(model.mock.callCount(), calls);
+  for (const [bounds, expected] of [
+    [{ maxLetterboxdRating: 4 }, [2]],
+    [{ minLetterboxdRating: 3.9, maxLetterboxdRating: 4.2 }, [1, 2]],
+    [{ minLetterboxdRating: 4.2, maxLetterboxdRating: 4.2 }, [1]],
+    [{ maxLetterboxdRating: 0 }, []],
+  ] as const) {
+    const bounded = await request(app)
+      .post('/api/v1/ai-search')
+      .set('test-user', '1')
+      .send({ query: 'test constraints', filters: { ...edits, ...bounds } });
+    assert.equal(bounded.status, 200);
+    assert.deepEqual(
+      bounded.body.results.map(
+        (row: { media: { id: number } }) => row.media.id
+      ),
+      expected
+    );
+    assert.equal(bounded.body.ratingCoverage.unknown, 1);
+  }
+  const reversed = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({
+      query: 'test constraints',
+      filters: { ...edits, minLetterboxdRating: 4.5, maxLetterboxdRating: 3.5 },
+    });
+  assert.equal(reversed.status, 400);
+  assert.equal(
+    model.mock.callCount(),
+    calls,
+    'all bound edits must reuse the interpretation'
+  );
 });
