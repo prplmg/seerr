@@ -224,17 +224,17 @@ export default function MobilePushPrompt() {
           >
             {busy ? 'Enabling…' : 'Enable notifications'}
           </button>
-        ) : (
+        ) : !instructions ? (
           <button
             type="button"
-            onClick={() => setInstructions(!instructions)}
+            onClick={() => setInstructions(true)}
             aria-expanded={instructions}
             aria-controls="push-install-steps"
             className="min-h-[44px] rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500"
           >
-            {instructions ? 'Collapse instructions' : 'Show me how'}
+            Show me how
           </button>
-        )}
+        ) : null}
         <button
           type="button"
           onClick={dismiss}
@@ -244,7 +244,7 @@ export default function MobilePushPrompt() {
           Not now
         </button>
       </div>
-      <p className="mt-2 text-xs text-gray-400">
+      <p className="mt-2 text-center text-xs text-gray-400">
         “Not now” hides this for seven days on this browser.
       </p>
     </aside>
