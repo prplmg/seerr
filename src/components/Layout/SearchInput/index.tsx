@@ -1,7 +1,9 @@
 import useSearchInput from '@app/hooks/useSearchInput';
 import defineMessages from '@app/utils/defineMessages';
-import { XCircleIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useIntl } from 'react-intl';
 
 const messages = defineMessages('components.Layout.SearchInput', {
@@ -10,6 +12,7 @@ const messages = defineMessages('components.Layout.SearchInput', {
 
 const SearchInput = () => {
   const intl = useIntl();
+  const router = useRouter();
   const { searchValue, setSearchValue, setIsOpen, clear } = useSearchInput();
   return (
     <div className="flex min-w-0 flex-1">
@@ -23,8 +26,10 @@ const SearchInput = () => {
           </div>
           <input
             id="search_field"
-            style={{ paddingRight: searchValue.length > 0 ? '1.75rem' : '' }}
-            className="block w-full min-w-0 rounded-full border border-gray-600 bg-gray-900/80 py-2 pl-10 text-white placeholder-gray-300 hover:border-gray-500 focus:border-gray-500 focus:bg-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
+            style={{
+              paddingRight: searchValue.length > 0 ? '5.25rem' : '3rem',
+            }}
+            className="block min-h-[44px] w-full min-w-0 rounded-full border border-gray-600 bg-gray-900/80 py-2 pl-10 text-white placeholder-gray-300 hover:border-gray-500 focus:border-gray-500 focus:bg-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
             type="search"
             autoComplete="off"
@@ -43,9 +48,19 @@ const SearchInput = () => {
               }
             }}
           />
+          <Link
+            href="/ai-search"
+            aria-label="AI Search"
+            title="AI Search"
+            aria-current={router.pathname === '/ai-search' ? 'page' : undefined}
+            className={`absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-full text-purple-300 transition hover:bg-gray-700 hover:text-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${router.pathname === '/ai-search' ? 'bg-purple-500/15' : ''}`}
+          >
+            <SparklesIcon className="h-5 w-5" aria-hidden="true" />
+          </Link>
           {searchValue.length > 0 && (
             <button
-              className="absolute inset-y-0 right-2 m-auto h-7 w-7 border-none p-1 text-gray-400 outline-none transition hover:text-white focus:border-none focus:outline-none"
+              className="absolute inset-y-0 right-12 m-auto h-7 w-7 border-none p-1 text-gray-400 outline-none transition hover:text-white focus:border-none focus:outline-none"
+              aria-label="Clear search"
               onClick={() => clear()}
             >
               <XCircleIcon className="h-5 w-5" />

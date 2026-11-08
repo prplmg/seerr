@@ -7,10 +7,8 @@ import UserWarnings from '@app/components/Layout/UserWarnings';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import { useUser } from '@app/hooks/useUser';
-import { SparklesIcon } from '@heroicons/react/24/outline';
 import { ArrowLeftIcon, Bars3BottomLeftIcon } from '@heroicons/react/24/solid';
 import type { AvailableLocale } from '@server/types/languages';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
@@ -109,19 +107,6 @@ const Layout = ({ children }: LayoutProps) => {
               <ArrowLeftIcon className="w-7" />
             </button>
             <SearchInput />
-            <Link
-              href="/ai-search"
-              aria-label="AI Search"
-              title="AI Search"
-              aria-current={
-                router.pathname === '/ai-search' ? 'page' : undefined
-              }
-              className={`ml-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-purple-300 transition hover:bg-gray-700 hover:text-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
-                router.pathname === '/ai-search' ? 'bg-purple-500/15' : ''
-              }`}
-            >
-              <SparklesIcon className="h-6 w-6" aria-hidden="true" />
-            </Link>
             <div className="flex items-center">
               <UserDropdown />
             </div>
