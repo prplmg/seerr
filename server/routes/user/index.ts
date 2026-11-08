@@ -9,7 +9,6 @@ import Media from '@server/entity/Media';
 import { MediaRequest } from '@server/entity/MediaRequest';
 import { User } from '@server/entity/User';
 import { UserPushSubscription } from '@server/entity/UserPushSubscription';
-import { plexProfileWatchlist } from '@server/lib/plexWatchlist';
 import type { WatchlistResponse } from '@server/interfaces/api/discoverInterfaces';
 import type {
   QuotaResponse,
@@ -18,6 +17,7 @@ import type {
   UserWatchDataResponse,
 } from '@server/interfaces/api/userInterfaces';
 import { Permission, hasPermission } from '@server/lib/permissions';
+import { plexProfileWatchlist } from '@server/lib/plexWatchlist';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
@@ -28,7 +28,7 @@ import { Router } from 'express';
 import gravatarUrl from 'gravatar-url';
 import { findIndex, sortBy } from 'lodash';
 import type { EntityManager } from 'typeorm';
-import { In, Not } from 'typeorm';
+import { In } from 'typeorm';
 import userSettingsRoutes from './usersettings';
 
 const router = Router();
@@ -279,30 +279,8 @@ router.post<
           return;
         }
 
-        // Clean up old subscriptions from the same device (userAgent) for this user
-        // iOS can silently refresh endpoints, leaving stale subscriptions in the database
-        // Only clean up if we're creating a new subscription (not updating an existing one)
-        if (req.body.userAgent) {
-          const staleSubscriptions = await transactionalRepo.find({
-            relations: { user: true },
-            where: {
-              userAgent: req.body.userAgent,
-              user: { id: req.user?.id },
-              // Only remove subscriptions with different endpoints (stale ones)
-              // Keep subscriptions that might be from different browsers/tabs
-              endpoint: Not(req.body.endpoint),
-            },
-          });
-
-          if (staleSubscriptions.length > 0) {
-            await transactionalRepo.remove(staleSubscriptions);
-            logger.debug(
-              `Removed ${staleSubscriptions.length} stale push subscription(s) from same device.`,
-              { label: 'API' }
-            );
-          }
-        }
-
+        // A user-agent string is not a device identity: two phones can share it.
+        // Preserve other endpoints; the delivery worker removes expired ones on404/410.
         const userPushSubscription = new UserPushSubscription({
           auth: req.body.auth,
           endpoint: req.body.endpoint,
@@ -350,7 +328,7 @@ router.get<{ id: string; endpoint: string }>(
     try {
       const userPushSubRepository = getRepository(UserPushSubscription);
 
-      const userPushSub = await userPushSubRepository.findOneOrFail({
+      const userPushSub = await userPushSubRepository.findOne({
         relations: {
           user: true,
         },
@@ -360,9 +338,12 @@ router.get<{ id: string; endpoint: string }>(
         },
       });
 
+      if (!userPushSub) {
+        return next({ status: 404, message: 'User subscription not found.' });
+      }
       return res.status(200).json(userPushSub);
     } catch {
-      next({ status: 404, message: 'User subscription not found.' });
+      next({ status: 500, message: 'Could not verify push subscription.' });
     }
   }
 );

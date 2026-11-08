@@ -4,6 +4,7 @@ import SearchInput from '@app/components/Layout/SearchInput';
 import Sidebar from '@app/components/Layout/Sidebar';
 import UserDropdown from '@app/components/Layout/UserDropdown';
 import UserWarnings from '@app/components/Layout/UserWarnings';
+import MobilePushPrompt from '@app/components/MobilePushPrompt';
 import useLocale from '@app/hooks/useLocale';
 import useSettings from '@app/hooks/useSettings';
 import { useUser } from '@app/hooks/useUser';
@@ -78,6 +79,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       <div className="relative mb-16 flex w-0 min-w-0 flex-1 flex-col lg:ml-64">
         <PullToRefresh />
+        <MobilePushPrompt />
         <div
           className={`searchbar fixed left-0 right-0 top-0 z-10 flex flex-shrink-0 transition duration-300 ${
             isScrolled ? 'bg-gray-700/80' : 'bg-transparent'
