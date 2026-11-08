@@ -273,4 +273,52 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     .set('test-user', '1')
     .send({ query: 'test constraints', filters: { ...edits, maxRuntime: -1 } });
   assert.equal(invalid.status, 400);
+  const ratings = await import('@server/lib/listSort');
+  let lookedUp: number[] = [];
+  t.mock.method(
+    ratings,
+    'collectListRatings',
+    async (
+      films: { tmdbId: number }[],
+      notify?: (completed: number, total: number) => void
+    ) => {
+      lookedUp = films.map((film) => film.tmdbId);
+      notify?.(films.length, films.length);
+      return new Map([
+        ['movie:1', 4.2],
+        ['movie:2', 3.9],
+        ['movie:3', null],
+      ]);
+    }
+  );
+  const lb = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({
+      query: 'test constraints',
+      filters: { ...edits, minLetterboxdRating: 4 },
+      stream: true,
+    });
+  const lbEvents = lb.text
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  const lbResult = lbEvents.at(-1).data;
+  assert.deepEqual(
+    lookedUp,
+    [1, 2, 3],
+    'blocked/unavailable titles must never request a score'
+  );
+  assert.deepEqual(
+    lbResult.results.map((r: { media: { id: number } }) => r.media.id),
+    [1]
+  );
+  assert.equal(lbResult.results[0].letterboxdRating, 4.2);
+  assert.deepEqual(lbResult.ratingCoverage, { checked: 2, unknown: 1 });
+  assert.ok(
+    lbEvents.some(
+      (event) => event.message === 'Checking Letterboxd ratings… 3/3'
+    )
+  );
+  assert.equal(model.mock.callCount(), calls);
 });

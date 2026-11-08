@@ -4,7 +4,7 @@ export async function searchStream<T>(
   progress: (message: string) => void
 ): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120000);
+  const timer = setTimeout(() => controller.abort(), 240000);
   try {
     const response = await fetch('/api/v1/ai-search', {
       method: 'POST',

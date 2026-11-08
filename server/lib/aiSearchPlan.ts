@@ -6,6 +6,7 @@ export type AiFilters = {
   yearFrom: number | null;
   yearTo: number | null;
   genres: number[];
+  minLetterboxdRating?: number | null;
 };
 export type AiPlan = {
   filters: AiFilters;
@@ -29,6 +30,11 @@ export function parseAiFilters(value: unknown): AiFilters {
     !['movie', 'tv'].includes(f.type) ||
     typeof f.available !== 'boolean' ||
     typeof f.unwatched !== 'boolean' ||
+    (f.minLetterboxdRating != null &&
+      (typeof f.minLetterboxdRating !== 'number' ||
+        !Number.isFinite(f.minLetterboxdRating) ||
+        f.minLetterboxdRating < 0 ||
+        f.minLetterboxdRating > 5)) ||
     !Array.isArray(f.genres) ||
     f.genres.length > 3 ||
     f.genres.some(
@@ -47,6 +53,9 @@ export function parseAiFilters(value: unknown): AiFilters {
     yearFrom: f.yearFrom,
     yearTo: f.yearTo,
     genres: [...new Set(f.genres)],
+    ...(f.minLetterboxdRating !== undefined
+      ? { minLetterboxdRating: f.minLetterboxdRating }
+      : {}),
   };
 }
 export function parseAiPlan(value: unknown): AiPlan {

@@ -11,6 +11,7 @@ import {
 import { interpretAiSearch } from '@server/lib/aiSearchProvider';
 import { discoveryData } from '@server/lib/discoveryData';
 import { togetherSeen } from '@server/lib/discoveryRecommendations';
+import { collectListRatings } from '@server/lib/listSort';
 import {
   mapMovieResult,
   mapTvResult,
@@ -111,6 +112,7 @@ router.post('/', async (req, res, next) => {
       media: MovieResult | TvResult;
       reason: string;
       runtime?: number | null;
+      letterboxdRating?: number;
     }[] = [];
     if (plan.suggestions.length) {
       // Small batches bound metadata concurrency; never trust model-supplied IDs.
@@ -204,7 +206,12 @@ router.post('/', async (req, res, next) => {
     );
     const results: typeof candidates = [];
     let runtimeProgress = false;
-    for (let i = 0; i < unique.length && results.length < 20; i += 3) {
+    for (
+      let i = 0;
+      i < unique.length &&
+      results.length < (f.minLetterboxdRating != null ? 60 : 20);
+      i += 3
+    ) {
       const batch = await Promise.all(
         unique.slice(i, i + 3).map(async (r) => {
           const m = related.find(
@@ -271,13 +278,35 @@ router.post('/', async (req, res, next) => {
         ...batch.filter((r): r is NonNullable<typeof r> => r !== null)
       );
     }
+    let filteredResults = results;
+    let ratingCoverage: { checked: number; unknown: number } | undefined;
+    if (f.minLetterboxdRating != null) {
+      const scores = await collectListRatings(
+        results.map((row) => ({ tmdbId: row.media.id, type: f.type })),
+        (completed, total) =>
+          progress(`Checking Letterboxd ratings… ${completed}/${total}`)
+      );
+      let unknown = 0;
+      filteredResults = results.flatMap((row) => {
+        const score = scores.get(`${f.type}:${row.media.id}`);
+        if (score == null) {
+          unknown++;
+          return [];
+        }
+        return score >= f.minLetterboxdRating!
+          ? [{ ...row, letterboxdRating: score }]
+          : [];
+      });
+      ratingCoverage = { checked: results.length - unknown, unknown };
+    }
     if (!d.visibilityStillValid())
       throw Object.assign(Error('Catalogue changed. Please retry.'), {
         status: 409,
       });
     await rememberSearch(req.user!.id, query, people.ids, overrides);
     const response = {
-      results: results.slice(0, 20),
+      results: filteredResults.slice(0, 20),
+      ratingCoverage,
       filters: f,
       people: d.users.filter((u) => people.ids.includes(u.id)),
       note: plan.note,

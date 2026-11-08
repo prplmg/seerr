@@ -15,6 +15,7 @@ export type ListSort =
 type Value = { value: number | null; until: number };
 const values = new Map<string, Value>();
 const waiting = new Set<string>();
+const ratingObservers = new Set<() => void>();
 const queue: { key: string; film: ListFilm; field: 'rating' | 'runtime' }[] =
   [];
 const activeByField = { rating: 0, runtime: 0 };
@@ -92,6 +93,8 @@ function pump() {
       active--;
       activeByField[task.field]--;
       waiting.delete(task.key);
+      if (task.field === 'rating')
+        for (const notify of ratingObservers) notify();
       pump();
       if (!active && !queue.length) persist();
     });
@@ -180,4 +183,41 @@ export function sortedList(items: ListFilm[], sort: ListSort) {
     ),
     updating,
   };
+}
+
+/** Await the existing shared queue, never create a second pool for AI Search. */
+export function collectListRatings(
+  items: ListFilm[],
+  onProgress: (completed: number, total: number) => void = () => undefined,
+  timeoutMs = 90000
+): Promise<Map<string, number | null>> {
+  const unique = [
+    ...new Map(items.map((film) => [filmKey(film), film])).values(),
+  ];
+  sortedList(unique, 'rating-desc');
+  return new Promise((resolve) => {
+    const snapshot = () =>
+      new Map(
+        unique.map((film) => [
+          filmKey(film),
+          values.get(`rating:${filmKey(film)}`)?.value ?? null,
+        ])
+      );
+    const finish = () => {
+      clearTimeout(timer);
+      ratingObservers.delete(check);
+      resolve(snapshot());
+    };
+    const check = () => {
+      const completed = unique.filter((film) => {
+        const entry = values.get(`rating:${filmKey(film)}`);
+        return entry && (entry.value !== null || entry.until > Date.now());
+      }).length;
+      onProgress(completed, unique.length);
+      if (completed === unique.length) finish();
+    };
+    const timer = setTimeout(finish, timeoutMs);
+    ratingObservers.add(check);
+    check();
+  });
 }

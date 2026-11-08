@@ -63,6 +63,9 @@ export default function FilterChips({
     filters.genres.length
       ? filters.genres.map((g) => genreNames[g]).join(' + ')
       : 'Any genre',
+    filters.minLetterboxdRating != null
+      ? `LB ≥ ${filters.minLetterboxdRating} ★`
+      : 'Any LB rating',
   ];
   return (
     <div className="mb-4">
@@ -105,6 +108,7 @@ export default function FilterChips({
                 'Runtime',
                 'Release years',
                 'Genres',
+                'Letterboxd rating',
               ][editing]
             }
           </h3>
@@ -212,6 +216,32 @@ export default function FilterChips({
                 ))}
               </div>
             </fieldset>
+          )}
+          {editing === 5 && (
+            <label className="block text-sm">
+              Minimum Letterboxd score (out of 5)
+              <input
+                type="number"
+                min="0"
+                max="5"
+                step="0.01"
+                placeholder="Any rating"
+                value={draft.minLetterboxdRating ?? ''}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    minLetterboxdRating: e.target.value
+                      ? Number(e.target.value)
+                      : null,
+                  })
+                }
+                className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-900 p-2"
+              />
+              <span className="mt-2 block text-xs text-gray-400">
+                Missing scores are checked before showing matches. Titles
+                without a verified score are excluded.
+              </span>
+            </label>
           )}
           <div className="flex justify-end gap-3">
             <button

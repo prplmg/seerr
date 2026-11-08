@@ -7148,6 +7148,11 @@ paths:
                       nullable: true
                       minimum: 1870
                       maximum: 2100
+                    minLetterboxdRating:
+                      type: number
+                      nullable: true
+                      minimum: 0
+                      maximum: 5
                     genres:
                       type: array
                       maxItems: 3

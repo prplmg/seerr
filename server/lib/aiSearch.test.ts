@@ -35,6 +35,8 @@ test('rejects malformed plans and unsafe constraints', () => {
     { ...plan, filters: { ...filters, type: 'person' } },
     { ...plan, filters: { ...filters, genres: [999] } },
     { ...plan, filters: { ...filters, maxRuntime: -1 } },
+    { ...plan, filters: { ...filters, minLetterboxdRating: 5.1 } },
+    { ...plan, filters: { ...filters, minLetterboxdRating: '4' } },
     { ...plan, filters: { ...filters, yearFrom: 2020, yearTo: 1990 } },
     { ...plan, suggestions: Array(17).fill(plan.suggestions[0]) },
     {
