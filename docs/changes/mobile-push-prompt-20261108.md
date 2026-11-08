@@ -15,3 +15,5 @@ Preview revision: Not now aligns to the right using an auto margin, including wr
 Banner refinement: Enable notifications grows to occupy remaining action-row width alongside right-aligned Not now. Renamed Hide steps to Collapse instructions: collapses only the steps, whereas Not now dismisses/snoozes the entire banner7days. Local only.
 
 Final instruction actions: once steps are expanded, only right-aligned Not now remains. Seven-day dismissal notice centered on both banners. New screenshots use final-v4 filenames, preserving earlier previews. Still undeployed.
+
+Final spacing revision: removed visible seven-day notice from both banner variants (snooze behavior unchanged). Expanded instruction action-row top margin reduced16px→4px, retaining44px dismissal touch target. New preview filenames v5; earlier screenshots preserved. Local only.

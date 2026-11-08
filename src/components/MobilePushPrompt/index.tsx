@@ -214,7 +214,9 @@ export default function MobilePushPrompt() {
           {error}
         </p>
       )}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div
+        className={`flex flex-wrap items-center gap-2 ${instructions ? 'mt-1' : 'mt-4'}`}
+      >
         {mode === 'enable' ? (
           <button
             type="button"
@@ -244,9 +246,6 @@ export default function MobilePushPrompt() {
           Not now
         </button>
       </div>
-      <p className="mt-2 text-center text-xs text-gray-400">
-        “Not now” hides this for seven days on this browser.
-      </p>
     </aside>
   );
 }
