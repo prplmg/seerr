@@ -7081,6 +7081,12 @@ paths:
                       $ref: '#/components/schemas/MediaInfo'
                   playCount:
                     type: number
+  /ai-search/history:
+    get:
+      summary: Get your last seven days of AI searches
+      responses:
+        '200':
+          description: Private search history
   /ai-search/people:
     get:
       summary: Visible people for local AI Search watched filtering

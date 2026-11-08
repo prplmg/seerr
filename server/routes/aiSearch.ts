@@ -1,6 +1,7 @@
 import TheMovieDb from '@server/api/themoviedb';
 import { MediaStatus } from '@server/constants/media';
 import Media from '@server/entity/Media';
+import { readSearchHistory, rememberSearch } from '@server/lib/aiSearchHistory';
 import { searchPeople } from '@server/lib/aiSearchPeople';
 import { matchesAiFilters, normalizedTitle } from '@server/lib/aiSearchPlan';
 import { interpretAiSearch } from '@server/lib/aiSearchProvider';
@@ -15,6 +16,16 @@ import {
 import { Router } from 'express';
 
 const router = Router();
+router.get('/history', async (req, res, next) => {
+  try {
+    return res.json({ searches: await readSearchHistory(req.user!.id) });
+  } catch {
+    return next({
+      status: 503,
+      message: 'Search history is temporarily unavailable.',
+    });
+  }
+});
 router.get('/people', async (req, res, next) => {
   try {
     const d = await discoveryData(req.user!.id);
@@ -200,6 +211,7 @@ router.post('/', async (req, res, next) => {
     }
     if (!d.visibilityStillValid())
       return next({ status: 409, message: 'Catalogue changed. Please retry.' });
+    await rememberSearch(req.user!.id, query, people.ids);
     return res.json({
       results: results.slice(0, 20),
       filters: f,

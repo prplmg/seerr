@@ -212,4 +212,15 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     visible.body.users.map((u: { id: number }) => u.id),
     [98703, 98704]
   );
+  const history = await request(app)
+    .get('/api/v1/ai-search/history')
+    .set('test-user', '1');
+  assert.equal(history.status, 200);
+  assert.equal(history.body.searches.length, 2);
+  assert.deepEqual(history.body.searches[0].people, [98704]);
+  assert.equal(history.body.searches[0].query, 'test constraints');
+  assert.equal(
+    (await request(app).get('/api/v1/ai-search/history')).status,
+    403
+  );
 });

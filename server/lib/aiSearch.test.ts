@@ -116,7 +116,12 @@ test('provider uses server secret, caches per user, and sanitizes upstream failu
       };
     }
   );
-  assert.equal((await interpretAiSearch(98701, 'test')).cached, false);
+  const simultaneous = await Promise.all([
+    interpretAiSearch(98701, 'test'),
+    interpretAiSearch(98701, 'test'),
+  ]);
+  assert.equal(simultaneous[0].cached, false);
+  assert.deepEqual(simultaneous[0], simultaneous[1]);
   assert.equal((await interpretAiSearch(98701, 'test')).cached, true);
   assert.equal(post.mock.callCount(), 1);
   await interpretAiSearch(98702, 'test');

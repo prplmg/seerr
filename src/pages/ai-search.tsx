@@ -1,10 +1,13 @@
 import CachedImage from '@app/components/Common/CachedImage';
 import PageTitle from '@app/components/Common/PageTitle';
 import TitleCard from '@app/components/TitleCard';
+import { useUser } from '@app/hooks/useUser';
+import { ClockIcon } from '@heroicons/react/24/outline';
+import type { SearchHistoryEntry } from '@server/lib/aiSearchHistory';
 import type { AiFilters } from '@server/lib/aiSearchPlan';
 import type { MovieResult, TvResult } from '@server/models/Search';
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 
 interface SearchResponse {
@@ -18,6 +21,17 @@ interface SearchResponse {
   people?: { id: number; name: string }[];
 }
 export default function AiSearchPage() {
+  const { user } = useUser();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const {
+    data: history,
+    error: historyError,
+    mutate: refreshHistory,
+  } = useSWR<{ searches: SearchHistoryEntry[] }>(
+    historyOpen && user ? ['/api/v1/ai-search/history', user.id] : null,
+    async ([url]: [string, number]) => (await axios.get(url)).data
+  );
+  const restoredFor = useRef<number | undefined>(undefined);
   const {
     data: peopleData,
     error: peopleError,
@@ -32,21 +46,62 @@ export default function AiSearchPage() {
   const [error, setError] = useState('');
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [submitted, setSubmitted] = useState('');
-  async function search() {
-    if (busy || !query.trim()) return;
+  useEffect(() => {
+    if (!user || restoredFor.current === user.id) return;
+    restoredFor.current = user.id;
+    setQuery('');
+    setPeople([]);
+    setResponse(null);
+    setSubmitted('');
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem(`ai-search:${user.id}`) || 'null'
+      );
+      if (saved && saved.at > Date.now() - 7 * 86400000) {
+        setQuery(saved.query);
+        setPeople(saved.people);
+        setResponse(saved.response);
+        setSubmitted(saved.submitted);
+      }
+    } catch {
+      /* Storage may be disabled. Search still works. */
+    }
+  }, [user]);
+  useEffect(() => {
+    if (!user || restoredFor.current !== user.id) return;
+    // Cleanup captures the latest screen when leaving, including edited drafts.
+    const save = () => {
+      try {
+        sessionStorage.setItem(
+          `ai-search:${user.id}`,
+          JSON.stringify({ query, people, response, submitted, at: Date.now() })
+        );
+      } catch {
+        /* Storage is an optional navigation convenience. */
+      }
+    };
+    window.addEventListener('pagehide', save);
+    return () => {
+      save();
+      window.removeEventListener('pagehide', save);
+    };
+  }, [user, query, people, response, submitted]);
+  async function search(searchQuery = query, selectedPeople = people) {
+    if (busy || !searchQuery.trim()) return;
     setBusy(true);
     setError('');
     try {
       const { data } = await axios.post<SearchResponse>('/api/v1/ai-search', {
-        query: query.trim(),
-        people,
+        query: searchQuery.trim(),
+        people: selectedPeople,
       });
       setResponse(data);
       if (data.people && peopleData)
         setPeople(
           data.people.filter((p) => p.id !== peopleData.selfId).map((p) => p.id)
         );
-      setSubmitted(query.trim());
+      setSubmitted(searchQuery.trim());
+      void refreshHistory();
     } catch (e) {
       setError(
         axios.isAxiosError(e)
@@ -61,7 +116,79 @@ export default function AiSearchPage() {
   return (
     <>
       <PageTitle title="AI Search" />
-      <h1 className="mb-3 text-3xl font-bold text-purple-300">AI Search</h1>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold text-purple-300">AI Search</h1>
+        <button
+          type="button"
+          aria-expanded={historyOpen}
+          aria-controls="ai-search-history"
+          onClick={() => setHistoryOpen(!historyOpen)}
+          className="flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm text-purple-300 hover:bg-gray-800"
+        >
+          History <ClockIcon className="h-5 w-5" />
+        </button>
+      </div>
+      {historyOpen && (
+        <section
+          id="ai-search-history"
+          aria-label="Search history"
+          className="mb-4 rounded-2xl border border-gray-700 bg-gray-800 p-4"
+        >
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="font-semibold">Last 7 days</h2>
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(false)}
+              className="text-sm text-purple-300"
+            >
+              Close
+            </button>
+          </div>
+          <p className="mb-3 text-sm text-gray-400">
+            Only you can see these searches. Reopening rechecks current
+            availability and watched status.
+          </p>
+          {historyError ? (
+            <button
+              type="button"
+              onClick={() => void refreshHistory()}
+              className="text-purple-300"
+            >
+              Couldn’t load history. Retry
+            </button>
+          ) : !history ? (
+            <p role="status">Loading searches…</p>
+          ) : !history.searches.length ? (
+            <p className="text-gray-400">Your searches will appear here.</p>
+          ) : (
+            <ul className="max-h-80 space-y-2 overflow-y-auto">
+              {history.searches.map((entry) => (
+                <li key={entry.id}>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="w-full rounded-xl bg-gray-900 p-3 text-left hover:bg-gray-700 disabled:opacity-50"
+                    onClick={() => {
+                      setQuery(entry.query);
+                      setPeople(entry.people);
+                      setHistoryOpen(false);
+                      void search(entry.query, entry.people);
+                    }}
+                  >
+                    <span className="block break-words">{entry.query}</span>
+                    <span className="mt-1 block text-xs text-gray-400">
+                      {new Date(entry.searchedAt).toLocaleString()}
+                      {entry.people.length
+                        ? ` · You + ${entry.people.length}`
+                        : ' · Just you'}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
