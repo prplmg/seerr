@@ -35,7 +35,6 @@ export const menuMessages = defineMessages('components.Layout.Sidebar', {
   settings: 'Settings',
   foryou: 'For you',
   mylists: 'My lists',
-  aisearch: 'AI Search',
 });
 
 interface SidebarProps {
@@ -118,12 +117,6 @@ const SidebarLinks: SidebarLinkProps[] = [
     activeRegExp: /^\/settings/,
     requiredPermission: Permission.ADMIN,
     dataTestId: 'sidebar-menu-settings',
-  },
-  {
-    href: '/ai-search',
-    messagesKey: 'aisearch',
-    svgIcon: <SparklesIcon className="mr-3 h-6 w-6" />,
-    activeRegExp: /^\/ai-search/,
   },
 ];
 

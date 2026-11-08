@@ -12,8 +12,8 @@ const SearchInput = () => {
   const intl = useIntl();
   const { searchValue, setSearchValue, setIsOpen, clear } = useSearchInput();
   return (
-    <div className="flex flex-1">
-      <div className="flex w-full">
+    <div className="flex min-w-0 flex-1">
+      <div className="flex w-full min-w-0">
         <label htmlFor="search_field" className="sr-only">
           Search
         </label>
@@ -24,7 +24,7 @@ const SearchInput = () => {
           <input
             id="search_field"
             style={{ paddingRight: searchValue.length > 0 ? '1.75rem' : '' }}
-            className="block w-full rounded-full border border-gray-600 bg-gray-900/80 py-2 pl-10 text-white placeholder-gray-300 hover:border-gray-500 focus:border-gray-500 focus:bg-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
+            className="block w-full min-w-0 rounded-full border border-gray-600 bg-gray-900/80 py-2 pl-10 text-white placeholder-gray-300 hover:border-gray-500 focus:border-gray-500 focus:bg-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
             type="search"
             autoComplete="off"
