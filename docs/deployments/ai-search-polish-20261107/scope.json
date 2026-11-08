@@ -1,0 +1,10 @@
+{
+  "files": [
+    "src/components/AiSearch/FilterChips.tsx",
+    "src/pages/ai-search.tsx",
+    "src/components/Layout/index.tsx",
+    "src/components/Layout/SearchInput/index.tsx",
+    "src/components/Layout/Sidebar/index.tsx",
+    "src/components/Layout/MobileMenu/index.tsx"
+  ]
+}
