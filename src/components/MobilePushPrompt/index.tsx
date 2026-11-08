@@ -4,6 +4,7 @@ import { subscribeToPushNotifications } from '@app/utils/pushSubscriptionHelpers
 import {
   ArrowUpOnSquareIcon,
   BellIcon,
+  EllipsisHorizontalCircleIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
@@ -169,18 +170,23 @@ export default function MobilePushPrompt() {
             <li className="flex gap-3">
               <span className="text-purple-300">1.</span>
               <span>
-                Open this page in <strong>Safari</strong>. Tap{' '}
+                In <strong>Safari</strong>, tap{' '}
+                <EllipsisHorizontalCircleIcon
+                  className="inline h-5 w-5 text-purple-300"
+                  aria-label="the three dots"
+                />
+                , then{' '}
                 <ArrowUpOnSquareIcon
                   className="inline h-5 w-5 text-purple-300"
                   aria-hidden="true"
                 />{' '}
-                <strong>Share</strong> (it may be inside the browser’s menu).
+                <strong>Share</strong>.
               </span>
             </li>
             <li className="flex gap-3">
               <span className="text-purple-300">2.</span>
               <span>
-                Choose{' '}
+                Look for{' '}
                 <PlusIcon
                   className="inline h-4 w-4 text-purple-300"
                   aria-hidden="true"
@@ -193,9 +199,8 @@ export default function MobilePushPrompt() {
             <li className="flex gap-3">
               <span className="text-purple-300">3.</span>
               <span>
-                Open <strong>Multimeldia from its Home Screen icon</strong>,
-                sign in if needed, and tap <strong>Enable notifications</strong>
-                , then <strong>Allow</strong>.
+                Open <strong>Multimeldia from the Home Screen</strong>, then tap{' '}
+                <strong>Enable notifications</strong>.
               </span>
             </li>
           </ol>
@@ -234,7 +239,7 @@ export default function MobilePushPrompt() {
           type="button"
           onClick={dismiss}
           disabled={busy}
-          className="min-h-[44px] rounded-full px-3 py-2 text-sm text-gray-300 hover:text-white disabled:opacity-60"
+          className="ml-auto min-h-[44px] rounded-full px-3 py-2 text-sm text-gray-300 hover:text-white disabled:opacity-60"
         >
           Not now
         </button>
