@@ -1,4 +1,9 @@
 import FilterChips from '@app/components/AiSearch/FilterChips';
+import {
+  readSearchScreen,
+  saveSearchScreen,
+  searchEntry,
+} from '@app/components/AiSearch/navigationState';
 import { searchStream } from '@app/components/AiSearch/searchStream';
 import CachedImage from '@app/components/Common/CachedImage';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -13,6 +18,7 @@ import {
 } from '@server/lib/aiSearchPlan';
 import type { MovieResult, TvResult } from '@server/models/Search';
 import axios from 'axios';
+import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 
@@ -29,9 +35,11 @@ interface SearchResponse {
   people?: { id: number; name: string }[];
 }
 const searchPlaceholder =
-  'A horror movie like The Witch, from the 2010s, under two hours, available and unwatched by prplmg and I, with a Letterboxd score between 3.5 and 4.5…';
+  'Stop motion movies from the 2010s, under two hours, available and unwatched, with a Letterboxd score between 3.5 and 4.5…';
 export default function AiSearchPage() {
   const { user } = useUser();
+  const router = useRouter();
+  const entry = useRef<string | undefined>(undefined);
   const [historyOpen, setHistoryOpen] = useState(false);
   const {
     data: history,
@@ -95,43 +103,31 @@ export default function AiSearchPage() {
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [submitted, setSubmitted] = useState('');
   useEffect(() => {
-    if (!user || restoredFor.current === user.id) return;
+    if (!router.isReady || !user || restoredFor.current === user.id) return;
     restoredFor.current = user.id;
-    setQuery('');
-    setPeople([]);
-    setResponse(null);
-    setSubmitted('');
-    try {
-      const saved = JSON.parse(
-        sessionStorage.getItem(`ai-search:${user.id}`) || 'null'
-      );
-      if (saved && saved.at > Date.now() - 7 * 86400000) {
-        setQuery(saved.query);
-        setPeople(saved.people);
-        setResponse(saved.response);
-        setSubmitted(saved.submitted);
-      }
-    } catch {
-      /* Storage may be disabled. Search still works. */
-    }
-  }, [user]);
+    entry.current = searchEntry(window.history);
+    const saved = readSearchScreen<{
+      query: string;
+      people: number[];
+      response: SearchResponse | null;
+      submitted: string;
+    }>(user.id, entry.current);
+    setQuery(saved?.query ?? '');
+    setPeople(saved?.people ?? []);
+    setResponse(saved?.response ?? null);
+    setSubmitted(saved?.submitted ?? '');
+  }, [user, router.isReady]);
   useEffect(() => {
-    if (!user || restoredFor.current !== user.id) return;
-    // Cleanup captures the latest screen when leaving, including edited drafts.
-    const save = () => {
-      try {
-        sessionStorage.setItem(
-          `ai-search:${user.id}`,
-          JSON.stringify({ query, people, response, submitted, at: Date.now() })
-        );
-      } catch {
-        /* Storage is an optional navigation convenience. */
-      }
-    };
-    window.addEventListener('pagehide', save);
+    if (!user || restoredFor.current !== user.id || !entry.current) return;
+    // Capture the departing entry, never the destination's history state.
+    const currentEntry = entry.current;
     return () => {
-      save();
-      window.removeEventListener('pagehide', save);
+      saveSearchScreen(user.id, currentEntry, {
+        query,
+        people,
+        response,
+        submitted,
+      });
     };
   }, [user, query, people, response, submitted]);
   async function search(
