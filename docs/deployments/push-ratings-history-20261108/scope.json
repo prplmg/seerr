@@ -1,0 +1,14 @@
+{
+  "files": [
+    "server/api/rating/letterboxd.ts",
+    "server/lib/aiSearchHistory.ts",
+    "server/lib/letterboxdRatingLookup.ts",
+    "server/lib/listSort.ts",
+    "server/routes/aiSearch.ts",
+    "server/routes/user/index.ts",
+    "src/components/Layout/index.tsx",
+    "src/components/MobilePushPrompt/index.tsx",
+    "src/components/MobilePushPrompt/policy.ts",
+    "src/pages/ai-search.tsx"
+  ]
+}
