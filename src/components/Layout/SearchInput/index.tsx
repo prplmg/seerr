@@ -4,6 +4,7 @@ import { SparklesIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useId } from 'react';
 import { useIntl } from 'react-intl';
 
 const messages = defineMessages('components.Layout.SearchInput', {
@@ -13,6 +14,7 @@ const messages = defineMessages('components.Layout.SearchInput', {
 const SearchInput = () => {
   const intl = useIntl();
   const router = useRouter();
+  const gradientId = `ai-search-${useId().replace(/:/g, '')}`;
   const { searchValue, setSearchValue, setIsOpen, clear } = useSearchInput();
   return (
     <div className="flex min-w-0 flex-1">
@@ -55,7 +57,30 @@ const SearchInput = () => {
             aria-current={router.pathname === '/ai-search' ? 'page' : undefined}
             className={`absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-full text-purple-300 transition hover:bg-gray-700 hover:text-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${router.pathname === '/ai-search' ? 'bg-purple-500/15' : ''}`}
           >
-            <SparklesIcon className="h-5 w-5" aria-hidden="true" />
+            <svg
+              className="absolute h-0 w-0"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <defs>
+                <linearGradient
+                  id={gradientId}
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#c4b5fd" />
+                  <stop offset="50%" stopColor="#c084fc" />
+                  <stop offset="100%" stopColor="#f9a8d4" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <SparklesIcon
+              className="h-5 w-5"
+              style={{ stroke: `url(#${gradientId})` }}
+              aria-hidden="true"
+            />
           </Link>
           {searchValue.length > 0 && (
             <button
