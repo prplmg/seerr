@@ -11,3 +11,5 @@ Checks: client/server TypeScript and focused ESLint; actual-component+globalCSS 
 Previews/evidence outputs/mobile-push-prompt-20261108/banner-mobile.png, install-banner-mobile.png, instructions-mobile.png and backend-tests.log. Scoped Git commit; unrelated generated next-env.d.ts excluded.
 
 Preview revision: Not now aligns to the right using an auto margin, including wrapped layouts. Simplified Safari steps to three-dots icon → Share icon, Add to Home Screen/Open as Web App/Add, then launch Home Screen app and tap Enable notifications. Android uses the supported-browser Enable banner directly, without install guidance. Still undeployed.
+
+Banner refinement: Enable notifications grows to occupy remaining action-row width alongside right-aligned Not now. Renamed Hide steps to Collapse instructions: collapses only the steps, whereas Not now dismisses/snoozes the entire banner7days. Local only.

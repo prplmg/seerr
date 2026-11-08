@@ -220,7 +220,7 @@ export default function MobilePushPrompt() {
             type="button"
             onClick={enable}
             disabled={busy}
-            className="min-h-[44px] rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 disabled:opacity-60"
+            className="min-h-[44px] flex-1 rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 disabled:opacity-60"
           >
             {busy ? 'Enabling…' : 'Enable notifications'}
           </button>
@@ -232,7 +232,7 @@ export default function MobilePushPrompt() {
             aria-controls="push-install-steps"
             className="min-h-[44px] rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500"
           >
-            {instructions ? 'Hide steps' : 'Show me how'}
+            {instructions ? 'Collapse instructions' : 'Show me how'}
           </button>
         )}
         <button
