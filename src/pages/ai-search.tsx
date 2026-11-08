@@ -20,6 +20,7 @@ import type { MovieResult, TvResult } from '@server/models/Search';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
+import { FormattedRelativeTime } from 'react-intl';
 import useSWR from 'swr';
 
 interface SearchResponse {
@@ -260,10 +261,17 @@ export default function AiSearchPage() {
                       </span>
                     )}
                     <span className="mt-1 block whitespace-normal text-xs text-gray-400">
-                      {new Date(entry.searchedAt).toLocaleString()}
+                      <FormattedRelativeTime
+                        value={Math.min(
+                          0,
+                          Math.floor((entry.searchedAt - Date.now()) / 1000)
+                        )}
+                        updateIntervalInSeconds={60}
+                        numeric="always"
+                      />
                       {entry.people.length
                         ? ` · You + ${entry.people.length}`
-                        : ' · Just you'}
+                        : ''}
                     </span>
                   </button>
                 </li>

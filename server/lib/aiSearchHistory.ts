@@ -11,6 +11,7 @@ export interface SearchHistoryEntry {
   people: number[];
   searchedAt: number;
   filters?: AiFilters;
+  filterOrigin?: 'prompt';
 }
 interface SearchStore {
   history: SearchHistoryEntry[];
@@ -65,8 +66,26 @@ async function store<T>(
     if (queues.get(userId) === task) queues.delete(userId);
   }
 }
+const promptKey = (query: string) =>
+  query.trim().replace(/\s+/g, ' ').toLowerCase();
+// Older entries stored edited filters, not their generated originals. Never
+// replay those overrides as if they came from the prompt.
+export function canonicalSearchHistory(entries: SearchHistoryEntry[]) {
+  const unique = new Map<string, SearchHistoryEntry>();
+  for (const entry of [...entries].sort(
+    (a, b) => b.searchedAt - a.searchedAt
+  )) {
+    const key = promptKey(entry.query);
+    if (unique.has(key)) continue;
+    unique.set(key, {
+      ...entry,
+      filters: entry.filterOrigin === 'prompt' ? entry.filters : undefined,
+    });
+  }
+  return [...unique.values()];
+}
 export const readSearchHistory = (userId: number) =>
-  store(userId, (data) => data.history);
+  store(userId, (data) => canonicalSearchHistory(data.history));
 export const rememberSearch = (
   userId: number,
   query: string,
@@ -79,12 +98,19 @@ export const rememberSearch = (
       const selected = [...new Set(people)]
         .filter((id) => id !== userId)
         .sort((a, b) => a - b);
-      const id = createHash('sha256')
-        .update(JSON.stringify([query, selected, filters]))
-        .digest('hex');
+      const id = createHash('sha256').update(promptKey(query)).digest('hex');
       data.history = [
-        { id, query, people: selected, filters, searchedAt: Date.now() },
-        ...data.history.filter((entry) => entry.id !== id),
+        {
+          id,
+          query,
+          people: selected,
+          filters,
+          filterOrigin: 'prompt',
+          searchedAt: Date.now(),
+        },
+        ...canonicalSearchHistory(data.history).filter(
+          (entry) => promptKey(entry.query) !== promptKey(query)
+        ),
       ];
     },
     true

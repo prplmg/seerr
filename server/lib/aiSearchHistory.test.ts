@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   SEARCH_RETENTION,
+  canonicalSearchHistory,
   readSearchHistory,
   readSearchPlan,
   rememberSearch,
@@ -31,4 +32,42 @@ test('history isolates users, deduplicates groups, serializes writes and expires
   assert.deepEqual(await readSearchHistory(user), []);
   assert.equal(await readSearchPlan(user, 'versioned-key'), undefined);
   await assert.rejects(readSearchHistory(-1));
+});
+
+test('legacy filter variants collapse and cannot replay edited filters', () => {
+  const filters = { maxRuntime: 90 } as never;
+  const history = canonicalSearchHistory([
+    { id: '1', query: 'Horror movies', people: [], searchedAt: 10 },
+    {
+      id: '2',
+      query: ' horror   movies ',
+      people: [4],
+      searchedAt: 20,
+      filters,
+    },
+    {
+      id: '3',
+      query: 'Comedy',
+      people: [],
+      searchedAt: 15,
+      filters,
+      filterOrigin: 'prompt',
+    },
+  ]);
+  assert.equal(history.length, 2);
+  assert.equal(history[0].id, '2');
+  assert.equal(history[0].filters, undefined);
+  assert.deepEqual(history[1].filters, filters);
+});
+
+test('same normalized prompt replaces one entry with generated filters and latest people', async () => {
+  const user = 880003;
+  const filters = { maxRuntime: 120 } as never;
+  await rememberSearch(user, 'Horror movies', [user], filters);
+  await rememberSearch(user, ' horror   movies ', [user, 4], filters);
+  const history = await readSearchHistory(user);
+  assert.equal(history.length, 1);
+  assert.deepEqual(history[0].filters, filters);
+  assert.equal(history[0].filterOrigin, 'prompt');
+  assert.deepEqual(history[0].people, [4]);
 });

@@ -308,7 +308,9 @@ router.post('/', async (req, res, next) => {
       throw Object.assign(Error('Catalogue changed. Please retry.'), {
         status: 409,
       });
-    await rememberSearch(req.user!.id, query, people.ids, overrides);
+    // Chip edits and History reopens reuse the prompt; do not create or
+    // overwrite a history entry with manually changed filters.
+    if (!overrides) await rememberSearch(req.user!.id, query, people.ids, f);
     const response = {
       results: filteredResults.slice(0, 20),
       ratingCoverage,

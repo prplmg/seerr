@@ -223,7 +223,7 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     .get('/api/v1/ai-search/history')
     .set('test-user', '1');
   assert.equal(history.status, 200);
-  assert.equal(history.body.searches.length, 2);
+  assert.equal(history.body.searches.length, 1);
   assert.deepEqual(history.body.searches[0].people, [98704]);
   assert.equal(history.body.searches[0].query, 'test constraints');
   assert.equal(
@@ -254,7 +254,11 @@ test('resolved results enforce availability, watched state, runtime and blocklis
   const changedHistory = await request(app)
     .get('/api/v1/ai-search/history')
     .set('test-user', '1');
-  assert.deepEqual(changedHistory.body.searches[0].filters, edits);
+  assert.deepEqual(changedHistory.body.searches, history.body.searches);
+  assert.deepEqual(
+    changedHistory.body.searches[0].filters,
+    grouped.body.filters
+  );
   const expired = await request(app)
     .post('/api/v1/ai-search')
     .set('test-user', '1')
