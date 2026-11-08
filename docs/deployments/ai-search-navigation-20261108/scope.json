@@ -1,0 +1,8 @@
+{
+  "files": [
+    "src/pages/ai-search.tsx",
+    "src/components/AiSearch/navigationState.ts",
+    "src/components/Layout/SearchInput/index.tsx",
+    "src/styles/globals.css"
+  ]
+}
