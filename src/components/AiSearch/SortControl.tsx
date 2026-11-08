@@ -1,11 +1,19 @@
 import { Popover } from '@headlessui/react';
-import { ArrowsUpDownIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ArrowsUpDownIcon,
+  CalendarIcon,
+  ClockIcon,
+  StarIcon,
+} from '@heroicons/react/24/outline';
 import {
   sortLabel,
   type AiSort,
   type SortField,
 } from '@server/lib/aiSearchSort';
 import { useState } from 'react';
+const icons = { rating: StarIcon, runtime: ClockIcon, year: CalendarIcon };
 const names = {
   rating: 'Letterboxd score',
   runtime: 'Runtime',
@@ -42,15 +50,34 @@ export default function SortControl({
         disabled={busy}
         onClick={() => setDraft(value)}
         aria-label={`Sort: ${sortLabel(value)}`}
+        title={`Sort: ${sortLabel(value)}`}
         className="inline-flex min-h-[36px] items-center gap-2 rounded-full px-3 py-1.5 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50"
       >
-        <ArrowsUpDownIcon className="h-4 w-4" />
-        <span>{sortLabel(value)}</span>
+        {value.length ? (
+          value.map((sort, index) => {
+            const Icon = icons[sort.field];
+            const Direction =
+              sort.direction === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+            return (
+              <span
+                key={sort.field}
+                className="inline-flex items-center gap-1"
+                aria-hidden="true"
+              >
+                {index > 0 && <span className="mr-1 text-gray-500">·</span>}
+                <Icon className="h-4 w-4" />
+                <Direction className="h-3 w-3" />
+              </span>
+            );
+          })
+        ) : (
+          <>
+            <ArrowsUpDownIcon className="h-4 w-4" aria-hidden="true" />
+            <span>Best match</span>
+          </>
+        )}
       </Popover.Button>
-      <Popover.Panel
-        focus
-        className="absolute right-0 top-full z-40 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-600 bg-gray-800 p-4 text-gray-100 shadow-xl"
-      >
+      <Popover.Panel className="absolute right-0 top-full z-40 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-600 bg-gray-800 p-4 text-gray-100 shadow-xl">
         {({ close }) => (
           <form
             onSubmit={(e) => {
