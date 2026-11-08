@@ -174,7 +174,7 @@ export default function AiSearchPage() {
   }
   const f = response?.filters;
   return (
-    <>
+    <div className="text-gray-100">
       <PageTitle title="AI Search" />
       <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="text-3xl font-bold text-purple-300">AI Search</h1>
@@ -195,7 +195,9 @@ export default function AiSearchPage() {
           className="relative mb-4 rounded-2xl border border-purple-400/50 bg-gray-800 p-4 before:absolute before:-top-2 before:right-8 before:h-3 before:w-3 before:rotate-45 before:border-l before:border-t before:border-purple-400/50 before:bg-gray-800"
         >
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="font-semibold">Search history · Last 7 days</h2>
+            <h2 className="font-semibold text-gray-100">
+              Search history · Last 7 days
+            </h2>
             <button
               type="button"
               onClick={() => setHistoryOpen(false)}
@@ -227,7 +229,7 @@ export default function AiSearchPage() {
                   <button
                     type="button"
                     disabled={busy}
-                    className="w-full rounded-xl bg-gray-900 p-3 text-left hover:bg-gray-700 disabled:opacity-50"
+                    className="w-full min-w-0 rounded-xl bg-gray-900 p-3 text-left text-gray-100 hover:bg-gray-700 disabled:opacity-50"
                     onClick={() => {
                       setQuery(entry.query);
                       setPeople(entry.people);
@@ -235,9 +237,11 @@ export default function AiSearchPage() {
                       void search(entry.query, entry.people, entry.filters);
                     }}
                   >
-                    <span className="block break-words">{entry.query}</span>
+                    <span className="block whitespace-normal break-words">
+                      {entry.query}
+                    </span>
                     {entry.filters && (
-                      <span className="mt-1 block text-xs text-purple-200">
+                      <span className="mt-1 block whitespace-normal break-words text-xs text-purple-200">
                         {[
                           entry.filters.available ? 'Available' : null,
                           entry.filters.unwatched ? 'Unwatched' : null,
@@ -259,7 +263,7 @@ export default function AiSearchPage() {
                           .join(' · ') || 'Custom filters'}
                       </span>
                     )}
-                    <span className="mt-1 block text-xs text-gray-400">
+                    <span className="mt-1 block whitespace-normal text-xs text-gray-400">
                       {new Date(entry.searchedAt).toLocaleString()}
                       {entry.people.length
                         ? ` · You + ${entry.people.length}`
@@ -308,7 +312,9 @@ export default function AiSearchPage() {
               {({ close }) => (
                 <>
                   <div className="flex items-center justify-between gap-2">
-                    <h2 className="font-semibold">Who’s watching?</h2>
+                    <h2 className="font-semibold text-gray-100">
+                      Who’s watching?
+                    </h2>
                     <button
                       type="button"
                       onClick={() => close()}
@@ -498,6 +504,6 @@ export default function AiSearchPage() {
           </ul>
         </section>
       )}
-    </>
+    </div>
   );
 }

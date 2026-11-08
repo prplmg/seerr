@@ -1,4 +1,5 @@
-import { PencilIcon } from '@heroicons/react/24/outline';
+import { Popover } from '@headlessui/react';
+import { PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import {
   letterboxdFilterLabel,
   movieGenres,
@@ -66,29 +67,87 @@ export default function FilterChips({
       : 'Any genre',
     letterboxdFilterLabel(filters),
   ];
+  const names = [
+    'Availability',
+    'Watched status',
+    'Runtime',
+    'Release years',
+    'Genres',
+    'Letterboxd rating',
+  ];
+  const active = [
+    filters.available,
+    filters.unwatched,
+    filters.maxRuntime != null,
+    filters.yearFrom != null || filters.yearTo != null,
+    filters.genres.length > 0,
+    filters.minLetterboxdRating != null || filters.maxLetterboxdRating != null,
+  ];
+  const edit = (index: number) => {
+    setEditing(index);
+    setDraft({ ...filters, genres: [...filters.genres] });
+  };
   return (
-    <div className="mb-4">
-      <div className="flex flex-wrap gap-2 text-sm">
-        <span className="rounded-full bg-gray-800 px-3 py-1.5 text-gray-400">
-          {filters.type === 'movie' ? 'Movies' : 'Series'}
-        </span>
-        {labels.map((label, index) => (
-          <button
-            type="button"
-            disabled={busy}
-            key={label}
-            onClick={() => {
-              setEditing(index);
-              setDraft({ ...filters, genres: [...filters.genres] });
-            }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-gray-600 bg-gray-800 px-3 py-1.5 text-purple-200 hover:border-purple-400 disabled:opacity-50"
-            aria-label={`Edit ${label}`}
-          >
-            <span>{label}</span>
-            <PencilIcon className="h-3 w-3 shrink-0" />
-          </button>
-        ))}
-      </div>
+    <div className="mb-4 text-gray-100">
+      <Popover className="relative flex flex-wrap gap-2 text-sm">
+        {labels.map(
+          (label, index) =>
+            active[index] && (
+              <button
+                type="button"
+                disabled={busy}
+                key={label}
+                onClick={() => edit(index)}
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-gray-600 bg-gray-800 px-3 py-1.5 text-purple-200 hover:border-purple-400 disabled:opacity-50"
+                aria-label={`Edit ${label}`}
+              >
+                <span className="whitespace-normal break-words">{label}</span>
+                <PencilIcon className="h-3 w-3 shrink-0" />
+              </button>
+            )
+        )}
+        {active.some((value) => !value) && (
+          <>
+            <Popover.Button
+              type="button"
+              disabled={busy}
+              onClick={() => setDraft(null)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-gray-600 px-3 py-1.5 text-purple-200 hover:border-purple-400 disabled:opacity-50"
+            >
+              <PlusIcon className="h-4 w-4" aria-hidden="true" />
+              More filters
+            </Popover.Button>
+            <Popover.Panel
+              focus
+              className="absolute left-0 top-full z-30 mt-2 w-64 max-w-full rounded-xl border border-gray-600 bg-gray-800 p-2 text-gray-100 shadow-xl"
+            >
+              {({ close }) => (
+                <>
+                  <h3 className="px-3 py-2 font-semibold text-gray-100">
+                    Add a filter
+                  </h3>
+                  {names.map(
+                    (name, index) =>
+                      !active[index] && (
+                        <button
+                          type="button"
+                          key={name}
+                          className="block w-full rounded-lg px-3 py-2 text-left text-gray-100 hover:bg-gray-700"
+                          onClick={() => {
+                            close();
+                            edit(index);
+                          }}
+                        >
+                          {name}
+                        </button>
+                      )
+                  )}
+                </>
+              )}
+            </Popover.Panel>
+          </>
+        )}
+      </Popover>
       {draft && (
         <form
           aria-label="Edit search filters"
@@ -99,7 +158,7 @@ export default function FilterChips({
             setDraft(null);
           }}
         >
-          <h3 className="font-semibold">
+          <h3 className="font-semibold text-gray-100">
             {
               [
                 'Availability',
@@ -149,7 +208,7 @@ export default function FilterChips({
             <label className="block text-sm">
               Maximum {draft.type === 'tv' ? 'episode ' : ''}runtime (minutes)
               <input
-                className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-900 p-2"
+                className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-900 p-2 text-gray-100"
                 type="number"
                 min="1"
                 max="600"
@@ -170,7 +229,7 @@ export default function FilterChips({
                 <label key={key} className="min-w-0 text-sm">
                   {key === 'yearFrom' ? 'Released from' : 'Released through'}
                   <input
-                    className="mt-1 block w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-2"
+                    className="mt-1 block w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-2 text-gray-100"
                     type="number"
                     min={key === 'yearTo' ? (draft.yearFrom ?? 1870) : 1870}
                     max="2100"
@@ -253,7 +312,7 @@ export default function FilterChips({
                               : null,
                           })
                         }
-                        className="mt-1 block w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-2"
+                        className="mt-1 block w-full min-w-0 rounded-lg border border-gray-600 bg-gray-900 p-2 text-gray-100"
                       />
                     </label>
                   )
@@ -276,7 +335,7 @@ export default function FilterChips({
             <button
               type="submit"
               disabled={busy}
-              className="rounded-full bg-purple-600 px-4 py-2 font-semibold"
+              className="rounded-full bg-purple-600 px-4 py-2 font-semibold text-white"
             >
               Apply filters
             </button>
