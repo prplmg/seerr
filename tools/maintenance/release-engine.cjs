@@ -1,5 +1,6 @@
 const fs=require('fs'),path=require('path'),cp=require('child_process'),crypto=require('crypto');
 const {healthJson}=require('./deployment-health.cjs');
+const {stopCommand,recoverRelease}=require('./rollout-control.cjs');
 const root='C:/ProgramData/Seerr',live=root+'/app',release=root+'/reconciliation-release-20261019',stage=root+'/reconciliation-native-20261019';
 const read=f=>fs.existsSync(f)?fs.readFileSync(f,'utf8'):null;
 const hash=s=>s===null?null:crypto.createHash('sha256').update(s.replace(/\r\n/g,'\n')).digest('hex');
@@ -53,8 +54,8 @@ async function main(){
  const publishing=()=>Object.entries(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings).filter(([,s])=>s.enabled).map(([id,s])=>({id,account:s.account}));
  const mappingsBefore=hash(read(root+'/data/account-mappings.json'));
  const publishingSettingsBefore=JSON.stringify(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings);
- const swap=release+'/previous';if(fs.existsSync(swap))throw Error('Already deployed');fs.mkdirSync(swap);
- const stop=()=>ps("Stop-ScheduledTask -TaskName Seerr; Start-Sleep -Seconds 2; $catalogueProcesses = Get-CimInstance Win32_Process | Where-Object {$_.Name -eq 'node.exe' -and $_.ExecutablePath -eq 'C:\\ProgramData\\Seerr\\node\\node.exe' -and $_.CommandLine -match 'dist[\\\\/]index[.]js'}; $catalogueProcesses | ForEach-Object { $process = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; if ($process) { Stop-Process -InputObject $process -Force; if (-not $process.WaitForExit(15000)) { throw 'Catalogue child exit timed out' } } }; $survivors = Get-CimInstance Win32_Process | Where-Object {$_.ProcessId -in @($catalogueProcesses.ProcessId)}; if ($survivors) {throw 'Catalogue child survived stop'}");
+ const swap=release+'/previous';if(fs.existsSync(swap))throw Error('Already deployed');
+ const stop=()=>ps(stopCommand());
  const leaseOwner=path.basename(release);
  const maintenance=action=>cp.execFileSync('ssh',['-o','BatchMode=yes','-o','ConnectTimeout=8','root@100.87.16.107','/srv/multimeldia-maintenance/lease.sh',action,leaseOwner],{timeout:15000,stdio:'inherit'});
  const directApi='http://192.168.68.50:5055/api/v1';
@@ -73,6 +74,7 @@ async function main(){
   const {openSqlite}=require(root+'/NativeTwoWayChecks.cjs');const db=await openSqlite(require(live+'/node_modules/sqlite3'),root+'/data/db/db.sqlite3',true);
   try{await db.backup(release+'/before.sqlite3');}finally{await db.close();}
   fs.mkdirSync(release+'/state');for(const name of fs.readdirSync(root+'/data').filter(n=>n.startsWith('letterboxd-')&&n.endsWith('.json')))fs.copyFileSync(root+'/data/'+name,release+'/state/'+name);
+  fs.mkdirSync(swap);
   for(const dir of ['.next','dist']){fs.renameSync(live+'/'+dir,swap+'/'+dir);moved.push(dir);fs.renameSync(stage+'/'+dir,live+'/'+dir);}
   touched=true;for(const e of manifest){fs.mkdirSync(path.dirname(live+'/'+e.file),{recursive:true});fs.copyFileSync(stage+'/'+e.file,live+'/'+e.file);}
   await startReady();
@@ -91,11 +93,29 @@ async function main(){
   const result={buildId:built.buildId,health:true,migrations:true,publishing:publishing().map(s=>s.account),seriesLetterboxdAvailable:!!lb.rating,backup:release};fs.writeFileSync(release+'/verified.json',JSON.stringify(result));console.log(JSON.stringify(result));
  }catch(error){
   try{maintenance('start');}catch(edgeError){console.error('Could not renew rollback notice:',edgeError.message);}
-  stop();for(const dir of moved){if(fs.existsSync(live+'/'+dir))fs.renameSync(live+'/'+dir,swap+'/failed-'+dir);fs.renameSync(swap+'/'+dir,live+'/'+dir);}
-  if(touched)for(const e of manifest){if(e.before===null){if(fs.existsSync(live+'/'+e.file))fs.unlinkSync(live+'/'+e.file);}else fs.writeFileSync(live+'/'+e.file,e.before);}
-  await startReady();
-  const restored=await healthJson(directApi+'/status?checkUpdateAvailable=false');
-  if(typeof restored.version==='string')maintenance('finish');
+  try {
+   await recoverRelease({
+    changed: moved.length > 0 || touched,
+    stop,
+    restore: () => {
+     for(const dir of moved){if(fs.existsSync(live+'/'+dir))fs.renameSync(live+'/'+dir,swap+'/failed-'+dir);fs.renameSync(swap+'/'+dir,live+'/'+dir);}
+     if(touched)for(const e of manifest){if(e.before===null){if(fs.existsSync(live+'/'+e.file))fs.unlinkSync(live+'/'+e.file);}else fs.writeFileSync(live+'/'+e.file,e.before);}
+    },
+    startReady,
+    nativeHealth: async()=>{const restored=await healthJson(directApi+'/status?checkUpdateAvailable=false');if(typeof restored.version!=='string')throw Error('Restored native health failed');},
+    finishMaintenance: ()=>maintenance('finish'),
+    publicHealth: async()=>{const restored=await healthJson('https://catalogue.prpl.com.mx/api/v1/status?checkUpdateAvailable=false');if(typeof restored.version!=='string')throw Error('Restored public health failed');},
+    cleanup: ()=>{
+     if(fs.existsSync(swap)&&fs.readdirSync(swap).length===0)fs.rmdirSync(swap);
+     const names=['before.sqlite3','state'].filter(n=>fs.existsSync(release+'/'+n));
+     if(names.length){const archive=release+'/pre-swap-attempt-'+Date.now();fs.mkdirSync(archive);for(const n of names)fs.renameSync(release+'/'+n,archive+'/'+n);}
+    }
+   });
+   fs.writeFileSync(release+'/failed-attempt.json',JSON.stringify({error:error.stack,recovered:true,changed:moved.length>0||touched,at:new Date().toISOString()}));
+  } catch(recoveryError) {
+   fs.writeFileSync(release+'/failed-attempt.json',JSON.stringify({error:error.stack,recoveryError:recoveryError.stack,recovered:false,at:new Date().toISOString()}));
+   throw new AggregateError([error,recoveryError],'Release failed and recovery did not complete; inspect failed-attempt.json');
+  }
   throw error;
  }
 }
