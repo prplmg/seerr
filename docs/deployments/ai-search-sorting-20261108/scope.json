@@ -1,0 +1,11 @@
+{
+  "files": [
+    "seerr-api.yml",
+    "server/lib/aiSearchSort.ts",
+    "server/lib/listSort.ts",
+    "server/routes/aiSearch.ts",
+    "src/components/AiSearch/FilterChips.tsx",
+    "src/components/AiSearch/SortControl.tsx",
+    "src/pages/ai-search.tsx"
+  ]
+}
