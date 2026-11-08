@@ -391,4 +391,30 @@ test('resolved results enforce availability, watched state, runtime and blocklis
     calls,
     'all bound edits must reuse the interpretation'
   );
+  const namedQuery = 'horror, unwatched by ykrn and I';
+  const named = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: namedQuery });
+  assert.equal(named.status, 200, JSON.stringify(named.body));
+  assert.deepEqual(named.body.results, []);
+  const countAfterNamed = model.mock.callCount();
+  const removed = await request(app)
+    .post('/api/v1/ai-search')
+    .set('test-user', '1')
+    .send({ query: namedQuery, people: [], filters: named.body.filters });
+  assert.equal(removed.status, 200, JSON.stringify(removed.body));
+  assert.deepEqual(
+    removed.body.people.map((p: { id: number }) => p.id),
+    [98703]
+  );
+  assert.deepEqual(
+    removed.body.results.map((r: { media: { id: number } }) => r.media.id),
+    [1]
+  );
+  assert.equal(
+    model.mock.callCount(),
+    countAfterNamed,
+    'removing a named person reuses the cached plan'
+  );
 });

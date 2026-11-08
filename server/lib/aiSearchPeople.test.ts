@@ -74,3 +74,11 @@ test('usage logs retain counts, not arbitrary provider fields; cache zero and un
     null
   );
 });
+
+test('selector edits override names in the original prompt without changing cached interpretation', () => {
+  assert.deepEqual(
+    searchPeople(1, [], 'Horror, unwatched by ykrn and I', users, false),
+    { ids: [1], query: 'Horror, unwatched' }
+  );
+  assert.throws(() => searchPeople(1, [99], 'Horror', users, false));
+});

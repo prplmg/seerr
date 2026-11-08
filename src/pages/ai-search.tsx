@@ -1,4 +1,5 @@
 import FilterChips from '@app/components/AiSearch/FilterChips';
+import PeoplePicker from '@app/components/AiSearch/PeoplePicker';
 import SortControl from '@app/components/AiSearch/SortControl';
 import {
   readSearchScreen,
@@ -6,12 +7,10 @@ import {
   searchEntry,
 } from '@app/components/AiSearch/navigationState';
 import { searchStream } from '@app/components/AiSearch/searchStream';
-import CachedImage from '@app/components/Common/CachedImage';
 import PageTitle from '@app/components/Common/PageTitle';
 import TitleCard from '@app/components/TitleCard';
 import { useUser } from '@app/hooks/useUser';
-import { Popover } from '@headlessui/react';
-import { ClockIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { ClockIcon } from '@heroicons/react/24/outline';
 import type { SearchHistoryEntry } from '@server/lib/aiSearchHistory';
 import {
   letterboxdFilterLabel,
@@ -55,11 +54,7 @@ export default function AiSearchPage() {
     async ([url]: [string, number]) => (await axios.get(url)).data
   );
   const restoredFor = useRef<number | undefined>(undefined);
-  const {
-    data: peopleData,
-    error: peopleError,
-    mutate: retryPeople,
-  } = useSWR<{
+  const { data: peopleData } = useSWR<{
     users: { id: number; name: string; avatar?: string }[];
     selfId: number;
   }>('/api/v1/ai-search/people');
@@ -102,6 +97,17 @@ export default function AiSearchPage() {
     observer.observe(input);
     return () => observer.disconnect();
   }, [query, historyOpen]);
+  const inFlight = useRef<AbortController | null>(null);
+  const peopleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+  useEffect(
+    () => () => {
+      inFlight.current?.abort();
+      clearTimeout(peopleTimer.current);
+    },
+    []
+  );
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('Finding titles…');
   const [error, setError] = useState('');
@@ -141,7 +147,11 @@ export default function AiSearchPage() {
     filters?: AiFilters,
     sort?: AiSort
   ) {
-    if (busy || !searchQuery.trim()) return;
+    if (!searchQuery.trim()) return;
+    clearTimeout(peopleTimer.current);
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
     setBusy(true);
     setProgress('Checking your catalogue…');
     setError('');
@@ -154,16 +164,22 @@ export default function AiSearchPage() {
           sort,
           stream: true,
         },
-        setProgress
+        (message) => {
+          if (!controller.signal.aborted) setProgress(message);
+        },
+        undefined,
+        controller.signal
       );
+      if (controller.signal.aborted) return;
       setResponse(data);
-      if (data.people && peopleData)
+      if (!filters && data.people && peopleData)
         setPeople(
           data.people.filter((p) => p.id !== peopleData.selfId).map((p) => p.id)
         );
       setSubmitted(searchQuery.trim());
       void refreshHistory();
     } catch (e) {
+      if (controller.signal.aborted) return;
       setError(
         axios.isAxiosError(e)
           ? e.response?.data?.message || 'Search failed. Please try again.'
@@ -172,9 +188,31 @@ export default function AiSearchPage() {
             : 'Search failed. Please try again.'
       );
     } finally {
-      setBusy(false);
+      if (!controller.signal.aborted) setBusy(false);
     }
   }
+  const changePeople = (next: number[]) => {
+    setPeople(next);
+    clearTimeout(peopleTimer.current);
+    inFlight.current?.abort();
+    if (response) {
+      setBusy(true);
+      setProgress('Updating watched filters…');
+      peopleTimer.current = setTimeout(
+        () =>
+          void search(
+            submitted,
+            next,
+            { ...response.filters, unwatched: true },
+            response.sort
+          ),
+        300
+      );
+    } else if (busy) {
+      setProgress('Updating watched filters…');
+      peopleTimer.current = setTimeout(() => void search(query, next), 300);
+    } else setBusy(false);
+  };
   const f = response?.filters;
   return (
     <div className="text-gray-100">
@@ -294,119 +332,11 @@ export default function AiSearchPage() {
           }}
           className="mb-6 rounded-2xl border border-gray-700 bg-gray-800 p-4"
         >
-          <Popover className="relative mb-2 flex items-center justify-between gap-2">
+          <PeoplePicker people={people} onChange={changePeople}>
             <label htmlFor="ai-query" className="min-w-0 font-semibold">
               What are you in the mood for?
             </label>
-            <Popover.Button
-              type="button"
-              disabled={busy}
-              aria-label={`Watching with: you${people.length ? ` and ${people.length} others` : ''}`}
-              title="Choose who’s watching"
-              className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-purple-300 focus-visible:ring-2 focus-visible:ring-purple-400 disabled:opacity-50 ${people.length ? 'bg-purple-900/40' : 'hover:bg-gray-700'}`}
-            >
-              <UsersIcon className="h-6 w-6" aria-hidden="true" />
-              {people.length > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-purple-500 px-1 text-[10px] font-bold text-white"
-                >
-                  {people.length}
-                </span>
-              )}
-            </Popover.Button>
-            <Popover.Panel
-              focus
-              className="absolute right-0 top-full z-40 mt-2 w-80 max-w-full rounded-2xl border border-gray-600 bg-gray-800 p-3 shadow-xl"
-            >
-              {({ close }) => (
-                <>
-                  <div className="flex items-center justify-between gap-2">
-                    <h2 className="font-semibold text-gray-100">
-                      Who’s watching?
-                    </h2>
-                    <button
-                      type="button"
-                      onClick={() => close()}
-                      className="rounded-full px-3 py-2 text-sm text-purple-300"
-                    >
-                      Done
-                    </button>
-                  </div>
-                  <p className="my-2 text-xs text-gray-400">
-                    You’re included. Choose up to five others to exclude
-                    anything any of you has watched.
-                  </p>
-                  {peopleError ? (
-                    <button
-                      type="button"
-                      onClick={() => void retryPeople()}
-                      className="text-sm text-purple-300"
-                    >
-                      Couldn’t load people. Retry
-                    </button>
-                  ) : !peopleData ? (
-                    <p role="status" className="text-sm text-gray-400">
-                      Loading people…
-                    </p>
-                  ) : (
-                    <div className="max-h-[45vh] space-y-2 overflow-y-auto overscroll-contain">
-                      {peopleData.users
-                        .filter((u) => u.id !== peopleData.selfId)
-                        .map((u) => (
-                          <label
-                            key={u.id}
-                            className="flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-lg bg-gray-900 p-2"
-                          >
-                            {u.avatar ? (
-                              <CachedImage
-                                type="avatar"
-                                src={u.avatar}
-                                alt=""
-                                width={28}
-                                height={28}
-                                className="h-7 w-7 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-700">
-                                {u.name.slice(0, 1)}
-                              </span>
-                            )}
-                            <span className="min-w-0 flex-1 break-words text-sm">
-                              {u.name}
-                            </span>
-                            <input
-                              type="checkbox"
-                              aria-label={u.name}
-                              checked={people.includes(u.id)}
-                              disabled={
-                                busy ||
-                                (people.length >= 5 && !people.includes(u.id))
-                              }
-                              onChange={(e) =>
-                                setPeople(
-                                  e.target.checked
-                                    ? [...people, u.id]
-                                    : people.filter((id) => id !== u.id)
-                                )
-                              }
-                            />
-                          </label>
-                        ))}
-                    </div>
-                  )}
-
-                  {peopleData &&
-                    peopleData.users.filter((u) => u.id !== peopleData.selfId)
-                      .length === 0 && (
-                      <p className="py-2 text-sm text-gray-400">
-                        No other viewers are available.
-                      </p>
-                    )}
-                </>
-              )}
-            </Popover.Panel>
-          </Popover>
+          </PeoplePicker>
           <textarea
             id="ai-query"
             ref={queryInput}

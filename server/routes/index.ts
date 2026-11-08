@@ -39,6 +39,7 @@ import issueRoutes from './issue';
 import issueCommentRoutes from './issueComment';
 import letterboxdWatchlistRoutes from './letterboxdWatchlist';
 import letterboxdWorkerRoutes from './letterboxdWorker';
+import libraryBrowseRoutes from './libraryBrowse';
 import mediaRoutes from './media';
 import movieRoutes from './movie';
 import personRoutes from './person';
@@ -176,6 +177,7 @@ router.get(
 );
 router.use('/settings', isAuthenticated(Permission.ADMIN), settingsRoutes);
 router.use('/search', isAuthenticated(), searchRoutes);
+router.use('/find-to-watch', isAuthenticated(), libraryBrowseRoutes);
 router.use('/ai-search', isAuthenticated(), aiSearchRoutes);
 router.use('/discover', isAuthenticated(), discoverRoutes);
 router.use('/request', isAuthenticated(), requestRoutes);

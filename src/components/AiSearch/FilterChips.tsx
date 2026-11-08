@@ -42,8 +42,10 @@ export default function FilterChips({
   busy,
   onApply,
   sortControl,
+  availableOnly = false,
 }: {
   sortControl?: ReactNode;
+  availableOnly?: boolean;
   filters: AiFilters;
   group: boolean;
   busy: boolean;
@@ -94,7 +96,8 @@ export default function FilterChips({
       <Popover className="relative flex flex-wrap gap-2 text-sm">
         {labels.map(
           (label, index) =>
-            active[index] && (
+            active[index] &&
+            !(availableOnly && index === 0) && (
               <button
                 type="button"
                 disabled={busy}
@@ -130,7 +133,8 @@ export default function FilterChips({
                   </h3>
                   {names.map(
                     (name, index) =>
-                      !active[index] && (
+                      !active[index] &&
+                      !(availableOnly && index === 0) && (
                         <button
                           type="button"
                           key={name}

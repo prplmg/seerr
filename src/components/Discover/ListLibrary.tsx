@@ -10,9 +10,8 @@ import { Popover, Transition } from '@headlessui/react';
 import {
   ArrowRightCircleIcon,
   BookmarkIcon,
-  ClockIcon,
   FunnelIcon,
-  UsersIcon,
+  LightBulbIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Link from 'next/link';
@@ -1264,12 +1263,18 @@ function ForYou() {
               className="flex shrink-0 items-center"
             >
               {[
-                { id: 'short', label: titles.short, Icon: ClockIcon },
-                { id: 'together', label: titles.together, Icon: UsersIcon },
+                {
+                  id: 'find-to-watch',
+                  label: t(
+                    'Find something to watch',
+                    'Encuentra algo para ver'
+                  ),
+                  Icon: LightBulbIcon,
+                },
               ].map(({ id, label, Icon }) => (
                 <Link
                   key={id}
-                  href={href(`/for-you?section=${id}`)}
+                  href="/find-to-watch"
                   aria-label={label}
                   title={label}
                   className="flex h-11 w-11 items-center justify-center rounded-lg text-purple-300 hover:bg-gray-800 hover:text-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"

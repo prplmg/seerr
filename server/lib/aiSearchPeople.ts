@@ -3,7 +3,8 @@ export function searchPeople(
   userId: number,
   requested: unknown,
   query: string,
-  users: SearchPerson[]
+  users: SearchPerson[],
+  resolvePromptNames = true
 ) {
   const selected = requested ?? [];
   if (
@@ -20,7 +21,7 @@ export function searchPeople(
       const names = phrase
         .split(/\s+(?:and|&)\s+|\s*\+\s*/i)
         .map((s) => s.trim().replace(/^@/, ''));
-      for (const name of names) {
+      for (const name of resolvePromptNames ? names : []) {
         if (/^(?:i|me|myself)$/i.test(name)) continue;
         const matches = users.filter(
           (u) => u.name.toLocaleLowerCase() === name.toLocaleLowerCase()

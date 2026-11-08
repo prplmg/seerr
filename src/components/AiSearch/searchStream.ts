@@ -1,12 +1,17 @@
 /** One streaming request, no progress polling and no artificial timers/stages. */
 export async function searchStream<T>(
   body: unknown,
-  progress: (message: string) => void
+  progress: (message: string) => void,
+  endpoint = '/api/v1/ai-search',
+  signal?: AbortSignal
 ): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 240000);
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  if (signal?.aborted) controller.abort();
   try {
-    const response = await fetch('/api/v1/ai-search', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
@@ -49,5 +54,6 @@ export async function searchStream<T>(
     }
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
   }
 }

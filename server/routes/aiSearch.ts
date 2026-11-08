@@ -92,7 +92,13 @@ router.post('/', async (req, res, next) => {
     }
     progress('Checking your catalogue…');
     const d = await discoveryData(req.user!.id);
-    const people = searchPeople(req.user!.id, req.body.people, query, d.users);
+    const people = searchPeople(
+      req.user!.id,
+      req.body.people,
+      query,
+      d.users,
+      !overrides
+    );
     if (people.ids.length > 1 && !d.historyAvailable)
       throw Object.assign(
         Error('Watch history is temporarily unavailable. Please retry.'),
@@ -114,7 +120,7 @@ router.post('/', async (req, res, next) => {
       ...base,
       unwatched:
         base.unwatched ||
-        people.ids.length > 1 ||
+        (!overrides && people.ids.length > 1) ||
         (!overrides && /\bunwatched by\b/i.test(query)),
     };
     const seen = togetherSeen(people.ids, d.ratings, d.watched);
@@ -124,6 +130,7 @@ router.post('/', async (req, res, next) => {
         { status: 503 }
       );
     progress(f.type === 'movie' ? 'Finding movies…' : 'Finding series…');
+    if (res.destroyed) return;
     const tmdb = new TheMovieDb();
     const candidates: {
       media: MovieResult | TvResult;
@@ -134,6 +141,7 @@ router.post('/', async (req, res, next) => {
     if (plan.suggestions.length) {
       // Small batches bound metadata concurrency; never trust model-supplied IDs.
       for (let i = 0; i < plan.suggestions.length; i += 3) {
+        if (res.destroyed) return;
         const rows = await Promise.all(
           plan.suggestions.slice(i, i + 3).map(async (s) => {
             const results =
@@ -232,6 +240,7 @@ router.post('/', async (req, res, next) => {
           : 20);
       i += 3
     ) {
+      if (res.destroyed) return;
       const batch = await Promise.all(
         unique.slice(i, i + 3).map(async (r) => {
           const m = related.find(

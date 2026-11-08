@@ -7193,6 +7193,122 @@ paths:
           description: Search limit reached
         '503':
           description: Search or watch history unavailable
+  /find-to-watch:
+    post:
+      summary: Browse available titles with local filters and sorting
+      tags: [search]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [filters]
+              properties:
+                page:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+                sort:
+                  type: array
+                  maxItems: 2
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [field, direction]
+                    properties:
+                      field:
+                        type: string
+                        enum: [rating, runtime, year]
+                      direction:
+                        type: string
+                        enum: [asc, desc]
+                filters:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    [
+                      type,
+                      available,
+                      unwatched,
+                      maxRuntime,
+                      yearFrom,
+                      yearTo,
+                      genres,
+                    ]
+                  properties:
+                    type:
+                      type: string
+                      enum: [movie, tv]
+                    available:
+                      type: boolean
+                    unwatched:
+                      type: boolean
+                    maxRuntime:
+                      type: integer
+                      nullable: true
+                      minimum: 1
+                      maximum: 600
+                    yearFrom:
+                      type: integer
+                      nullable: true
+                      minimum: 1870
+                      maximum: 2100
+                    yearTo:
+                      type: integer
+                      nullable: true
+                      minimum: 1870
+                      maximum: 2100
+                    minLetterboxdRating:
+                      type: number
+                      nullable: true
+                      minimum: 0
+                      maximum: 5
+                    maxLetterboxdRating:
+                      type: number
+                      nullable: true
+                      minimum: 0
+                      maximum: 5
+                    genres:
+                      type: array
+                      maxItems: 3
+                      items:
+                        type: integer
+                people:
+                  type: array
+                  maxItems: 5
+                  uniqueItems: true
+                  items:
+                    type: integer
+                    minimum: 1
+      responses:
+        '200':
+          description: Available titles or background filtering progress
+        '400':
+          description: Invalid search
+        '429':
+          description: Search limit reached
+        '503':
+          description: Search or watch history unavailable
+  /find-to-watch/{id}:
+    get:
+      summary: Check available-library filtering progress
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10000
+      responses:
+        '200':
+          description: Progress or filtered library page
   /search:
     get:
       summary: Search for movies, TV shows, or people

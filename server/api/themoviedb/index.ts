@@ -286,6 +286,19 @@ class TheMovieDb extends ExternalAPI implements TvShowProvider {
       >
     >(`/movie/${movieId}`, { params: { language: this.locale } }, 43200);
 
+  public getLibraryMovie = (id: number) =>
+    this.get<TmdbMovieDetails>(
+      `/movie/${id}`,
+      { params: { language: this.locale } },
+      43200
+    );
+  public getLibraryTv = (id: number) =>
+    this.get<TmdbTvDetails>(
+      `/tv/${id}`,
+      { params: { language: this.locale } },
+      43200
+    );
+
   public getMovie = async ({
     movieId,
     language = this.locale,
