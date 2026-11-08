@@ -35,7 +35,7 @@ interface SearchResponse {
   people?: { id: number; name: string }[];
 }
 const searchPlaceholder =
-  'Stop motion movies from the 2010s, under two hours, available and unwatched, with a Letterboxd score between 3.5 and 4.5…';
+  'Adult stop motion movies from the 2010s, under two hours, with a Letterboxd score between 3.5 and 4.5';
 export default function AiSearchPage() {
   const { user } = useUser();
   const router = useRouter();

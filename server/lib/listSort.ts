@@ -134,8 +134,7 @@ export function listSortReadiness(items: ListFilm[], sort: ListSort) {
     unavailable: completed - available,
   };
 }
-export function sortedList(items: ListFilm[], sort: ListSort) {
-  if (sort === 'original') return { items, updating: false };
+function loadSavedValues() {
   if (!loaded) {
     loaded = true;
     try {
@@ -156,6 +155,24 @@ export function sortedList(items: ListFilm[], sort: ListSort) {
         });
     }
   }
+}
+
+/** Read only: reuse the last known score without starting list collection. */
+export function cachedListRating(id: number, mediaType: 'movie' | 'tv') {
+  if (!Number.isSafeInteger(id) || id <= 0) return null;
+  loadSavedValues();
+  const score = values.get(`rating:${mediaType}:${id}`)?.value;
+  return typeof score === 'number' &&
+    Number.isFinite(score) &&
+    score >= 0 &&
+    score <= 5
+    ? score
+    : null;
+}
+
+export function sortedList(items: ListFilm[], sort: ListSort) {
+  if (sort === 'original') return { items, updating: false };
+  loadSavedValues();
   const field = sort.startsWith('rating') ? 'rating' : 'runtime';
   let updating = false;
   for (const film of items) {

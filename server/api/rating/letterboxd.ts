@@ -1,3 +1,4 @@
+import logger from '@server/logger';
 import axios from 'axios';
 
 export interface LetterboxdRating {
@@ -133,7 +134,19 @@ export function getLetterboxdRating(
           ttl = 24 * 60 * 60 * 1000;
           break;
         }
-      } catch {
+      } catch (error) {
+        logger.warn(
+          'Letterboxd score lookup failed; retaining cached score if available',
+          {
+            label: 'Letterboxd rating',
+            id,
+            mediaType,
+            status: axios.isAxiosError(error)
+              ? error.response?.status
+              : undefined,
+            code: axios.isAxiosError(error) ? error.code : undefined,
+          }
+        );
         // Retry temporary failures sooner; retain a previously fetched rating.
         ttl = 5 * 60 * 1000;
       }

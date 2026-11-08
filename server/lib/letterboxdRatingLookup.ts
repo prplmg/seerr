@@ -1,6 +1,7 @@
 import { getLetterboxdRating } from '@server/api/rating/letterboxd';
 import { getRepository } from '@server/datasource';
 import { MovieReview } from '@server/entity/MovieReview';
+import { cachedListRating } from './listSort';
 
 export function canonicalLetterboxdFilm(value: string): string | null {
   try {
@@ -16,11 +17,11 @@ export function canonicalLetterboxdFilm(value: string): string | null {
   }
 }
 
-export function getMappedLetterboxdRating(
+export async function getMappedLetterboxdRating(
   id: number,
   mediaType: 'movie' | 'tv'
 ) {
-  return getLetterboxdRating(id, mediaType, async () => {
+  const rating = await getLetterboxdRating(id, mediaType, async () => {
     const rows = await getRepository(MovieReview).find({
       where: { tmdbId: id, mediaType, source: 'letterboxd' },
       select: ['externalUrl'],
@@ -32,4 +33,12 @@ export function getMappedLetterboxdRating(
     );
     return urls.size === 1 ? [...urls][0] : null;
   });
+  if (rating) return rating;
+  const score = cachedListRating(id, mediaType);
+  return score === null
+    ? null
+    : {
+        score,
+        url: `https://letterboxd.com/tmdb/${id}/${mediaType === 'tv' ? 'tv/' : ''}`,
+      };
 }
