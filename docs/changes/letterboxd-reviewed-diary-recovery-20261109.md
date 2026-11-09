@@ -6,4 +6,4 @@ Association records only the diary receipt and marks the pending intent verified
 
 Tests: 109 recovery/worker/receipt tests passed, including reviewed entry association, unchanged export/review/rating/settings, idempotent replay, receipt conflicts, every existing evidence guard, duplicate same-day entries and receipt-only endpoint recovery with no publication continuation. Server TypeScript passed. One runtime file in release; tests/docs committed separately from unrelated next-env.d.ts.
 
-Deployment receipt to be recorded after live checks. Existing reviewed entries may wait for the next successful complete export; no extra page-load requests or automatic external edits are introduced.
+Deployed as build `IMyC6iBka0tFOzjraTMQg`; see [verified release receipt](../deployments/reviewed-diary-recovery-20261109/README.md). Existing reviewed entries may wait for the next successful complete export; no extra page-load requests or automatic external edits are introduced.
