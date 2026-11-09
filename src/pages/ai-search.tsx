@@ -38,8 +38,11 @@ interface SearchResponse {
   ratingCoverage?: { checked: number; unknown: number };
   people?: { id: number; name: string }[];
 }
-const searchPlaceholder =
-  'Adult stop motion movies from the 2010s, under two hours, with a Letterboxd score between 3.5 and 4.5';
+const searchPlaceholders = [
+  'Adult stop motion movies from the 2010s, under two hours, with a Letterboxd score between 3.5 and 4.5',
+  'Esa peli de diego luna sobre futbol',
+  'Series about sherlock holmes',
+];
 export default function AiSearchPage() {
   const { user } = useUser();
   const router = useRouter();
@@ -61,12 +64,23 @@ export default function AiSearchPage() {
   const [people, setPeople] = useState<number[]>([]);
   const [query, setQuery] = useState('');
   const queryInput = useRef<HTMLTextAreaElement>(null);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [queryFocused, setQueryFocused] = useState(false);
+  useEffect(() => {
+    if (query || queryFocused || historyOpen) return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible')
+        setPlaceholderIndex((index) => (index + 1) % searchPlaceholders.length);
+    }, 8000);
+    return () => window.clearInterval(timer);
+  }, [query, queryFocused, historyOpen]);
   useEffect(() => {
     const input = queryInput.current;
     if (!input) return;
     const resize = () => {
       const mirror = input.cloneNode() as HTMLTextAreaElement;
-      mirror.value = input.value || input.placeholder;
+      // Reserve the longest example’s space so rotation does not move the page.
+      mirror.value = input.value || searchPlaceholders[0];
       Object.assign(mirror.style, {
         position: 'absolute',
         visibility: 'hidden',
@@ -345,7 +359,9 @@ export default function AiSearchPage() {
             maxLength={1000}
             rows={4}
             className="min-h-32 w-full resize-none rounded-xl border border-gray-600 bg-gray-900 p-3 text-white"
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholders[placeholderIndex]}
+            onFocus={() => setQueryFocused(true)}
+            onBlur={() => setQueryFocused(false)}
           />
 
           <div className="mt-3 flex items-center justify-between gap-3">

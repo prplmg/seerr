@@ -214,6 +214,7 @@ export default function FindToWatch() {
                   year={
                     m.mediaType === 'movie' ? m.releaseDate : m.firstAirDate
                   }
+                  status={m.mediaInfo?.status}
                   image={m.posterPath}
                   summary={m.overview}
                   userScore={m.voteAverage}

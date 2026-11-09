@@ -1,8 +1,38 @@
+import Media from '@server/entity/Media';
+import type { User } from '@server/entity/User';
 import { parseAiFilters } from '@server/lib/aiSearchPlan';
 import { parseAiSort } from '@server/lib/aiSearchSort';
 import { libraryJob, startLibraryBrowse } from '@server/lib/libraryBrowse';
 import { Router } from 'express';
 const router = Router();
+// Hydrate only the returned page; progress checks never query media metadata.
+async function withMediaStatus(
+  result: ReturnType<typeof libraryJob>,
+  user: User
+) {
+  if (!result.ready || !result.results?.length) return result;
+  const related = await Media.getRelatedMedia(
+    user,
+    result.results.map(({ media }) => ({
+      tmdbId: media.id,
+      mediaType: media.mediaType,
+    }))
+  );
+  return {
+    ...result,
+    results: result.results.map((row) => ({
+      ...row,
+      media: {
+        ...row.media,
+        mediaInfo: related.find(
+          (m) =>
+            m.tmdbId === row.media.id && m.mediaType === row.media.mediaType
+        ),
+      },
+    })),
+  };
+}
+
 const pageNumber = (raw: unknown) => {
   const p = Number(raw ?? 0);
   if (!Number.isInteger(p) || p < 0 || p > 10000)
@@ -21,12 +51,15 @@ router.post('/', async (req, res, next) => {
       });
     }
     return res.json(
-      await startLibraryBrowse(
-        req.user!.id,
-        filters,
-        sort,
-        req.body.people,
-        pageNumber(req.body.page)
+      await withMediaStatus(
+        await startLibraryBrowse(
+          req.user!.id,
+          filters,
+          sort,
+          req.body.people,
+          pageNumber(req.body.page)
+        ),
+        req.user!
       )
     );
   } catch (e) {
@@ -36,13 +69,16 @@ router.post('/', async (req, res, next) => {
     });
   }
 });
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
     return res.json(
-      libraryJob(
-        req.user!.id,
-        String(req.params.id),
-        pageNumber(req.query.page)
+      await withMediaStatus(
+        libraryJob(
+          req.user!.id,
+          String(req.params.id),
+          pageNumber(req.query.page)
+        ),
+        req.user!
       )
     );
   } catch (e) {

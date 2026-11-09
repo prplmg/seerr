@@ -1,3 +1,4 @@
+import Media from '@server/entity/Media';
 import * as library from '@server/lib/libraryBrowse';
 import { isAuthenticated } from '@server/middleware/auth';
 import express from 'express';
@@ -19,15 +20,33 @@ test('library API validates the actual contract and requires authentication with
     ready: false,
     message: 'Checking title details…',
   }));
-  t.mock.method(library, 'libraryJob', () => ({
+  const mediaLookup = t.mock.method(
+    Media,
+    'getRelatedMedia',
+    async () =>
+      [
+        { tmdbId: 7, mediaType: 'movie', status: 5 },
+        { tmdbId: 7, mediaType: 'tv', status: 4 },
+      ] as Media[]
+  );
+  const readyResult = {
     id: 'fixture',
     ready: true,
     message: 'Ready',
-    results: [],
-    total: 0,
+    results: [
+      { media: { id: 7, mediaType: 'movie' }, runtime: 90 },
+      { media: { id: 7, mediaType: 'tv' }, runtime: 45 },
+    ],
+    total: 2,
     next: null,
     unknown: 0,
-  }));
+  };
+  t.mock.method(
+    library,
+    'libraryJob',
+    () => readyResult as ReturnType<typeof library.libraryJob>
+  );
+
   const app = express();
   app.use(express.json());
   app.use(
@@ -100,11 +119,45 @@ test('library API validates the actual contract and requires authentication with
     );
   assert.equal(calls.mock.callCount(), 1);
   assert.equal(
+    mediaLookup.mock.callCount(),
+    0,
+    'progress does not query media'
+  );
+  assert.equal(
     (
       await request(app)
         .get('/api/v1/find-to-watch/fixture')
         .set('test-user', '1')
     ).status,
     200
+  );
+  const result = await request(app)
+    .get('/api/v1/find-to-watch/fixture')
+    .set('test-user', '1');
+  assert.deepEqual(
+    result.body.results.map(
+      (r: { media: { mediaInfo: { status: number } } }) =>
+        r.media.mediaInfo.status
+    ),
+    [5, 4]
+  );
+  assert.equal(mediaLookup.mock.calls[0].arguments[0]?.id, 1);
+  assert.equal(
+    'mediaInfo' in readyResult.results[0].media,
+    false,
+    'cached rows are not mutated'
+  );
+  calls.mock.mockImplementation(
+    async () =>
+      readyResult as Awaited<ReturnType<typeof library.startLibraryBrowse>>
+  );
+  const cached = await request(app)
+    .post('/api/v1/find-to-watch')
+    .set('test-user', '1')
+    .send(body);
+  assert.equal(
+    cached.body.results[0].media.mediaInfo.status,
+    5,
+    'cached POST also includes status'
   );
 });
