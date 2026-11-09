@@ -191,7 +191,7 @@ class CatalogueClient:
                 LEFT JOIN write_resume_pending p ON p.id=j.id AND p.instance=j.instance AND p.account=?
                 LEFT JOIN write_reconcile_checks c ON c.id=j.id
                 WHERE j.instance=? AND j.action='media_write'
-                  AND (j.state='unknown' OR (j.state='succeeded' AND p.id IS NOT NULL))
+                  AND (j.state IN ('unknown','blocked') OR (j.state='succeeded' AND p.id IS NOT NULL))
                 ORDER BY COALESCE(c.checked,0),j.created,j.id LIMIT 10
             """,(expected,instance)).fetchall()
             if not rows:return
@@ -222,7 +222,7 @@ class CatalogueClient:
                 original=self.queue.db.execute("SELECT j.state,w.payload FROM jobs j JOIN write_payloads w ON w.id=j.id WHERE j.id=? AND j.instance=? AND j.action='media_write'",(ident,instance)).fetchone()
                 pending=self.queue.db.execute('SELECT entry_id FROM write_resume_pending WHERE id=? AND instance=? AND account=?',(ident,instance,expected)).fetchone()
                 if not original or original['payload']!=originals[ident] or not (
-                    original['state']=='unknown' or (original['state']=='succeeded' and pending)
+                    original['state'] in ('unknown','blocked') or (original['state']=='succeeded' and pending)
                 ):raise ValueError('Unexpected reconciled write state')
                 intent=json.loads(original['payload'])
                 if intent.get('account')!=expected:raise ValueError('Wrong reconciliation account')
@@ -239,7 +239,7 @@ class CatalogueClient:
                 result={'outcome':'succeeded','writeOutcome':'verified','identity':expected,
                         'values':intent['desired'],'reconciledBy':'server'}
                 if entry is not None:result['entryId']=entry
-                if original['state']=='unknown':
+                if original['state'] in ('unknown','blocked'):
                     self.queue.db.execute('INSERT OR IGNORE INTO write_resume_pending VALUES(?,?,?,?)',(ident,instance,expected,entry))
                 self.queue.db.execute("UPDATE jobs SET state='succeeded',result=? WHERE id=?",(json.dumps(result),ident))
                 self.queue.db.execute('INSERT OR IGNORE INTO write_acks VALUES(?)',(ident,))

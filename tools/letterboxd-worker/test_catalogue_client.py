@@ -185,6 +185,24 @@ class CatalogueClientTests(unittest.TestCase):
         self.assert_reconciliation_state(instance,ident,'succeeded',0)
         self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],0)
 
+    def test_blocked_result_requires_exact_server_receipt_before_resume(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        with self.q.db:self.q.db.execute("UPDATE jobs SET state='blocked' WHERE id=?",(ident,))
+        client.request=Mock(return_value={'action':'idle','reconciled':[],'resumeWrites':True})
+        client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'blocked',1)
+        client=self.restart_reconciliation_client()
+        client.request=Mock(return_value={'action':'idle','reconciled':[{**receipt,'values':{}}],'resumeWrites':True})
+        with self.assertRaises(ValueError):client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'blocked',1)
+        client=self.restart_reconciliation_client()
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+        self.assertEqual(client.request.call_args.args[1]['action'],'idle')
+        self.assertEqual(client.request.call_args.args[1]['supported'],[])
+        self.assertEqual(self.q.db.execute("SELECT COUNT(*) FROM jobs WHERE action='media_write'").fetchone()[0],1)
+
     def test_reconciliation_after_ack_is_durable_and_never_dispatches(self):
         instance,ident,client,receipt=self.reconciliation_setup()
         client.exchange_writes(instance)
