@@ -154,9 +154,9 @@ async function fetchDirect(id: string) {
   directPending.add(id);
   try {
     const listId = await importPublicList(job.url);
-    const current = read().find((j) => j.id === id)!;
+    const current = read().filter(j => j.url === job.url && j.state === 'received' && j.created <= job.created);
     updateListStore((s) => {
-      for (const user of current.users) setListSaved(s, user, listId, true);
+      for (const user of new Set(current.flatMap(j => j.users))) setListSaved(s, user, listId, true);
     });
     update((jobs) => {
       const j = jobs.find((j) => j.id === id)!;
@@ -280,12 +280,16 @@ export function validateBrowserList(value: unknown): Snapshot {
   };
 }
 const processing = new Set<string>();
+const processingUrls = new Set<string>();
 async function finish(id: string) {
   if (processing.has(id)) return;
   processing.add(id);
+  let processingUrl: string | undefined;
   try {
     const job = read().find((j) => j.id === id && j.state === 'received');
-    if (!job?.snapshot || (job.weekly && !weeklyListsPermitted())) return;
+    if (!job?.snapshot || (job.retryAt || 0) > Date.now() || (job.weekly && !weeklyListsPermitted())) return;
+    if (processingUrls.has(job.url) || read().some(j => j.url === job.url && j.state === 'received' && j.created > job.created)) return;
+    processingUrl = job.url; processingUrls.add(job.url);
     const listId = await applyPublicList(
       job.url,
       job.snapshot,
@@ -299,15 +303,14 @@ async function finish(id: string) {
         : undefined
     );
     // Re-read subscribers after metadata lookups; another user may have joined.
-    const current = read().find((j) => j.id === id)!;
+    const current = read().filter(j => j.url === job.url && j.state === 'received' && j.created <= job.created);
     updateListStore((s) => {
-      for (const user of current.users) setListSaved(s, user, listId, true);
+      for (const user of new Set(current.flatMap(j => j.users))) setListSaved(s, user, listId, true);
     });
     update((jobs) => {
-      const j = jobs.find((j) => j.id === id)!;
-      j.state = 'succeeded';
-      j.listId = listId;
-      delete j.snapshot;
+      for (const j of jobs.filter(j => current.some(c => c.id === j.id))) {
+        j.state = 'succeeded'; j.listId = listId; delete j.snapshot; delete j.error;
+      }
     });
   } catch (error) {
     if (error?.code === 'weekly-deferred') return;
@@ -330,6 +333,7 @@ async function finish(id: string) {
     });
   } finally {
     processing.delete(id);
+    if (processingUrl) processingUrls.delete(processingUrl);
   }
 }
 export function exchangeBrowserLists(

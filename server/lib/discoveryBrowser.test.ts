@@ -343,3 +343,13 @@ it('accepts a retained completed scan after timeout without creating another bro
   assert.equal(api.browserListStatus(id,1).state,'succeeded');
  } finally {h.close();}
 });
+it('coalesces retained duplicate snapshots into the newest import and preserves every subscriber',async()=>{
+ const h=harness();try{
+  const api=h.load(),file=path.join(h.dir,'discovery-browser.json');
+  updateTaskDocument<any[],void>(file,()=>[],rows=>{for(let i=1;i<=4;i++)rows.push({id:'retained-'+i,url,created:i,state:'received',users:[i],snapshot:{...snapshot,title:'Snapshot '+i}});});
+  api.pendingBrowserList('one');for(const fn of h.tasks.splice(0))fn();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.applied(),1);assert.deepEqual(h.saves,[1,2,3,4]);
+  assert(readTaskDocument<any[]>(file,()=>[]).every(j=>j.state==='succeeded'&&j.listId==='saved-list'));
+ }finally{h.close();}
+});
