@@ -1,3 +1,5 @@
+import { initializeTaskStore } from './lib/letterboxdTaskStore';
+import { installLetterboxdBodyParsers } from './lib/letterboxdWorkerTransport';
 import listShare from '@server/routes/listShare';
 import { checkUser as checkShareUser } from '@server/middleware/auth';
 import csurf from '@dr.pogodin/csurf';
@@ -26,7 +28,7 @@ import clearCookies from '@server/middleware/clearcookies';
 import routes from '@server/routes';
 import avatarproxy from '@server/routes/avatarproxy';
 import imageproxy from '@server/routes/imageproxy';
-import { appDataPermissions } from '@server/utils/appDataVolume';
+import { appDataPermissions, appDataPath } from '@server/utils/appDataVolume';
 import { getAppVersion } from '@server/utils/appVersion';
 import createCustomProxyAgent, {
   setForceIpv4First,
@@ -143,6 +145,7 @@ app
     const userRepository = getRepository(User);
     const totalUsers = await userRepository.count();
     if (totalUsers > 0) {
+      initializeTaskStore(appDataPath());
       startJobs();
     } else {
       logger.info(
@@ -161,8 +164,7 @@ app
       server.enable('trust proxy');
     }
     server.use(cookieParser());
-    server.use('/api/v1/reviews/import', express.json({ limit: '15mb' }));
-    server.use('/api/v1/letterboxd-worker/exchange', express.json({ limit: '15mb' }));
+    installLetterboxdBodyParsers(server);
     server.use(express.json());
     server.use(express.urlencoded({ extended: true }));
     server.use((req, _res, next) => {

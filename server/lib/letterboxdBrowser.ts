@@ -1,3 +1,4 @@
+import { readTaskDocument, updateTaskDocument } from './letterboxdTaskStore';
 import { getRepository } from '@server/datasource';
 import { LetterboxdAccount, MovieReview } from '@server/entity/MovieReview';
 import { User } from '@server/entity/User';
@@ -5,8 +6,7 @@ import PreparedEmail from '@server/lib/email';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { appDataPath } from '@server/utils/appDataVolume';
-import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'crypto';
-import fs from 'fs';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import path from 'path';
 import {
   assessWriteHealth,
@@ -36,7 +36,7 @@ import { readWriteState } from './letterboxdWriteQueue';
 const filename = () => path.join(appDataPath(), 'letterboxd-browser.json');
 export function readBrowserState(): BrowserState {
   try {
-    const state = JSON.parse(fs.readFileSync(filename(), 'utf8'));
+    const state = readTaskDocument<BrowserState>(filename(), () => ({version:1,bindings:[]}));
     if (state.version !== 1 || !Array.isArray(state.bindings))
       throw Error('Invalid browser state');
     return state;
@@ -46,16 +46,7 @@ export function readBrowserState(): BrowserState {
   }
 }
 function updateBrowserState<T>(change: (state: BrowserState) => T): T {
-  const state = readBrowserState();
-  const result = change(state);
-  const temp = filename() + '.' + randomUUID() + '.tmp';
-  fs.writeFileSync(temp, JSON.stringify(state), { flag: 'wx', mode: 0o600 });
-  try {
-    fs.renameSync(temp, filename());
-  } finally {
-    if (fs.existsSync(temp)) fs.unlinkSync(temp);
-  }
-  return result;
+  return updateTaskDocument<BrowserState,T>(filename(), () => ({version:1,bindings:[]}), change);
 }
 const digest = (token: string) => createHash('sha256').update(token).digest();
 export function disableLetterboxdBrowser(userId: number) {

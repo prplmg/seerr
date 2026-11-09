@@ -1,6 +1,6 @@
+import { readTaskDocument, updateTaskDocument } from './letterboxdTaskStore';
 import { appDataPath } from '@server/utils/appDataVolume';
 import { randomUUID } from 'crypto';
-import fs from 'fs';
 import path from 'path';
 import { letterboxdEntryIdentity } from './letterboxdImport';
 import type { ReviewFields } from './letterboxdReconcile';
@@ -310,12 +310,7 @@ export function findObservation(
 }
 export function readObservations(): ObservationState {
   try {
-    const state: ObservationState = JSON.parse(
-      fs.readFileSync(
-        path.join(appDataPath(), 'letterboxd-observations.json'),
-        'utf8'
-      )
-    );
+    const state = readTaskDocument<ObservationState>(path.join(appDataPath(), 'letterboxd-observations.json'), () => ({version:1,requests:[]}));
     if (state.version !== 1 || !Array.isArray(state.requests))
       throw Error('Invalid observation store');
     for (const r of state.requests) {
@@ -361,15 +356,5 @@ export function readObservations(): ObservationState {
 }
 // Synchronous read/modify/rename: callers must not await inside the callback.
 export function updateObservations<T>(fn: (state: ObservationState) => T): T {
-  const state = readObservations();
-  const result = fn(state);
-  const file = path.join(appDataPath(), 'letterboxd-observations.json');
-  const temp = `${file}.${randomUUID()}.tmp`;
-  try {
-    fs.writeFileSync(temp, JSON.stringify(state), { flag: 'wx', mode: 0o600 });
-    fs.renameSync(temp, file);
-  } finally {
-    if (fs.existsSync(temp)) fs.unlinkSync(temp);
-  }
-  return result;
+  return updateTaskDocument<ObservationState,T>(path.join(appDataPath(), 'letterboxd-observations.json'), () => ({version:1,requests:[]}), fn);
 }

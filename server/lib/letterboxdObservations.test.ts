@@ -295,7 +295,7 @@ it('rejects expired claims and stale or future observations', () => {
   reportObservation(state, report, 400000);
   assert.equal(findObservation(state, scope, 0, 400001), null);
 });
-it('persists claims and verified results across reloads with private atomic files', () => {
+it('persists claims and verified results across reloads with private transactional ledger', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lb-observations-'));
   const load = () => {
     const exports = {} as typeof ObservationsApi;
@@ -358,7 +358,7 @@ it('persists claims and verified results across reloads with private atomic file
       102
     );
     assert.equal(
-      fs.statSync(path.join(dir, 'letterboxd-observations.json')).mode & 0o777,
+      fs.statSync(path.join(dir, 'db', 'letterboxd-tasks.sqlite3')).mode & 0o777,
       0o600
     );
     const reloaded = third.findObservation(

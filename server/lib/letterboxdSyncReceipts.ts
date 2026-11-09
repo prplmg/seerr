@@ -1,6 +1,5 @@
+import { readTaskDocument, updateTaskDocument } from './letterboxdTaskStore';
 import { appDataPath } from '@server/utils/appDataVolume';
-import { randomUUID } from 'crypto';
-import fs from 'fs';
 import path from 'path';
 import { letterboxdEntryIdentity } from './letterboxdImport';
 import type { ReviewFields } from './letterboxdReconcile';
@@ -171,12 +170,7 @@ export function outboundCreateDisposition(
 }
 export function readSyncReceipts(): SyncReceipt[] {
   try {
-    const doc = JSON.parse(
-      fs.readFileSync(
-        path.join(appDataPath(), 'letterboxd-sync-receipts.json'),
-        'utf8'
-      )
-    );
+    const doc = readTaskDocument<{version:number;entries:SyncReceipt[]}>(path.join(appDataPath(), 'letterboxd-sync-receipts.json'), () => ({version:1,entries:[]}));
     if (doc.version !== 1 || !Array.isArray(doc.entries))
       throw Error('Invalid receipt store');
     return doc.entries.reduce(
@@ -190,16 +184,7 @@ export function readSyncReceipts(): SyncReceipt[] {
   }
 }
 export function recordSyncReceipt(receipt: SyncReceipt) {
-  const entries = mergeSyncReceipt(readSyncReceipts(), receipt);
-  const file = path.join(appDataPath(), 'letterboxd-sync-receipts.json');
-  const temp = file + '.' + randomUUID() + '.tmp';
-  fs.writeFileSync(temp, JSON.stringify({ version: 1, entries }), {
-    flag: 'wx',
-    mode: 0o600,
+  return updateTaskDocument<{version:number;entries:SyncReceipt[]},void>(path.join(appDataPath(), 'letterboxd-sync-receipts.json'), () => ({version:1,entries:[]}), doc => {
+    doc.entries = mergeSyncReceipt(doc.entries, receipt);
   });
-  try {
-    fs.renameSync(temp, file);
-  } finally {
-    if (fs.existsSync(temp)) fs.unlinkSync(temp);
-  }
 }

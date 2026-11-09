@@ -1,6 +1,6 @@
+import { readTaskDocument, updateTaskDocument } from './letterboxdTaskStore';
 import { appDataPath } from '@server/utils/appDataVolume';
 import { randomUUID } from 'crypto';
-import fs from 'fs';
 import path from 'path';
 import { letterboxdEntryIdentity } from './letterboxdImport';
 import { supportsWriteIntent } from './letterboxdWriteCapabilities';
@@ -364,7 +364,7 @@ export function finishWrite(
 const filename = () => path.join(appDataPath(), 'letterboxd-write-queue.json');
 export function readWriteState(): WriteState {
   try {
-    const state = JSON.parse(fs.readFileSync(filename(), 'utf8'));
+    const state = readTaskDocument(filename(), emptyWriteState);
     if (state.version !== 1 || !state.settings || !Array.isArray(state.intents))
       throw Error('Invalid write store');
     return state;
@@ -374,15 +374,5 @@ export function readWriteState(): WriteState {
   }
 }
 export function updateWriteState<T>(change: (state: WriteState) => T): T {
-  const state = readWriteState(),
-    result = change(state),
-    file = filename(),
-    temp = file + '.' + randomUUID() + '.tmp';
-  fs.writeFileSync(temp, JSON.stringify(state), { flag: 'wx', mode: 0o600 });
-  try {
-    fs.renameSync(temp, file);
-  } finally {
-    if (fs.existsSync(temp)) fs.unlinkSync(temp);
-  }
-  return result;
+  return updateTaskDocument(filename(), emptyWriteState, change);
 }

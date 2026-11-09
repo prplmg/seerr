@@ -1,3 +1,4 @@
+import { readTaskDocument, updateTaskDocument } from './letterboxdTaskStore';
 import logger from '@server/logger';
 import { appDataPath } from '@server/utils/appDataVolume';
 import { randomUUID } from 'crypto';
@@ -43,22 +44,10 @@ type Job = {
 };
 const filename = () => path.join(appDataPath(), 'discovery-browser.json');
 function read(): Job[] {
-  return fs.existsSync(filename())
-    ? JSON.parse(fs.readFileSync(filename(), 'utf8'))
-    : [];
+  return readTaskDocument<Job[]>(filename(), () => []);
 }
 function update(fn: (jobs: Job[]) => void) {
-  const jobs = read();
-  fn(jobs);
-  const file = filename(),
-    tmp = file + '.' + randomUUID() + '.tmp';
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  try {
-    fs.writeFileSync(tmp, JSON.stringify(jobs), { flag: 'wx', mode: 0o600 });
-    fs.renameSync(tmp, file);
-  } finally {
-    if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
-  }
+  return updateTaskDocument<Job[],void>(filename(), () => [], fn);
 }
 export function queueBrowserList(
   value: string,
@@ -71,7 +60,8 @@ export function queueBrowserList(
     let job = jobs.find(
       (j) =>
         j.url === url &&
-        ['fetching', 'queued', 'running', 'received'].includes(j.state)
+        (['fetching', 'queued', 'running', 'received'].includes(j.state) ||
+          (j.state === 'blocked' && !!j.token && /timed out|did not finish in time/.test(j.error || '')))
     );
     if (!job) {
       if (
@@ -188,7 +178,6 @@ async function fetchDirect(id: string) {
   }
 }
 function expire() {
-  if (!fs.existsSync(filename())) return;
   update((jobs) => {
     for (const job of jobs)
       if (
@@ -378,7 +367,11 @@ export function exchangeBrowserLists(
           j.account === binding.username
       );
       if (!job) throw Error('Wrong list delivery');
-      if (['received', 'succeeded', 'blocked'].includes(job.state)) return;
+      if (['received', 'succeeded'].includes(job.state)) return;
+      // A timed-out scan may already have a durable result in the worker outbox.
+      // Validate its original lease and accept it; never require a fresh scan.
+      if (job.state === 'blocked' && !/timed out|did not finish in time/.test(job.error || '')) return;
+      const newer = jobs.find(j => j.url === job.url && j.created > job.created && ['received','succeeded'].includes(j.state));
       if (report.outcome === 'succeeded') {
         if (job.weekly === 'discovery') {
           job.discovery = validateDiscoverySnapshot(report.snapshot, job.url);
@@ -393,8 +386,10 @@ export function exchangeBrowserLists(
           snapshot.url !== job.url
         )
           throw Error('List identity changed');
+        if (newer) { job.state='succeeded'; job.listId=newer.listId; job.error=undefined; return; }
         job.snapshot = snapshot;
         job.state = 'received';
+        job.error = undefined;
       } else if (['blocked', 'unknown'].includes(report.outcome)) {
         job.state = 'blocked';
         job.error =

@@ -72,7 +72,7 @@ function mediaDiagnostics() {
       }
       if(payload.outcome==='succeeded')return payload;
       const generic=!payload.error||['write-not-verified','incomplete','identity','worker-or-transport-failure'].includes(payload.error);
-      return generic&&lastReason?{...payload,error:lastReason,...(payload.error?{failureReason:payload.error}:{})}:payload;
+      return generic&&lastReason?{...payload,error:lastReason}:payload;
     },
     async read(read, record, stage='media-read-incomplete'){
       // A new fresh read cannot inherit an earlier page's transient failure.

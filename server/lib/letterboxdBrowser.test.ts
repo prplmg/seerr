@@ -1,3 +1,4 @@
+import {updateTaskDocument} from './letterboxdTaskStore';
 import {historyNeedsAlert} from './letterboxdHistoryHealth';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -39,6 +40,7 @@ function harness(overrides: Record<string, unknown> = {}) {
     if (name === '@server/datasource')
       return {
         getRepository: (entity: unknown) => ({
+          findBy: async () => [],
           findOne: async () =>
             entity === User ? { email: 'admin@example.test' } : account,
         }),
@@ -95,13 +97,13 @@ it('late export validation cannot restage a completed job or turn success into f
     const file = path.join(h.dir, 'letterboxd-browser.json');
     const state = h.api.readBrowserState();
     state.bindings[0].job = {id:'export',kind:'export',state:'running',created:1};
-    fs.writeFileSync(file, JSON.stringify(state));
+    updateTaskDocument(file, () => state, current => Object.assign(current,state));
     const pending = h.api.browserExchange(instance, {id:'export',outcome:'succeeded',identity:'prplmg',complete:true,encoded:'archive',capturedAt:Date.now()}, true);
     await new Promise(r => setImmediate(r));
     const completed = h.api.readBrowserState();
     completed.bindings[0].job.state = 'succeeded';
     completed.bindings[0].lastCompletedJobId = 'export';
-    fs.writeFileSync(file, JSON.stringify(completed));
+    updateTaskDocument(file, () => completed, current => Object.assign(current,completed));
     validate();
     assert.deepEqual(await pending, {action:'idle'});
     assert.equal(staged,0);
@@ -117,22 +119,22 @@ it('stale inbox callbacks cannot downgrade completed exports; running failures r
     const file=path.join(h.dir,'letterboxd-browser.json');
     const state=h.api.readBrowserState();
     state.bindings[0].job={id:'export',kind:'export',state:'running',created:1};
-    fs.writeFileSync(file,JSON.stringify(state));
+    updateTaskDocument(file, () => state, current => Object.assign(current,state));
     await h.api.browserExchange(instance,undefined,true);
     const done=h.api.readBrowserState();
     done.bindings[0].job.state='succeeded';done.bindings[0].lastCompletedJobId='export';
-    fs.writeFileSync(file,JSON.stringify(done));
+    updateTaskDocument(file, () => done, current => Object.assign(current,done));
     await process({id:'export',account:'prplmg',userId:1});
     fail('export','late failure');
     assert.equal(h.api.readBrowserState().bindings[0].issue,undefined);
     assert.equal(h.api.readBrowserState().bindings[0].job.state,'succeeded');
     done.bindings[0].job.state='running';delete done.bindings[0].lastCompletedJobId;
-    fs.writeFileSync(file,JSON.stringify(done));
+    updateTaskDocument(file, () => done, current => Object.assign(current,done));
     fail('export','real failure');
     assert.equal(h.api.readBrowserState().bindings[0].job.state,'blocked');
     assert.equal(h.api.readBrowserState().bindings[0].job.reconciliationError,'real failure');
     done.bindings[0].job={id:'new-export',kind:'export',state:'running',created:2};
-    fs.writeFileSync(file,JSON.stringify(done));
+    updateTaskDocument(file, () => done, current => Object.assign(current,done));
     fail('export','obsolete callback');
     assert.equal(h.api.readBrowserState().bindings[0].job.state,'running');
     assert.equal(h.api.readBrowserState().bindings[0].issue,undefined);
@@ -206,8 +208,7 @@ it('stores only a scoped credential hash, rotates and revokes old credentials', 
     const a = h.api.rotateBrowserToken();
     assert.equal(h.api.browserTokenMatches(a), true);
     assert.equal(
-      fs
-        .readFileSync(path.join(h.dir, 'letterboxd-browser.json'), 'utf8')
+      JSON.stringify(h.api.readBrowserState())
         .includes(a),
       false
     );
@@ -279,9 +280,7 @@ it('retains bindings and jobs across module restart without issuing duplicate wo
       items: [{ slug: 'jaws', title: 'Jaws' }],
     };
     await h.api.browserExchange(instance, report);
-    const saved = JSON.parse(
-      fs.readFileSync(path.join(h.dir, 'letterboxd-browser.json'), 'utf8')
-    );
+    const saved = h.api.readBrowserState();
     assert.equal(saved.bindings[0].snapshot.items[0].slug, 'jaws');
   } finally {
     h.cleanup();

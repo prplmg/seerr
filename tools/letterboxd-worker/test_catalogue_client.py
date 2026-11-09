@@ -420,7 +420,7 @@ class CatalogueClientTests(unittest.TestCase):
         self.assertEqual(client.exchange_cycle('one'),[{'stage':'publishing','type':'HTTPError','httpStatus':400}])
         client.exchange_writes.assert_called_once_with('one')
         client.exchange.assert_called_once_with('one')
-        client.exchange_lists.assert_not_called()
+        client.exchange_lists.assert_called_once_with('one')
 
     def test_rating_is_fetched_and_prioritized_ahead_of_queued_list(self):
         instance,_,client=self.observation_setup(capability=False)
@@ -434,6 +434,7 @@ class CatalogueClientTests(unittest.TestCase):
         client=CatalogueClient(self.q,self.config)
         client.exchange_writes=Mock(side_effect=ValueError('private review'))
         client.exchange=Mock(side_effect=OSError('private token'))
+        client.exchange_lists=Mock()
         self.assertEqual(client.exchange_cycle('one'),[
             {'stage':'publishing','type':'ValueError'},
             {'stage':'heartbeat','type':'OSError'},

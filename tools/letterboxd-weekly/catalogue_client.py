@@ -109,7 +109,6 @@ class CatalogueClient:
         try: self.recover_read_pause(instance)
         except Exception as error: self.record_failure(instance,'heartbeat',error)
         for stage, exchange in (('publishing', self.exchange_writes), ('heartbeat', self.exchange), ('lists',self.exchange_lists)):
-            if stage=='lists' and failures:continue
             try:
                 exchange(instance)
             except Exception as error:

@@ -45,7 +45,7 @@ test('write read diagnostic precedes generic outcome and survives final result',
   const reports=await run();const final=reports.at(-1);
   assert.equal(reports.find(r=>r.payload.stage==='media-read-incomplete').payload.error,'editor-unavailable');
   assert.equal(final.final,true);assert.equal(final.payload.error,'editor-unavailable');
-  assert.equal(final.payload.failureReason,'write-not-verified');assert.equal(final.payload.writeOutcome,'unknown');
+  assert.equal(final.payload.failureReason,undefined);assert.equal(final.payload.writeOutcome,'unknown');
 });
 test('observation failure retains reason without changing protocol',async()=>{
   const reports=await run({action:'review_observe'});
@@ -143,4 +143,22 @@ test('retry cannot verify an editor result for a different entry',async()=>{
   }});
   assert.equal(reports.at(-1).payload.outcome,'blocked');
   assert.equal(reports.at(-1).payload.observation,undefined);
+});
+
+test('actual browser failure payload crosses the Python bridge validator',()=>{
+ const {execFileSync}=require('node:child_process');
+ const d=context().mediaDiagnostics();d.payload({stage:'media-read-incomplete',error:'editor-unavailable'});
+ const result=d.payload({outcome:'unknown',writeOutcome:'unknown',identity:'prplmg',error:'write-not-verified'},true);
+ const python=`import json,sys,tempfile,pathlib,time
+sys.path.insert(0,sys.argv[1])
+from queue_store import Queue,INSTANCE
+with tempfile.TemporaryDirectory() as d:
+ q=Queue(pathlib.Path(d)/'queue.sqlite');job='33865693-277a-47b2-b291-27ef100ba1b3'
+ with q.db:q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,?,?)',(job,INSTANCE,'media_write','running',time.time(),time.time(),None))
+ with q.db:q.db.execute('INSERT INTO write_payloads VALUES(?,?)',(job,json.dumps({'account':'prplmg','kind':'diary','desired':{}})))
+ q.event(INSTANCE,job,json.loads(sys.stdin.read()),True)
+ print(q.db.execute('SELECT state FROM jobs WHERE id=?',(job,)).fetchone()[0])
+`;
+ assert.equal(execFileSync('python3',['-c',python,__dirname],{input:JSON.stringify(result),encoding:'utf8'}).trim(),'unknown');
+ assert.equal(result.error,'editor-unavailable');
 });

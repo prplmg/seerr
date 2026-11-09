@@ -1,3 +1,4 @@
+import {readTaskDocument, updateTaskDocument} from './letterboxdTaskStore';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -233,9 +234,9 @@ it('unclaimed jobs time out visibly rather than remain queued forever', () => {
     const api = h.load(),
       id = api.queueBrowserList(url, 1),
       file = path.join(h.dir, 'discovery-browser.json');
-    const jobs = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const jobs = readTaskDocument<any[]>(file, () => []);
     jobs[0].created = 0;
-    fs.writeFileSync(file, JSON.stringify(jobs));
+    updateTaskDocument<any[],number[]>(file, () => [], current => current.splice(0,current.length,...jobs));
     assert.equal(api.browserListStatus(id, 1).state, 'blocked');
   } finally {
     h.close();
@@ -310,16 +311,35 @@ it('metadata retry preserves verified snapshot and stops after three failures', 
       for (const task of h.tasks.splice(0)) task();
       await new Promise((r) => setTimeout(r, 10));
       const filename = path.join(h.dir, 'discovery-browser.json');
-      const rows = JSON.parse(fs.readFileSync(filename, 'utf8'));
+      const rows = readTaskDocument<any[]>(filename, () => []);
       assert.equal(!!rows[0].snapshot, attempt < 3);
       assert.equal(rows[0].attempts, attempt);
       assert.equal(rows[0].state, attempt < 3 ? 'received' : 'blocked');
       rows[0].retryAt = 0;
-      fs.writeFileSync(filename, JSON.stringify(rows));
+      updateTaskDocument<any[],void>(filename, () => [], current => {current.splice(0,current.length,...rows);});
       api.browserListStatus(id, 1);
     }
     assert.deepEqual(h.saves, []);
   } finally {
     h.close();
   }
+});
+
+it('accepts a retained completed scan after timeout without creating another browser job', async () => {
+ const h=harness();
+ try {
+  const api=h.load(), id=api.queueBrowserList(url,1);
+  const offered=api.exchangeBrowserLists('one',undefined,true);
+  const file=path.join(h.dir,'discovery-browser.json');
+  updateTaskDocument<any[],void>(file,()=>[],rows=>{rows[0].created=0;rows[0].updatedAt=0;});
+  assert.equal(api.browserListStatus(id,1).state,'blocked');
+  assert.equal(api.queueBrowserList(url,2),id);
+  assert.equal(api.exchangeBrowserLists('two',undefined,true).action,'idle');
+  assert.throws(()=>api.exchangeBrowserLists('two',{id,token:offered.token,outcome:'succeeded',snapshot},true));
+  api.exchangeBrowserLists('one',{id,token:offered.token,outcome:'succeeded',snapshot},true);
+  for(const fn of h.tasks.splice(0))fn();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.applied(),1);assert.deepEqual(h.saves,[1,2]);
+  assert.equal(api.browserListStatus(id,1).state,'succeeded');
+ } finally {h.close();}
 });
