@@ -154,9 +154,9 @@ async function fetchDirect(id: string) {
   directPending.add(id);
   try {
     const listId = await importPublicList(job.url);
-    const current = read().filter(j => j.url === job.url && j.state === 'received' && j.created <= job.created);
+    const current = read().find(j => j.id === id)!;
     updateListStore((s) => {
-      for (const user of new Set(current.flatMap(j => j.users))) setListSaved(s, user, listId, true);
+      for (const user of current.users) setListSaved(s, user, listId, true);
     });
     update((jobs) => {
       const j = jobs.find((j) => j.id === id)!;
