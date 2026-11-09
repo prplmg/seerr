@@ -1,5 +1,6 @@
 import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
+import { catalogueOrigin, listSharePath } from '@server/interfaces/api/listShare';
 import { ShareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
@@ -44,8 +45,7 @@ export default function ListSharing({
   const { data, error, mutate } = useSWR<Sharing>(
     open && owned ? endpoint : null
   );
-  const link = () =>
-    `${window.location.origin}/lists/${encodeURIComponent(id)}`;
+  const link = () => catalogueOrigin + listSharePath(id);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link());

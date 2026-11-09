@@ -1,3 +1,5 @@
+import listShare from '@server/routes/listShare';
+import { checkUser as checkShareUser } from '@server/middleware/auth';
 import csurf from '@dr.pogodin/csurf';
 import PlexAPI from '@server/api/plexapi';
 import dataSource, { getRepository, isPgsql } from '@server/datasource';
@@ -209,7 +211,7 @@ app
     // Set up sessions
     const sessionRespository = getRepository(Session);
     server.use(
-      '/api',
+      ['/api', '/share/lists'],
       session({
         secret: settings.sessionSecret,
         resave: false,
@@ -248,6 +250,7 @@ app
       next();
     });
     server.use('/api/v1', routes);
+    server.use('/share/lists', checkShareUser, listShare);
 
     // Do not set cookies so CDNs can cache them
     server.use('/imageproxy', clearCookies, imageproxy);

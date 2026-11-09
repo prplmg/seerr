@@ -11,6 +11,7 @@ import PlexLoginButton from '@app/components/Login/PlexLoginButton';
 import useSettings from '@app/hooks/useSettings';
 import { useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
+import { listLoginDestination } from '@server/interfaces/api/listShare';
 import { Transition } from '@headlessui/react';
 import { XCircleIcon } from '@heroicons/react/24/solid';
 import { MediaServerType } from '@server/constants/server';
@@ -71,7 +72,7 @@ const Login = () => {
   // valid user, we redirect the user to the home page as the login was successful.
   useEffect(() => {
     if (user) {
-      router.push('/');
+      router.push(listLoginDestination(router.query.next));
     }
   }, [user, router]);
 

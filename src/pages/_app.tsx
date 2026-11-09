@@ -1,4 +1,5 @@
-﻿import Layout from '@app/components/Layout';
+﻿import { listLoginDestination } from '@server/interfaces/api/listShare';
+import Layout from '@app/components/Layout';
 import LoadingBar from '@app/components/LoadingBar';
 import PWAHeader from '@app/components/PWAHeader';
 import ServiceWorkerSetup from '@app/components/ServiceWorkerSetup';
@@ -300,7 +301,7 @@ CoreApp.getInitialProps = async (initialProps) => {
 
         if (router.pathname.match(/(setup|login)/)) {
           ctx.res.writeHead(307, {
-            Location: '/',
+            Location: listLoginDestination(ctx.query.next),
           });
           ctx.res.end();
         }
