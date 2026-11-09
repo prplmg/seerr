@@ -29,6 +29,7 @@ import {
 } from './letterboxdWriteQueue';
 import {
   prepareWriteRecovery,
+  reconcileDiaryWriteRecovery,
   reconcileWriteRecovery,
 } from './letterboxdWriteRecovery';
 import { cancelUnpublishableReviewWrites } from './reviewPublishingPolicy';
@@ -294,11 +295,33 @@ export function exchangeWriteState(
     ? { action: 'media_write', instance: binding.instance, ...job }
     : { action: 'idle' };
 }
+/** Read-only acknowledgement repair: this path must never claim another write. */
+export function reconcileVerifiedWriteReceipts(
+  state: WriteState,
+  binding: ObservationBinding,
+  ids: unknown
+) {
+  if (!Array.isArray(ids) || ids.length < 1 || ids.length > 10 ||
+      ids.some(id => typeof id !== 'string' || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(id)) ||
+      new Set(ids).size !== ids.length) throw Error('Invalid reconciliation IDs');
+  const reconciled = state.intents.filter(i => ids.includes(i.id) &&
+    i.userId === binding.userId && i.account === binding.username &&
+    i.state === 'verified' && i.entryId && ['review', 'diary'].includes(i.kind))
+    .map(i => ({id:i.id, values:i.desired, entryId:i.entryId}));
+  return {action:'idle' as const, reconciled, resumeWrites: reconciled.length > 0 &&
+    binding.enabled && !binding.issue &&
+    state.settings[binding.userId]?.enabled === true &&
+    state.settings[binding.userId]?.account === binding.username &&
+    !state.intents.some(i => i.userId === binding.userId && i.account === binding.username &&
+      ['unknown','conflict','dispatched'].includes(i.state))};
+}
+
 export async function exchangeWrites(
   instance: string,
   report?: Parameters<typeof finishWrite>[3],
   supported: unknown = [],
-  durableDelivery = false
+  durableDelivery = false,
+  reconcileIds?: unknown
 ) {
   const { getRepository } = await import('@server/datasource');
   const { LetterboxdAccount, MovieReview } =
@@ -315,6 +338,29 @@ export async function exchangeWrites(
     });
     if (!linked?.enabled || linked.username !== binding.username)
       throw Error('Account changed');
+    if (reconcileIds !== undefined) {
+      if (report) throw Error('Reconciliation cannot include a write report');
+      // Validate bounded IDs before loading any export. This branch never claims
+      // browser work or runs publication continuation.
+      const current = readWriteState();
+      const result = reconcileVerifiedWriteReceipts(current, binding, reconcileIds);
+      const ids = reconcileIds as string[];
+      if (binding.enabled && !binding.issue && current.intents.some(i =>
+        ids.includes(i.id) && i.userId === binding.userId && i.account === binding.username &&
+        i.kind === 'diary' && i.state === 'unknown')) {
+        const { LetterboxdExportBaseline } = await import('@server/entity/LetterboxdExport');
+        const row = await getRepository(LetterboxdExportBaseline).findOneBy({userId:binding.userId});
+        if (row && row.account === binding.username) {
+          const baseline = JSON.parse(row.value);
+          updateWriteState(state => reconcileDiaryWriteRecovery(
+            state,
+            readObservations(), {userId:binding.userId,account:binding.username,baseline,reconcileIds:ids},
+            recordSyncReceipt));
+          return reconcileVerifiedWriteReceipts(readWriteState(), binding, ids);
+        }
+      }
+      return result;
+    }
     const reviews = new Map<string, InstanceType<typeof MovieReview>>();
     if (!report)
       for (const intent of readWriteState().intents) {
@@ -496,6 +542,7 @@ export async function exchangeWrites(
     }
     return exchange;
   });
+  if (reconcileIds !== undefined) return result;
   // Continuation acquires the same review lock; run only after the receipt and
   // write-state transaction has committed and released it. Polls also recover
   // a process crash between that commit and continuation.

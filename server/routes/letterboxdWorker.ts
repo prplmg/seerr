@@ -107,7 +107,8 @@ router.post('/writes', async (req, res) => {
       req.body.instance,
       req.body.report,
       supported,
-      req.body.durableDelivery === 1
+      req.body.durableDelivery === 1,
+      req.body.reconcileIds
     );
     if (delivery.action === 'media_write' && 'id' in delivery)
       logger.info('Letterboxd write delivery offered', {

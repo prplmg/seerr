@@ -4,7 +4,7 @@ import path from 'node:path';
 import { it } from 'node:test';
 import vm from 'node:vm';
 import ts from 'typescript';
-import { parseSupportedObservations } from '../lib/letterboxdWriteWorker';
+import { parseSupportedObservations, parseSupportedWriteKinds } from '@server/lib/letterboxdWriteWorker';
 
 it('observation API requires dedicated credentials before dispatch and validates capabilities', async () => {
   type Request = { body: Record<string, unknown>; header: () => string };
@@ -21,6 +21,7 @@ it('observation API requires dedicated credentials before dispatch and validates
     (req: Request, res: Response) => Promise<unknown>
   > = {};
   let retired = false;
+  let writeArgs: unknown[] = [];
   let calls = 0,
     listCalls = 0;
   const deps: Record<string, unknown> = {
@@ -51,6 +52,8 @@ it('observation API requires dedicated credentials before dispatch and validates
     },
     '@server/lib/letterboxdWriteWorker': {
       parseSupportedObservations,
+      parseSupportedWriteKinds,
+      exchangeWrites: async (...args: unknown[]) => {writeArgs=args;return {action:'idle',reconciled:[],resumeWrites:false};},
       exchangeObservations: async () => {
         calls++;
         return { action: 'idle' };
@@ -78,7 +81,8 @@ it('observation API requires dedicated credentials before dispatch and validates
   const run = async (
     auth: string,
     supported?: unknown,
-    endpoint = '/observations'
+    endpoint = '/observations',
+    extra: Record<string,unknown> = {}
   ) => {
     const res: Response = {
       code: 200,
@@ -101,6 +105,7 @@ it('observation API requires dedicated credentials before dispatch and validates
           version: 1,
           instance: '6e282ef9-86a2-4356-9387-16f99807e283',
           supported,
+          ...extra,
         },
       },
       res
@@ -108,6 +113,12 @@ it('observation API requires dedicated credentials before dispatch and validates
     return res;
   };
   assert.equal((await run('')).code, 403);
+  const reconcileIds=['33865693-277a-47b2-b291-27ef100ba1b3'];
+  assert.equal((await run('',[], '/writes',{reconcileIds})).code,403);
+  assert.equal(writeArgs.length,0);
+  const repaired=await run('Bearer dedicated',[], '/writes',{reconcileIds,durableDelivery:1});
+  assert.equal(repaired.code,200);assert.deepEqual(writeArgs.slice(2),[[],true,reconcileIds]);
+  assert.deepEqual(repaired.data,{action:'idle',reconciled:[],resumeWrites:false});
   assert.equal((await run('Bearer general-api-key')).code, 403);
   assert.equal(calls, 0);
   assert.equal((await run('Bearer dedicated', ['watchlist'])).code, 400);

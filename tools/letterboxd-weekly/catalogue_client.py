@@ -136,6 +136,11 @@ class CatalogueClient:
         self.config_path = config_path
         self.send = send or self.request
         self.last_attempt = {}
+        # Client-owned durable receipt recovery; never infer resume permission
+        # from arbitrary succeeded jobs or from a manually paused account.
+        with self.queue.db:
+            self.queue.db.execute('CREATE TABLE IF NOT EXISTS write_resume_pending(id TEXT PRIMARY KEY, instance TEXT NOT NULL, account TEXT NOT NULL, entry_id TEXT)')
+            self.queue.db.execute('CREATE TABLE IF NOT EXISTS write_reconcile_checks(id TEXT PRIMARY KEY, checked INTEGER NOT NULL)')
 
     @staticmethod
     def pending(token, instance):
@@ -161,6 +166,81 @@ class CatalogueClient:
             if len(body)>1024*1024:raise ValueError('Catalogue response too large')
             return json.loads(body)
 
+    def reconcile_writes(self, instance, expected, config):
+        # Acknowledgement only confirms delivery of an unknown outcome. It is
+        # deliberately not a filter here: the server may have verified it later.
+        # Least recently checked first, across both unknowns and pending resume
+        # receipts. Persist scheduling before transport so failures/restarts do
+        # not strand candidates beyond the first ten.
+        with self.queue.db:
+            rows=self.queue.db.execute("""
+                SELECT j.id,w.payload FROM jobs j
+                JOIN write_payloads w ON w.id=j.id
+                LEFT JOIN write_resume_pending p ON p.id=j.id AND p.instance=j.instance AND p.account=?
+                LEFT JOIN write_reconcile_checks c ON c.id=j.id
+                WHERE j.instance=? AND j.action='media_write'
+                  AND (j.state='unknown' OR (j.state='succeeded' AND p.id IS NOT NULL))
+                ORDER BY COALESCE(c.checked,0),j.created,j.id LIMIT 10
+            """,(expected,instance)).fetchall()
+            if not rows:return
+            checked=self.queue.db.execute('SELECT COALESCE(MAX(checked),0)+1 FROM write_reconcile_checks').fetchone()[0]
+            self.queue.db.executemany('INSERT OR REPLACE INTO write_reconcile_checks VALUES(?,?)',[(row['id'],checked) for row in rows])
+        originals={row['id']:row['payload'] for row in rows}
+        response=self.request(config['token'],{
+            'version':1,'instance':instance,'supported':[],
+            'durableDelivery':1,'action':'idle','reconcileIds':list(originals),
+        },writes=True)
+        # This exchange can only read receipts, never accept or enqueue a write.
+        if not isinstance(response,dict) or response.get('action')!='idle':
+            raise ValueError('Unexpected reconciliation action')
+        receipts=response.get('reconciled',[])
+        if not isinstance(receipts,list) or len(receipts)>len(rows):
+            raise ValueError('Invalid reconciliation receipts')
+        from queue_store import valid_entry, write_payload
+        seen=set()
+        with self.queue.db:
+            account=self.queue.db.execute('SELECT username FROM accounts WHERE instance=?',(instance,)).fetchone()
+            if not account or account['username']!=expected:raise ValueError('Write account changed')
+            for receipt in receipts:
+                if not isinstance(receipt,dict) or not isinstance(receipt.get('id'),str):
+                    raise ValueError('Invalid reconciliation receipt')
+                ident=receipt['id']
+                if ident not in originals or ident in seen:raise ValueError('Unexpected reconciled write')
+                seen.add(ident)
+                original=self.queue.db.execute("SELECT j.state,w.payload FROM jobs j JOIN write_payloads w ON w.id=j.id WHERE j.id=? AND j.instance=? AND j.action='media_write'",(ident,instance)).fetchone()
+                pending=self.queue.db.execute('SELECT entry_id FROM write_resume_pending WHERE id=? AND instance=? AND account=?',(ident,instance,expected)).fetchone()
+                if not original or original['payload']!=originals[ident] or not (
+                    original['state']=='unknown' or (original['state']=='succeeded' and pending)
+                ):raise ValueError('Unexpected reconciled write state')
+                intent=json.loads(original['payload'])
+                if intent.get('account')!=expected:raise ValueError('Wrong reconciliation account')
+                # Validate types too (Python otherwise considers True equal to 1).
+                write_payload({**intent,'desired':receipt.get('values')})
+                if receipt.get('values')!=intent['desired']:raise ValueError('Invalid reconciliation values')
+                entry=receipt.get('entryId')
+                if pending and entry!=pending['entry_id']:raise ValueError('Invalid reconciliation pending entry')
+                if (intent['kind'] in ('review','diary') or entry is not None or intent.get('entryId')) and (
+                    not valid_entry(entry,intent) or (intent.get('entryId') and entry!=intent['entryId'])
+                ):raise ValueError('Invalid reconciliation entry')
+                if intent.get('createNew') and entry==intent.get('previousEntryId'):
+                    raise ValueError('Invalid reconciliation new entry')
+                result={'outcome':'succeeded','writeOutcome':'verified','identity':expected,
+                        'values':intent['desired'],'reconciledBy':'server'}
+                if entry is not None:result['entryId']=entry
+                if original['state']=='unknown':
+                    self.queue.db.execute('INSERT OR IGNORE INTO write_resume_pending VALUES(?,?,?,?)',(ident,instance,expected,entry))
+                self.queue.db.execute("UPDATE jobs SET state='succeeded',result=? WHERE id=?",(json.dumps(result),ident))
+                self.queue.db.execute('INSERT OR IGNORE INTO write_acks VALUES(?)',(ident,))
+            # No receipt means no proof that this pause was an uncertain write.
+            # A positive server decision cannot override another local hold.
+            if receipts and response.get('resumeWrites') is True and not self.queue.db.execute(
+                "SELECT 1 FROM jobs WHERE instance=? AND action='media_write' AND state IN ('unknown','blocked','queued','offered','running')",(instance,)
+            ).fetchone() and not self.queue.db.execute(
+                'SELECT 1 FROM watchdog_pauses WHERE instance=? UNION ALL SELECT 1 FROM readonly_pauses WHERE instance=?',(instance,instance)
+            ).fetchone():
+                self.queue.db.execute('UPDATE accounts SET paused=0 WHERE instance=?',(instance,))
+                self.queue.db.execute('DELETE FROM write_resume_pending WHERE instance=? AND account=?',(instance,expected))
+
     def exchange_writes(self, instance):
         self.delivery_id=None
         if not self.config_path.exists(): return
@@ -179,10 +259,21 @@ class CatalogueClient:
                 payload['report']['entryId']=result['entryId']
         # Deliver durable write outcomes before claiming any more observations.
         # Otherwise observations can starve the acknowledgement (and UI badge).
-        if not row and self.exchange_observations(instance): return
         account=self.queue.db.execute('SELECT * FROM accounts WHERE instance=?',(instance,)).fetchone()
         if not account or account['username']!=expected:raise ValueError('Unverified write profile')
-        if account['paused'] and not row:return
+        if account['paused'] and not row:
+            # Bound export-backed receipt checks per profile, including failures.
+            # Observations retain their own cadence even when this check fails.
+            now=time.monotonic()
+            key='reconcile:'+instance
+            try:
+                if key not in self.last_attempt or now-self.last_attempt[key]>=60:
+                    self.last_attempt[key]=now
+                    self.reconcile_writes(instance,expected,config)
+            finally:
+                self.exchange_observations(instance)
+            return
+        if not row and self.exchange_observations(instance): return
         if not row and self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND action!='list_scan' AND state IN ('queued','offered','running')",(instance,)).fetchone():return
         job=self.request(config['token'],payload,writes=True)
         self.delivery_id=job.get('id')

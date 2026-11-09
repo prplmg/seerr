@@ -19,6 +19,7 @@ import {
   setWriteEnabled,
 } from './letterboxdWriteQueue';
 import {
+  reconcileVerifiedWriteReceipts,
   exchangeObservationState,
   exchangeWriteState,
   parseSupportedObservations,
@@ -33,7 +34,7 @@ const binding = {
   enabled: true,
 };
 
-function durableHarness(boundDiary = false) {
+function durableHarness(boundDiary = false, exportRow?: {account:string;value:string}) {
   const observed: observationApi.ObservationState = {
     version: 1,
     requests: [],
@@ -50,6 +51,7 @@ function durableHarness(boundDiary = false) {
   let failCommit = false;
   let playbackCalls = 0;
   class Account {}
+  class Export {}
   const deps: Record<string, unknown> = {
     './letterboxdObservationLifecycle': lifecycle,
     '@server/routes/social': { refreshRecentMoviePlayback: async () => {} },
@@ -62,6 +64,7 @@ function durableHarness(boundDiary = false) {
     },
     './letterboxdObservations': {
       ...observationApi,
+      readObservations: () => observed,
       updateObservations: (fn: (s: typeof observed) => unknown) => {
         const result = fn(observed);
         events.push('observation-commit');
@@ -93,9 +96,10 @@ function durableHarness(boundDiary = false) {
     '@server/datasource': {
       getRepository: (entity: unknown) => ({
         findOneBy: async () =>
-          entity === Account ? { enabled: true, username: 'prplmg' } : boundDiary ? {externalEntryId:job.entryId,watchedDate:'2026-10-19'} : null,
+          entity === Export ? exportRow : entity === Account ? { enabled: true, username: 'prplmg' } : boundDiary ? {externalEntryId:job.entryId,watchedDate:'2026-10-19'} : null,
       }),
     },
+    '@server/entity/LetterboxdExport': {LetterboxdExportBaseline:Export},
     '@server/entity/MovieReview': {
       LetterboxdAccount: Account,
       MovieReview: class {},
@@ -522,4 +526,43 @@ it('validates bounded unique capabilities and excludes watchlist', () => {
     );
     assert.equal(job.state, 'queued');
   }
+});
+
+it('reconciles verified receipts without claiming writes and remains idempotent', () => {
+ const {state,job}=setup('diary');job.state='verified';job.entryId='https://letterboxd.com/prplmg/film/jaws/';
+ const before=JSON.stringify(state);
+ const result=reconcileVerifiedWriteReceipts(state,binding,[job.id]);
+ assert.equal(result.action,'idle');assert.equal(result.resumeWrites,true);
+ assert.deepEqual(result.reconciled,[{id:job.id,values:job.desired,entryId:job.entryId}]);
+ assert.deepEqual(reconcileVerifiedWriteReceipts(state,binding,[job.id]),result);
+ assert.equal(JSON.stringify(state),before);
+ for(const b of [{...binding,userId:2},{...binding,username:'other'}])assert.equal(reconcileVerifiedWriteReceipts(state,b,[job.id]).reconciled.length,0);
+ for(const b of [{...binding,enabled:false},{...binding,issue:'paused'}])assert.equal(reconcileVerifiedWriteReceipts(state,b,[job.id]).resumeWrites,false);
+ state.settings[1].enabled=false;assert.equal(reconcileVerifiedWriteReceipts(state,binding,[job.id]).resumeWrites,false);
+});
+it('receipt reconciliation rejects malformed requests and never resumes uncertain writes', () => {
+ const {state,job}=setup('diary');
+ for(const ids of [null,[],[job.id,job.id],['bad'],Array(11).fill(job.id)])assert.throws(()=>reconcileVerifiedWriteReceipts(state,binding,ids));
+ for(const status of ['queued','unknown','dispatched','conflict'] as const){job.state=status;assert.deepEqual(reconcileVerifiedWriteReceipts(state,binding,[job.id]).reconciled,[]);}
+ job.state='verified';job.entryId='https://letterboxd.com/prplmg/film/jaws/';
+ state.intents.push({...job,id:'bc96344f-8762-434b-9b8b-e8feaa1d488e',state:'unknown'});
+ assert.equal(reconcileVerifiedWriteReceipts(state,binding,[job.id]).resumeWrites,false);
+});
+it('receipt reconciliation does not run publication continuation or mutate the queue',async()=>{
+ const h=durableHarness();h.job.state='verified';h.job.entryId='https://letterboxd.com/prplmg/film/jaws/';
+ const result=await h.exports.exchangeWrites('pilot',undefined,[],false,[h.job.id]);
+ assert.equal(result.action,'idle');assert.deepEqual(h.events,[]);assert.equal(h.playbackCalls(),0);
+});
+
+it('receipt endpoint repairs a diary from committed export evidence without dispatch or continuation',async()=>{
+ const now=Date.now(),entry='https://letterboxd.com/prplmg/film/jaws/';
+ const baseline={revision:'verified-export',capturedAt:now-1000,snapshot:{account:'prplmg',complete:true,active:{'watched.csv':[],'ratings.csv':[],'reviews.csv':[],'diary.csv':[{'Letterboxd URI':entry,'Watched Date':'2026-11-03',Rewatch:''}]}}};
+ const h=durableHarness(false,{account:'prplmg',value:JSON.stringify(baseline)});
+ Object.assign(h.job,{kind:'diary',state:'unknown',created:now-60000,expected:{watchedDate:null,rewatch:false},desired:{watchedDate:'2026-11-03',rewatch:false}});
+ h.observed.requests.push({id:'preflight',userId:1,account:'prplmg',film:'jaws',requestedAt:now-62000,state:'verified',observation:{observedAt:now-61000,rating:null,text:'',spoiler:false,diaryEntriesComplete:true,diaryEntryIds:[]}});
+ const result=await h.exports.exchangeWrites('pilot',undefined,[],true,[h.job.id]);
+ assert.equal(result.action,'idle');assert.equal(h.job.state,'verified');assert.equal(h.job.entryId,entry);
+ assert.deepEqual(h.events,['receipt','write-commit']);assert.equal(h.playbackCalls(),0);
+ const again=await h.exports.exchangeWrites('pilot',undefined,[],true,[h.job.id]);
+ assert.deepEqual(again,result);assert.deepEqual(h.events,['receipt','write-commit']);
 });

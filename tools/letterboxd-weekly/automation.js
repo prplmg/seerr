@@ -43,10 +43,72 @@ async function flushResult() {
   if(saved){await deliver('/queue/result',saved);await pendingResult(null);await workflowStorage('active-media-workflow',null);}
 }
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+// Only structural codes cross the diagnostic boundary; never raw browser errors.
+function safeMediaReason(reason) {
+  return new Set([
+    'challenge','identity','identity-not-verified','page-not-ready','missing-observation',
+    'editor-unavailable','unrecognized-form','incomplete-form','missing-film-id',
+    'missing-entry-id','unexpected-entry-id','nonempty-new-diary-form','save-unavailable',
+    'invalid-job','unsupported-write','wrong-origin','wrong-film','wrong-entry',
+    'invalid-date','invalid-rating','invalid-desired','rating-control-unavailable',
+    'watched-control-unavailable','remote-changed','entry-mismatch','ambiguous-entry',
+    'ambiguous-new-entry','new-entry-not-found','entry-redirect-loop','entry-redirect-limit',
+    'incomplete-diary-inventory','ambiguous-diary-date','ambiguous-new-diary-entry',
+    'rewatch-required','wrong-history','unrecognized-history','ambiguous-date','missing-date',
+    'invalid-entry','unconfirmed-empty','incomplete-pagination','invalid-pagination',
+    'workflow-baseline-missing','workflow-navigation-timeout','media-state-not-stable',
+    'script-permission-blocked','observation-tab-unavailable','script-observation-failed',
+    'script-arguments-invalid','write-precondition-failed'
+  ]).has(reason) ? reason : undefined;
+}
+function mediaDiagnostics() {
+  let lastReason;
+  return {
+    payload(payload, final=false){
+      const reason=safeMediaReason(payload.error);
+      if(!final){
+        if(reason)lastReason=reason;
+        return payload.error===undefined?payload:{...payload,error:reason||'script-observation-failed'};
+      }
+      if(payload.outcome==='succeeded')return payload;
+      const generic=!payload.error||['write-not-verified','incomplete','identity','worker-or-transport-failure'].includes(payload.error);
+      return generic&&lastReason?{...payload,error:lastReason,...(payload.error?{failureReason:payload.error}:{})}:payload;
+    },
+    async read(read, record, stage='media-read-incomplete'){
+      // A new fresh read cannot inherit an earlier page's transient failure.
+      lastReason=undefined;
+      let result;
+      try{result=await read();}
+      catch(error){
+        await record({stage,error:safeMediaReason(error?.message)||observationFailure(error)});
+        throw error;
+      }
+      if(!result?.complete&&!result?.followEntry)
+        await record({stage,error:result?.challenge?'challenge':safeMediaReason(result?.reason)||'missing-observation'});
+      return result;
+    }
+  };
+}
+// Navigation evidence only. Field values still come from the existing editor read.
+async function diaryObservationFallback(job, result, readInventory) {
+  if(job.action!=='review_observe'||job.entryId!==undefined||job.createNew!==undefined||
+    result?.complete!==false||result?.challenge||result?.reason!=='editor-unavailable'||
+    !/^[a-z0-9_]{1,40}$/.test(job.account||'')||!/^[a-z0-9-]{1,200}$/.test(job.film||''))return;
+  // readInventory authenticates each page and requires two matching complete scans.
+  const inventory=await readInventory(job.film);
+  if(inventory?.diaryEntriesComplete!==true||!Array.isArray(inventory.diaryEntryIds)||inventory.diaryEntryIds.length!==1)return;
+  const entry=inventory.diaryEntryIds[0];
+  if(typeof entry!=='string'||!new RegExp('^https://letterboxd\\.com/'+job.account+'/film/'+job.film+'/(?:[1-9][0-9]*/)?$').test(entry))return;
+  const dates=inventory.diaryEntryDates,date=dates?.[entry];
+  if(!dates||Object.keys(dates).length!==1||typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||
+    !Number.isFinite(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date)return;
+  return entry;
+}
 async function stableMediaRead(read, wait=delay) {
-  let previous, stable=0;
+  let previous, stable=0, lastReason;
   for(let count=0;count<24;count++){
     const value=await read();
+    if(safeMediaReason(value?.reason))lastReason=safeMediaReason(value.reason);
     if(value?.challenge||value?.followEntry)return value;
     const key=value?.complete?JSON.stringify([value.account,value.entryId,Object.entries(value.values||{}).sort()]):null;
     stable=key!==null&&key===previous?stable+1:key!==null?1:0;
@@ -56,7 +118,7 @@ async function stableMediaRead(read, wait=delay) {
     if(count>=6&&stable>=4)return value;
     await wait(500);
   }
-  return {complete:false,reason:'media-state-not-stable'};
+  return {complete:false,reason:lastReason||'media-state-not-stable'};
 }
 function observationFailure(error) {
   const message=String(error?.message || '');
@@ -88,7 +150,9 @@ async function poll() {
   if(running)return; running=true;
   let job, instance, tab, execution, touched=false, completed=false, started=false, finalPending=false;
   const ownedTabs=[];
+  const diagnostics=mediaDiagnostics();
   const record=async(payload,final=false)=>{
+    if(['media_write','review_observe'].includes(job?.action))payload=diagnostics.payload(payload,final);
     const report={instance,job:job.id,execution,payload,final};
     if(final){await pendingResult(report);finalPending=true;}
     const result=await deliver('/queue/result',report);
@@ -257,15 +321,22 @@ async function poll() {
         await open(observationPage||entry||'https://letterboxd.com/film/'+job.film+'/');
         const identity=await ready(tab.id,job.account);
         if(identity.error||identity.identity!==job.account||identity.challenge){await record({stage:'observation-identity-incomplete',error:identity.error||'identity',identity:identity.identity,challenge:!!identity.challenge});result={complete:false};break;}
-        result=await stableMediaRead(async()=>{
+        result=await diagnostics.read(()=>stableMediaRead(async()=>{
           const [read]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:reviewWritePage,args:[JSON.stringify({...job,kind:'review',entryId:entry})]});
-          if(read?.result?.reason)await record({stage:'observation-read-incomplete',error:read.result.reason});
           return read?.result||{complete:false};
-        });
+        }),record,'observation-read-incomplete');
         if(attempt===0&&!entry&&result?.followEntry&&validEntry(result.followEntry)){if(job.createNew)observationPage=result.followEntry;else entry=result.followEntry;continue;}
+        if(attempt===0&&!entry){
+          const fallback=await diaryObservationFallback(job,result,readInventory);
+          if(fallback){
+            entry=fallback;
+            await record({stage:'observation-diary-entry-fallback'});
+            continue;
+          }
+        }
         break;
       }
-      const verified=result?.complete===true&&result.account===job.account&&(!job.entryId||result.entryId===job.entryId)&&(!result.entryId||validEntry(result.entryId));
+      const verified=result?.complete===true&&result.account===job.account&&(!entry||result.entryId===entry)&&(!result.entryId||validEntry(result.entryId));
       const watched=verified?await readWatched(job.film):null;
       const inventory=verified?await readInventory(job.film):null;
       await record(verified?{outcome:'succeeded',observationStatus:'verified',identity:job.account,complete:true,observation:{...result.values,...(watched?.complete?watched.values:{}),...inventory,observedAt:Date.now(),...(result.entryId?{entryId:result.entryId}:{})}}:{outcome:'blocked',observationStatus:result?.reason==='ambiguous-entry'?'ambiguous':'unknown',complete:false},true);
@@ -288,7 +359,7 @@ async function poll() {
           diaryDispatched=job.kind==='diary';reviewDispatched=job.kind==='review';
           if(diaryDispatched&&!job.entryId&&!diaryBaseline)throw Error('workflow-baseline-missing');
         },
-        readFresh:async()=>{
+        readFresh:()=>diagnostics.read(async()=>{
           if(job.kind==='diary'&&!job.entryId){
             const watched=await readWatched(job.film),inventory=await readInventory(job.film);
             if(!watched?.complete||!inventory?.diaryEntriesComplete)return {complete:false,account:job.account,reason:'incomplete-diary-inventory'};
@@ -308,10 +379,9 @@ async function poll() {
             visited.add(url);
             const old=tab;await open(url);if(old&&old.id!==tab.id)try{await chrome.tabs.remove(old.id);}catch{}
             const identity=await ready(tab.id,job.account);
-            if(identity.error||identity.identity!==job.account)return {complete:false,challenge:identity.challenge,account:identity.identity};
+            if(identity.error||identity.identity!==job.account)return {complete:false,reason:identity.error||'identity',challenge:identity.challenge,account:identity.identity};
             const result=await stableMediaRead(async()=>{
               const [fresh]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:pageAdapter,args:[JSON.stringify({...job,entryId:entry,diaryBaseline,...(reviewDispatched&&reviewBeforeIds?{reviewBeforeIds}:{})})]});
-              if(fresh?.result?.reason)await record({stage:'media-read-incomplete',error:fresh.result.reason});
               return fresh?.result||{complete:false};
             });
             if(!result.followEntry)return result;
@@ -328,13 +398,13 @@ async function poll() {
             entry=result.followEntry;
           }
           return {complete:false,account:job.account,reason:'entry-redirect-limit'};
-        },
+        },record),
         recordDispatch:async()=>{await record({stage:'before-write-dispatch',identity:job.account});touched=true;},
         apply:async()=>{
           let applied;
           try{[applied]=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',func:pageAdapter,args:[JSON.stringify({...job,entryId:entry,diaryBaseline}),true]});}
           catch(error){await record({stage:'media-apply-failed',error:/serializ|undefined|JSON/i.test(String(error.message))?'script-arguments-invalid':observationFailure(error)});throw error;}
-          if(!applied?.result?.dispatched){await record({stage:'media-apply-rejected',...(job.kind==='rating'&&applied?.result?.values?{values:applied.result.values}:{}),error:['save-unavailable','invalid-desired','unrecognized-form','incomplete-form','editor-unavailable','remote-changed','rating-control-unavailable','invalid-rating','identity','wrong-film','unsupported-write'].includes(applied?.result?.reason)?applied.result.reason:'write-precondition-failed'});throw Error('write-precondition-failed');}
+          if(!applied?.result?.dispatched){await record({stage:'media-apply-rejected',...(job.kind==='rating'&&applied?.result?.values?{values:applied.result.values}:{}),error:safeMediaReason(applied?.result?.reason)||'write-precondition-failed'});throw Error('write-precondition-failed');}
           await record({stage:'media-apply-dispatched',identity:job.account});
           if(job.kind==='diary')diaryDispatched=true;
           if(job.kind==='review')reviewDispatched=true;

@@ -3,12 +3,330 @@ import tempfile
 import unittest
 import uuid
 import time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from pathlib import Path
 from queue_store import Queue, INSTANCE
 from catalogue_client import CatalogueClient, CatalogueOriginConnection
 
 class CatalogueClientTests(unittest.TestCase):
+    def reconciliation_setup(self, acknowledged=True):
+        instance,_,client=self.observation_setup(False)
+        values={'rating':4,'text':'Saved review','spoiler':True}
+        entry='https://letterboxd.com/prplmg/film/jaws/1/'
+        intent={'userId':1,'account':'prplmg','film':'jaws','kind':'review',
+                'originEntityId':'local:1','entryId':entry,'expected':values,'desired':values}
+        ident=self.q.enqueue('media_write',instance,payload=intent)
+        self.q.claim(instance)
+        self.q.event(instance,ident,{'outcome':'unknown','writeOutcome':'unknown','identity':'prplmg'},True)
+        if acknowledged:
+            with self.q.db:self.q.db.execute('INSERT INTO write_acks VALUES(?)',(ident,))
+        receipt={'id':ident,'values':values,'entryId':entry}
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        return instance,ident,client,receipt
+
+    def assert_reconciliation_state(self, instance, ident, state='unknown', paused=1):
+        self.assertEqual(self.q.db.execute('SELECT state FROM jobs WHERE id=?',(ident,)).fetchone()[0],state)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(instance,)).fetchone()[0],paused)
+
+    def test_paused_reconciliation_cadence_keeps_observations_independent(self):
+        instance,ident,client,_=self.reconciliation_setup()
+        config=json.loads(self.config.read_text())
+        config['supportedObservations']=['review_observe']
+        self.config.write_text(json.dumps(config))
+        client.request=Mock(return_value={'action':'idle','reconciled':[],'resumeWrites':False})
+        with patch('catalogue_client.time.monotonic',side_effect=[0,1,59.99,60]):
+            for _ in range(4):client.exchange_writes(instance)
+        writes=[call for call in client.request.call_args_list if call.kwargs.get('writes')]
+        observations=[call for call in client.request.call_args_list if call.kwargs.get('observations')]
+        self.assertEqual(len(writes),2);self.assertEqual(len(observations),4)
+        self.assertTrue(all(call.args[1]['reconcileIds']==[ident] for call in writes))
+        self.assert_reconciliation_state(instance,ident)
+        # Another configured paused profile is due independently.
+        with self.q.db:self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(INSTANCE,))
+        config['instances'].append(INSTANCE);config['accounts'][INSTANCE]='prplmg'
+        self.config.write_text(json.dumps(config))
+        client.reconcile_writes=Mock()
+        with patch('catalogue_client.time.monotonic',return_value=61):
+            client.exchange_writes(instance);client.exchange_writes(INSTANCE)
+        client.reconcile_writes.assert_called_once_with(INSTANCE,'prplmg',config)
+
+    def test_failed_reconciliation_is_throttled_without_suppressing_observations(self):
+        instance,ident,client,_=self.reconciliation_setup()
+        client.request=Mock(side_effect=OSError('lost response'))
+        client.exchange_observations=Mock()
+        with patch('catalogue_client.time.monotonic',side_effect=[0,59,60]):
+            with self.assertRaises(OSError):client.exchange_writes(instance)
+            client.exchange_writes(instance)
+            with self.assertRaises(OSError):client.exchange_writes(instance)
+        self.assertEqual(client.request.call_count,2)
+        self.assertEqual(client.exchange_observations.call_count,3)
+        self.assert_reconciliation_state(instance,ident)
+
+    def restart_reconciliation_client(self):
+        self.q.db.close()
+        self.q=Queue(self.root/'queue.sqlite')
+        return CatalogueClient(self.q,self.config)
+
+    def test_pending_resume_survives_false_response_and_restart(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':False})
+        client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',1)
+        self.assertEqual(self.q.db.execute('SELECT id FROM write_resume_pending').fetchone()[0],ident)
+        restarted=self.restart_reconciliation_client()
+        restarted.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        restarted.exchange_writes(instance)
+        self.assertEqual(restarted.request.call_args.args[1]['reconcileIds'],[ident])
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],0)
+        # A later manual pause cannot reuse receipts from the completed recovery.
+        with self.q.db:self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(instance,))
+        restarted=self.restart_reconciliation_client();restarted.request=Mock()
+        restarted.exchange_writes(instance);restarted.request.assert_not_called()
+
+    def test_pending_resume_waits_for_local_holds_then_rechecks(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        for hold in ('running','blocked','watchdog','read'):
+            other=str(uuid.uuid4())
+            with self.q.db:
+                self.q.db.execute("UPDATE jobs SET state='unknown' WHERE id=?",(ident,))
+                self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(instance,))
+                if hold in ('running','blocked'):
+                    self.q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,NULL,NULL)',(other,instance,'media_write',hold,time.time()))
+                elif hold=='watchdog':self.q.db.execute('INSERT INTO watchdog_pauses VALUES(?,?)',(instance,time.time()))
+                else:self.q.db.execute('INSERT INTO readonly_pauses VALUES(?,?)',(instance,ident))
+            client=self.restart_reconciliation_client()
+            client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+            client.exchange_writes(instance)
+            self.assert_reconciliation_state(instance,ident,'succeeded',1)
+            self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],1)
+            with self.q.db:
+                self.q.db.execute('DELETE FROM jobs WHERE id=?',(other,))
+                self.q.db.execute('DELETE FROM watchdog_pauses WHERE instance=?',(instance,))
+                self.q.db.execute('DELETE FROM readonly_pauses WHERE instance=?',(instance,))
+            client=self.restart_reconciliation_client()
+            client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+            client.exchange_writes(instance)
+            self.assert_reconciliation_state(instance,ident,'succeeded',0)
+            self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],0)
+
+    def test_pending_resume_failures_and_mismatch_keep_durable_marker(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':False})
+        client.exchange_writes(instance)
+        for response,error in ((None,OSError),({'action':'idle','reconciled':[{**receipt,'values':{}}],'resumeWrites':True},ValueError)):
+            client=self.restart_reconciliation_client()
+            client.request=Mock(side_effect=OSError('lost response')) if response is None else Mock(return_value=response)
+            with self.assertRaises(error):client.exchange_writes(instance)
+            self.assert_reconciliation_state(instance,ident,'succeeded',1)
+            self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],1)
+        client=self.restart_reconciliation_client()
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+
+    def test_pending_resume_is_scoped_and_does_not_repair_manual_only_account(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':False})
+        client.exchange_writes(instance)
+        # A different profile with a historically succeeded write has no resume
+        # claim, even when it uses the same Letterboxd username.
+        other=str(uuid.uuid4())
+        with self.q.db:
+            self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(INSTANCE,))
+            self.q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,NULL,NULL)',(other,INSTANCE,'media_write','succeeded',time.time()))
+            self.q.db.execute('INSERT INTO write_payloads SELECT ?,payload FROM write_payloads WHERE id=?',(other,ident))
+            self.q.db.execute('INSERT INTO write_acks VALUES(?)',(other,))
+        config=json.loads(self.config.read_text());config['instances'].append(INSTANCE);config['accounts'][INSTANCE]='prplmg'
+        self.config.write_text(json.dumps(config))
+        client=self.restart_reconciliation_client();client.request=Mock()
+        client.exchange_writes(INSTANCE);client.request.assert_not_called()
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(INSTANCE,)).fetchone()[0],1)
+
+    def test_reconciliation_fair_batches_survive_restart_and_failed_request(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        ids=[ident]
+        with self.q.db:
+            for _ in range(24):
+                other=str(uuid.uuid4());ids.append(other)
+                self.q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,NULL,NULL)',(other,instance,'media_write','unknown',time.time()))
+                self.q.db.execute('INSERT INTO write_payloads SELECT ?,payload FROM write_payloads WHERE id=?',(other,ident))
+                self.q.db.execute('INSERT INTO write_acks VALUES(?)',(other,))
+        # First ten become pending; a lost second response must not prevent the
+        # final five unknowns from being checked after another restart.
+        batches=[]
+        def respond(token,payload,**kwargs):
+            batch=payload['reconcileIds'];batches.append(batch)
+            self.assertLessEqual(len(batch),10)
+            return {'action':'idle','reconciled':[{**receipt,'id':i} for i in batch],'resumeWrites':False}
+        client.request=Mock(side_effect=respond);client.exchange_writes(instance)
+        client=self.restart_reconciliation_client()
+        def lost(token,payload,**kwargs):
+            batches.append(payload['reconcileIds']);raise OSError('lost response')
+        client.request=Mock(side_effect=lost)
+        with self.assertRaises(OSError):client.exchange_writes(instance)
+        client=self.restart_reconciliation_client();client.request=Mock(side_effect=respond)
+        client.exchange_writes(instance)
+        self.assertEqual(set().union(*map(set,batches)),set(ids))
+        self.assertTrue(set(ids[-5:]) <= set(batches[-1]))
+        # Continue until all unknowns are repaired, then ask for positive resume.
+        for _ in range(3):
+            client=self.restart_reconciliation_client();client.request=Mock(side_effect=respond)
+            client.exchange_writes(instance)
+        self.assertEqual(self.q.db.execute("SELECT count(*) FROM jobs WHERE instance=? AND state='unknown'",(instance,)).fetchone()[0],0)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],25)
+        client=self.restart_reconciliation_client()
+        def approve(token,payload,**kwargs):
+            return {**respond(token,payload,**kwargs),'resumeWrites':True}
+        client.request=Mock(side_effect=approve);client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],0)
+
+    def test_reconciliation_after_ack_is_durable_and_never_dispatches(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        client.exchange_writes(instance)
+        sent=client.request.call_args.args[1]
+        self.assertEqual(sent['reconcileIds'],[ident]);self.assertEqual(sent['supported'],[])
+        self.assertEqual(sent['action'],'idle');self.assertNotIn('report',sent)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_acks WHERE id=?',(ident,)).fetchone()[0],1)
+        # Restart and replay of the read-only operation cannot alter or dispatch work.
+        restarted=CatalogueClient(self.q,self.config);restarted.request=Mock()
+        restarted.reconcile_writes(instance,'prplmg',json.loads(self.config.read_text()))
+        restarted.request.assert_not_called()
+        self.assertEqual(self.q.db.execute("SELECT count(*) FROM jobs WHERE action='media_write'").fetchone()[0],1)
+        result=json.loads(self.q.db.execute('SELECT result FROM jobs WHERE id=?',(ident,)).fetchone()[0])
+        self.assertEqual(result['values'],receipt['values']);self.assertEqual(result['entryId'],receipt['entryId'])
+
+    def test_reconciliation_delivers_unknown_outcome_first(self):
+        instance,ident,client,receipt=self.reconciliation_setup(False)
+        client.request=Mock(return_value={'action':'idle'})
+        client.exchange_writes(instance)
+        self.assertEqual(client.request.call_args.args[1]['report']['outcome'],'unknown')
+        self.assertNotIn('reconcileIds',client.request.call_args.args[1])
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        client.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+
+    def test_reconciliation_lost_response_and_server_failure_retry_after_restart(self):
+        from urllib.error import HTTPError
+        instance,ident,client,receipt=self.reconciliation_setup()
+        for error in (OSError('lost response'),HTTPError('https://private',503,'offline',None,None)):
+            client.last_attempt.clear()
+            client.request=Mock(side_effect=error)
+            with self.assertRaises(type(error)):client.exchange_writes(instance)
+            self.assert_reconciliation_state(instance,ident)
+        restarted=CatalogueClient(self.q,self.config)
+        restarted.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        restarted.exchange_writes(instance)
+        self.assert_reconciliation_state(instance,ident,'succeeded',0)
+
+    def test_reconciliation_rejects_mismatch_and_mutating_response_atomically(self):
+        instance,ident,client,receipt=self.reconciliation_setup(False)
+        # Direct receipt path also writes an acknowledgement atomically.
+        for change in ({'id':str(uuid.uuid4())},{'values':{**receipt['values'],'rating':3}},
+                       {'values':{**receipt['values'],'spoiler':1}},
+                       {'entryId':'https://letterboxd.com/other/film/jaws/1/'},
+                       {'entryId':'https://letterboxd.com/prplmg/film/jaws/2/'}, {'entryId':None}):
+            client.request=Mock(return_value={'action':'idle','reconciled':[{**receipt,**change}],'resumeWrites':True})
+            with self.assertRaises(ValueError):client.reconcile_writes(instance,'prplmg',json.loads(self.config.read_text()))
+            self.assert_reconciliation_state(instance,ident)
+        for response in ({'action':'media_write','reconciled':[receipt]},
+                         {'action':'idle','reconciled':[receipt,receipt]},
+                         {'action':'idle','reconciled':{}}, {'reconciled':[receipt]}):
+            client.request=Mock(return_value=response)
+            with self.assertRaises(ValueError):client.reconcile_writes(instance,'prplmg',json.loads(self.config.read_text()))
+            self.assert_reconciliation_state(instance,ident)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_acks').fetchone()[0],0)
+        with self.q.db:
+            intent=json.loads(self.q.db.execute('SELECT payload FROM write_payloads WHERE id=?',(ident,)).fetchone()[0])
+            intent['account']='other'
+            self.q.db.execute('UPDATE write_payloads SET payload=? WHERE id=?',(json.dumps(intent),ident))
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':True})
+        with self.assertRaises(ValueError):client.reconcile_writes(instance,'prplmg',json.loads(self.config.read_text()))
+        self.assert_reconciliation_state(instance,ident)
+
+    def test_reconciliation_needs_positive_resume_and_receipts(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        client.request=Mock(return_value={'action':'idle','reconciled':[],'resumeWrites':True})
+        client.exchange_writes(instance);self.assert_reconciliation_state(instance,ident)
+        for positive in (False,None,1,'true'):
+            client.last_attempt.clear()
+            with self.q.db:self.q.db.execute("UPDATE jobs SET state='unknown' WHERE id=?",(ident,))
+            client.request=Mock(return_value={'action':'idle','reconciled':[receipt],'resumeWrites':positive})
+            client.exchange_writes(instance);self.assert_reconciliation_state(instance,ident,'succeeded',1)
+
+    def test_reconciliation_preserves_all_local_holds(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        for state in ('unknown','blocked','queued','offered','running'):
+            client.last_attempt.clear()
+            other=str(uuid.uuid4())
+            with self.q.db:
+                self.q.db.execute("UPDATE jobs SET state='unknown' WHERE id=?",(ident,))
+                self.q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,NULL,NULL)',(other,instance,'media_write',state,time.time()))
+            client.exchange_writes(instance)
+            self.assert_reconciliation_state(instance,ident,'succeeded',1)
+            with self.q.db:self.q.db.execute('DELETE FROM jobs WHERE id=?',(other,))
+        for table,value in (('watchdog_pauses',time.time()),('readonly_pauses',ident)):
+            client.last_attempt.clear()
+            with self.q.db:
+                self.q.db.execute("UPDATE jobs SET state='unknown' WHERE id=?",(ident,))
+                self.q.db.execute('INSERT INTO '+table+' VALUES(?,?)',(instance,value))
+            client.exchange_writes(instance)
+            self.assert_reconciliation_state(instance,ident,'succeeded',1)
+            with self.q.db:self.q.db.execute('DELETE FROM '+table)
+
+    def test_reconciliation_diary_and_rating_receipts_use_saved_values(self):
+        instance,ident,client,receipt=self.reconciliation_setup(False)
+        for kind,values,entry in (
+            ('diary',{'watchedDate':'2026-11-08','rewatch':False},receipt['entryId']),
+            ('rating',{'rating':4},None),
+        ):
+            intent={'userId':1,'account':'prplmg','film':'jaws','kind':kind,
+                    'originEntityId':'local:1','expected':values,'desired':values}
+            with self.q.db:
+                self.q.db.execute("UPDATE jobs SET state='unknown' WHERE id=?",(ident,))
+                self.q.db.execute('UPDATE write_payloads SET payload=? WHERE id=?',(json.dumps(intent),ident))
+                self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(instance,))
+            client.request=Mock(return_value={'action':'idle','reconciled':[{'id':ident,'values':values,'entryId':entry}],'resumeWrites':True})
+            client.reconcile_writes(instance,'prplmg',json.loads(self.config.read_text()))
+            self.assert_reconciliation_state(instance,ident,'succeeded',0)
+            self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_acks WHERE id=?',(ident,)).fetchone()[0],1)
+
+    def test_reconciliation_bad_second_receipt_rolls_back_first_and_ack(self):
+        instance,ident,client,receipt=self.reconciliation_setup(False)
+        other=str(uuid.uuid4())
+        with self.q.db:
+            self.q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,NULL,NULL)',(other,instance,'media_write','unknown',time.time()))
+            self.q.db.execute('INSERT INTO write_payloads SELECT ?,payload FROM write_payloads WHERE id=?',(other,ident))
+        client.request=Mock(return_value={'action':'idle','reconciled':[receipt,{**receipt,'id':other,'values':{}}],'resumeWrites':True})
+        with self.assertRaises(ValueError):client.reconcile_writes(instance,'prplmg',json.loads(self.config.read_text()))
+        self.assert_reconciliation_state(instance,ident)
+        self.assert_reconciliation_state(instance,other)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_resume_pending').fetchone()[0],0)
+        self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_acks').fetchone()[0],0)
+
+    def test_reconciliation_manual_pause_without_uncertain_jobs_never_requests(self):
+        instance,_,client=self.observation_setup(False)
+        with self.q.db:self.q.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(instance,))
+        client.exchange_writes(instance);client.request.assert_not_called()
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(instance,)).fetchone()[0],1)
+
+    def test_reconciliation_bounded_to_ten_and_partial_batch_stays_paused(self):
+        instance,ident,client,receipt=self.reconciliation_setup()
+        with self.q.db:
+            for _ in range(10):
+                other=str(uuid.uuid4())
+                self.q.db.execute('INSERT INTO jobs VALUES(?,?,?,?,?,NULL,NULL)',(other,instance,'media_write','unknown',time.time()))
+                self.q.db.execute('INSERT INTO write_payloads SELECT ?,payload FROM write_payloads WHERE id=?',(other,ident))
+                self.q.db.execute('INSERT INTO write_acks VALUES(?)',(other,))
+        client.exchange_writes(instance)
+        self.assertEqual(len(client.request.call_args.args[1]['reconcileIds']),10)
+        self.assert_reconciliation_state(instance,ident,'succeeded',1)
+
     def test_watched_capability_requires_fresh_loaded_adapter(self):
         client=CatalogueClient(self.q,self.config)
         file=self.root/'worker-versions.json'
