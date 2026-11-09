@@ -554,15 +554,16 @@ it('receipt reconciliation does not run publication continuation or mutate the q
  assert.equal(result.action,'idle');assert.deepEqual(h.events,[]);assert.equal(h.playbackCalls(),0);
 });
 
-it('receipt endpoint repairs a diary from committed export evidence without dispatch or continuation',async()=>{
+for (const reviewed of [false,true]) it(`receipt endpoint repairs a ${reviewed ? 'reviewed' : 'plain'} diary from committed export evidence without dispatch or continuation`,async()=>{
  const now=Date.now(),entry='https://letterboxd.com/prplmg/film/jaws/';
- const baseline={revision:'verified-export',capturedAt:now-1000,snapshot:{account:'prplmg',complete:true,active:{'watched.csv':[],'ratings.csv':[],'reviews.csv':[],'diary.csv':[{'Letterboxd URI':entry,'Watched Date':'2026-11-03',Rewatch:''}]}}};
+ const baseline={revision:'verified-export',capturedAt:now-1000,snapshot:{account:'prplmg',complete:true,active:{'watched.csv':[],'ratings.csv':[],'reviews.csv':reviewed ? [{'Letterboxd URI':entry,'Watched Date':'2026-11-03',Rewatch:'',Rating:'3',Review:'Keep my review'}] : [],'diary.csv':[{'Letterboxd URI':entry,'Watched Date':'2026-11-03',Rewatch:''}]}}};
  const h=durableHarness(false,{account:'prplmg',value:JSON.stringify(baseline)});
  Object.assign(h.job,{kind:'diary',state:'unknown',created:now-60000,expected:{watchedDate:null,rewatch:false},desired:{watchedDate:'2026-11-03',rewatch:false}});
  h.observed.requests.push({id:'preflight',userId:1,account:'prplmg',film:'jaws',requestedAt:now-62000,state:'verified',observation:{observedAt:now-61000,rating:null,text:'',spoiler:false,diaryEntriesComplete:true,diaryEntryIds:[]}});
  const result=await h.exports.exchangeWrites('pilot',undefined,[],true,[h.job.id]);
  assert.equal(result.action,'idle');assert.equal(h.job.state,'verified');assert.equal(h.job.entryId,entry);
  assert.deepEqual(h.events,['receipt','write-commit']);assert.equal(h.playbackCalls(),0);
+ assert.deepEqual(structuredClone(result),{action:'idle',resumeWrites:true,reconciled:[{id:h.job.id,values:{watchedDate:'2026-11-03',rewatch:false},entryId:entry}]});
  const again=await h.exports.exchangeWrites('pilot',undefined,[],true,[h.job.id]);
  assert.deepEqual(again,result);assert.deepEqual(h.events,['receipt','write-commit']);
 });

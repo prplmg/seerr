@@ -189,15 +189,16 @@ export function planDiaryWriteRecovery(
     row,
     id: resolve(row),
   }));
-  const reviews = snapshot.active['reviews.csv'].map(resolve);
+  const reviews = snapshot.active['reviews.csv'].map((row) => ({ row, id: resolve(row) }));
   // An unresolved row could be a second candidate; fail closed on the inventory.
   if (
     diary.some(
       ({ id }) => !id || new URL(id).pathname.split('/')[1] !== account
     ) ||
     reviews.some(
-      (id) => !id || new URL(id).pathname.split('/')[1] !== account
+      ({ id }) => !id || new URL(id).pathname.split('/')[1] !== account
     ) ||
+    new Set(reviews.map(({ id }) => id)).size !== reviews.length ||
     new Set(diary.map(({ id }) => id)).size !== diary.length
   )
     return [];
@@ -235,12 +236,21 @@ export function planDiaryWriteRecovery(
     const { row, id } = matches[0];
     const rewatch =
       row.Rewatch === 'Yes' ? true : row.Rewatch === '' ? false : null;
+    if (rewatch !== job.desired.rewatch) continue;
+    // Reviews decorate diary entries; they do not constitute another viewing.
+    // Link only the diary fields, never adopt or overwrite review/rating content.
+    const entryReviews = reviews.filter((review) => review.id === id);
     if (
-      rewatch !== job.desired.rewatch ||
-      reviews.includes(id) ||
-      (row.Review !== undefined && row.Review !== '')
-    )
-      continue;
+      entryReviews.some(({ row: review }) =>
+        review['Watched Date'] !== row['Watched Date'] ||
+        review.Rewatch !== row.Rewatch
+      ) ||
+      reviews.some(({ id: reviewId, row: review }) =>
+        reviewId !== id && new URL(reviewId!).pathname.split('/')[3] === job.film &&
+        review['Watched Date'] === job.desired.watchedDate
+      ) ||
+      (row.Review !== undefined && row.Review !== '' && entryReviews.length !== 1)
+    ) continue;
     // Use the last pre-write read, not an older convenient baseline. Later
     // recovery failures do not erase the original authenticated inventory.
     const before = observations.requests

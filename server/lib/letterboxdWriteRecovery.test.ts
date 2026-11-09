@@ -354,7 +354,7 @@ const negatives: [string, (f: ReturnType<typeof fixture>) => void][] = [
     },
   ],
   [
-    'review content on entry',
+    'review missing viewing fields',
     (f) => {
       f.evidence.baseline.snapshot.active['reviews.csv'].push({
         'Letterboxd URI': f.entry,
@@ -534,4 +534,59 @@ it('persists read-only recovery backoff and retries without another write',()=>{
  assert.equal(restored.intents[0].recovery.attempts,2);
  assert.equal(restored.intents[0].state,'unknown');assert.equal(restored.intents.length,1);
  assert(f.observations.requests[0].retired);
+});
+
+function reviewedFixture() {
+  const f = fixture();
+  const diary = f.evidence.baseline.snapshot.active['diary.csv'][0];
+  diary.Rating = '3';
+  f.evidence.baseline.snapshot.active['reviews.csv'].push({
+    ...diary, Review: 'la neta si divierte un buen',
+  });
+  return f;
+}
+
+it('associates a reviewed diary without changing review/rating or issuing another write', () => {
+  const f = reviewedFixture();
+  const evidence = structuredClone(f.evidence);
+  const observations = structuredClone(f.observations);
+  const settings = structuredClone(f.writes.settings);
+  const receipts: SyncReceipt[] = [];
+  const apply = () => reconcileDiaryWriteRecovery(f.writes, f.observations, f.evidence, r => {
+    assert.equal(f.writes.intents[0].state, 'unknown');
+    receipts.push(r);
+  }, f.now);
+  assert.deepEqual(apply(), [f.writes.intents[0].id]);
+  assert.equal(receipts.length, 1);
+  assert.equal(receipts[0].entryId, f.entry);
+  assert.equal(receipts[0].baseline, undefined); // No review/rating baseline ownership.
+  assert.deepEqual(receipts[0].diaryBaseline, {watchedDate:'2026-11-03',rewatch:false});
+  assert.deepEqual(f.evidence, evidence);
+  assert.deepEqual(f.observations, observations);
+  assert.deepEqual(f.writes.settings, settings);
+  assert.equal(f.writes.intents.length, 1);
+  assert.equal(f.writes.intents[0].state, 'verified');
+  assert.deepEqual(apply(), []); // Replayed export never creates a second association.
+});
+
+for (const [name, change] of negatives.filter(([name]) => name !== 'inline review content'))
+  it(`reviewed diary still rejects ${name}`, () => {
+    const f = reviewedFixture(); change(f);
+    assert.deepEqual(planDiaryWriteRecovery(f.writes,f.observations,f.evidence,f.now), []);
+  });
+
+for (const [name, change] of [
+  ['conflicting review date', (f: ReturnType<typeof fixture>) => { f.evidence.baseline.snapshot.active['reviews.csv'][0]['Watched Date']='2026-11-04'; }],
+  ['conflicting review rewatch', (f: ReturnType<typeof fixture>) => { f.evidence.baseline.snapshot.active['reviews.csv'][0].Rewatch='Yes'; }],
+  ['other reviewed viewing same day', (f: ReturnType<typeof fixture>) => { f.evidence.baseline.snapshot.active['reviews.csv'][0]['Letterboxd URI']=f.entry+'2/'; }],
+  ['duplicate review alias', (f: ReturnType<typeof fixture>) => { f.evidence.baseline.snapshot.active['reviews.csv'].push({...f.evidence.baseline.snapshot.active['reviews.csv'][0],'Letterboxd URI':f.entry}); }],
+] as const) it(`does not associate ${name}`, () => {
+  const f=reviewedFixture(); change(f);
+  assert.deepEqual(planDiaryWriteRecovery(f.writes,f.observations,f.evidence,f.now),[]);
+});
+
+it('reviewed entry receipt failure leaves the pending write unchanged', () => {
+  const f=reviewedFixture(), before=structuredClone(f);
+  assert.throws(()=>reconcileDiaryWriteRecovery(f.writes,f.observations,f.evidence,()=>{throw Error('Sync identity conflict');},f.now),/identity conflict/);
+  assert.deepEqual(f,before);
 });
