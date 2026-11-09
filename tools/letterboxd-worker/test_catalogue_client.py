@@ -354,6 +354,22 @@ class CatalogueClientTests(unittest.TestCase):
         self.assertEqual(self.q.db.execute('SELECT count(*) FROM jobs').fetchone()[0],3)
         self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(INSTANCE,)).fetchone()[0],1)
 
+    def test_oversized_report_is_retained_and_does_not_starve_next_result_after_restart(self):
+        from urllib.error import HTTPError
+        ids=[]
+        for name in ('one','two'):
+            job=self.q.enqueue('list_scan',INSTANCE,payload={'url':'https://letterboxd.com/alice/list/'+name+'/','token':str(uuid.uuid4())})
+            with self.q.db:self.q.db.execute("UPDATE jobs SET state='succeeded',result=? WHERE id=?",(json.dumps({'snapshot':{'title':name}}),job))
+            ids.append(job)
+        client=CatalogueClient(self.q,self.config,Mock(side_effect=HTTPError('https://safe',413,'Large',None,None)))
+        with self.assertRaises(HTTPError):client.exchange_lists(INSTANCE)
+        self.q.db.close();self.q=Queue(self.root/'queue.sqlite')
+        send=Mock(return_value={'action':'idle'})
+        client=CatalogueClient(self.q,self.config,send);client.exchange_lists(INSTANCE)
+        self.assertEqual(send.call_args.args[1]['report']['id'],ids[1])
+        self.assertIsNone(self.q.db.execute('SELECT 1 FROM list_acks WHERE id=?',(ids[0],)).fetchone())
+        self.assertIsNotNone(self.q.db.execute('SELECT result FROM jobs WHERE id=?',(ids[0],)).fetchone()[0])
+
     def test_retired_list_is_archived_before_ack_but_mismatches_are_not(self):
         import io
         from urllib.error import HTTPError
@@ -363,6 +379,7 @@ class CatalogueClientTests(unittest.TestCase):
         with self.assertRaises(HTTPError):client.exchange_lists(INSTANCE)
         self.assertIsNone(self.q.db.execute('SELECT 1 FROM list_acks WHERE id=?',(job,)).fetchone())
         client.last_attempt.clear()
+        with self.q.db:self.q.db.execute('UPDATE delivery_retries SET revision=?',('previous-protocol',))
         client.send=Mock(side_effect=HTTPError('https://safe',410,'Retired',None,io.BytesIO(b'{"code":"list-job-retired"}')))
         client.exchange_lists(INSTANCE)
         self.assertIsNotNone(self.q.db.execute('SELECT 1 FROM list_acks WHERE id=?',(job,)).fetchone())
@@ -605,7 +622,7 @@ class CatalogueClientTests(unittest.TestCase):
         client=CatalogueClient(self.q,self.config)
         client.request=Mock(return_value=job)
         client.exchange_writes(instance)
-        self.assertEqual(client.request.call_args.args[1]['supported'], ['rating','review','diary'])
+        self.assertEqual(client.request.call_args.args[1]['supported'], ['rating','review','diary','subject-holds'])
         claimed=self.q.claim(instance)
         self.assertEqual(claimed['desired'],{'rating':4})
         client.exchange_writes(instance)
@@ -615,7 +632,7 @@ class CatalogueClientTests(unittest.TestCase):
         client.request=Mock(return_value={'action':'idle'})
         client.exchange_writes(instance)
         self.assertEqual(client.request.call_args.args[1]['report']['outcome'],'verified')
-        self.assertEqual(client.request.call_args.args[1]['supported'], ['rating','review','diary'])
+        self.assertEqual(client.request.call_args.args[1]['supported'], ['rating','review','diary','subject-holds'])
         self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_acks').fetchone()[0],1)
         self.assertEqual(self.q.enqueue('media_write',instance,job['id'],payload=job),job['id'])
         with self.assertRaises(ValueError):self.q.enqueue('media_write',instance,job['id'],payload={**job,'desired':{'rating':3}})
@@ -649,7 +666,7 @@ class CatalogueClientTests(unittest.TestCase):
         for kind in ('watched','watchlist','unknown',None):
             client.request=Mock(return_value={'action':'media_write','kind':kind,'instance':instance,'account':'prplmg'})
             with self.assertRaisesRegex(ValueError,'Unsupported write kind'):client.exchange_writes(instance)
-            self.assertEqual(client.request.call_args.args[1]['supported'], ['rating','review','diary'])
+            self.assertEqual(client.request.call_args.args[1]['supported'], ['rating','review','diary','subject-holds'])
         self.assertEqual(self.q.db.execute('SELECT count(*) FROM write_payloads').fetchone()[0],0)
 
 if __name__=='__main__':unittest.main()

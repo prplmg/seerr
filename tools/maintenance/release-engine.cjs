@@ -1,5 +1,6 @@
 const fs=require('fs'),path=require('path'),cp=require('child_process'),crypto=require('crypto');
 const {healthJson}=require('./deployment-health.cjs');
+const {readWriteState,backupLedger,prepareLegacyRollback}=require('./ledger-rollout.cjs');
 const {stopCommand,recoverRelease}=require('./rollout-control.cjs');
 const root='C:/ProgramData/Seerr',live=root+'/app',release=root+'/reconciliation-release-20261019',stage=root+'/reconciliation-native-20261019';
 const read=f=>fs.existsSync(f)?fs.readFileSync(f,'utf8'):null;
@@ -51,9 +52,9 @@ async function main(){
  for(const e of manifest)if(hash(read(live+'/'+e.file))!==e.beforeHash||hash(read(stage+'/'+e.file))!==e.afterHash)throw Error('Source drift '+e.file);
  const preflight=JSON.parse(read(release+'/mini-preflight.json'));
  if(!preflight?.verified || preflight.buildId!==built.buildId)throw Error('Mini preflight missing or stale');
- const publishing=()=>Object.entries(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings).filter(([,s])=>s.enabled).map(([id,s])=>({id,account:s.account}));
+ const publishing=()=>Object.entries(readWriteState(root+'/data',live).settings).filter(([,s])=>s.enabled).map(([id,s])=>({id,account:s.account}));
  const mappingsBefore=hash(read(root+'/data/account-mappings.json'));
- const publishingSettingsBefore=JSON.stringify(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings);
+ const publishingSettingsBefore=JSON.stringify(readWriteState(root+'/data',live).settings);
  const swap=release+'/previous';if(fs.existsSync(swap))throw Error('Already deployed');
  const stop=()=>ps(stopCommand());
  const leaseOwner=path.basename(release);
@@ -74,6 +75,7 @@ async function main(){
   const {openSqlite}=require(root+'/NativeTwoWayChecks.cjs');const db=await openSqlite(require(live+'/node_modules/sqlite3'),root+'/data/db/db.sqlite3',true);
   try{await db.backup(release+'/before.sqlite3');}finally{await db.close();}
   fs.mkdirSync(release+'/state');for(const name of fs.readdirSync(root+'/data').filter(n=>n.startsWith('letterboxd-')&&n.endsWith('.json')))fs.copyFileSync(root+'/data/'+name,release+'/state/'+name);
+  backupLedger(root+'/data',release+'/state');
   fs.mkdirSync(swap);
   for(const dir of ['.next','dist']){fs.renameSync(live+'/'+dir,swap+'/'+dir);moved.push(dir);fs.renameSync(stage+'/'+dir,live+'/'+dir);}
   touched=true;for(const e of manifest){fs.mkdirSync(path.dirname(live+'/'+e.file),{recursive:true});fs.copyFileSync(stage+'/'+e.file,live+'/'+e.file);}
@@ -86,7 +88,7 @@ async function main(){
   const lb=await api('/tv/87108/letterboxd');if(!('rating'in lb))throw Error('Series rating API failed');
   const {DatabaseSync}=require('node:sqlite');const check=new DatabaseSync(root+'/data/db/db.sqlite3',{readOnly:true});
   try{if(!check.prepare('PRAGMA table_info(movie_review)').all().some(c=>c.name==='viewingEventId'))throw Error('Viewing migration absent');check.prepare('SELECT count(*) FROM letterboxd_export_baseline').get();check.prepare('SELECT count(*) FROM letterboxd_export_audit').get();}finally{check.close();}
-  if(hash(read(root+'/data/account-mappings.json'))!==mappingsBefore || JSON.stringify(JSON.parse(read(root+'/data/letterboxd-write-queue.json')).settings)!==publishingSettingsBefore)throw Error('Account toggles changed');
+  if(hash(read(root+'/data/account-mappings.json'))!==mappingsBefore || JSON.stringify(readWriteState(root+'/data',live).settings)!==publishingSettingsBefore)throw Error('Account toggles changed');
   maintenance('finish');
   const publicHealth=await healthJson('https://catalogue.prpl.com.mx/api/v1/status?checkUpdateAvailable=false');
   if(typeof publicHealth.version!=='string')throw Error('Public health returned an unexpected application response');
@@ -98,6 +100,7 @@ async function main(){
     changed: moved.length > 0 || touched,
     stop,
     restore: () => {
+     prepareLegacyRollback(root+'/data',live,swap,release+'/ledger-rollback-current');
      for(const dir of moved){if(fs.existsSync(live+'/'+dir))fs.renameSync(live+'/'+dir,swap+'/failed-'+dir);fs.renameSync(swap+'/'+dir,live+'/'+dir);}
      if(touched)for(const e of manifest){if(e.before===null){if(fs.existsSync(live+'/'+e.file))fs.unlinkSync(live+'/'+e.file);}else fs.writeFileSync(live+'/'+e.file,e.before);}
     },

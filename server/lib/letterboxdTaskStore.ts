@@ -124,7 +124,7 @@ function save(db: DatabaseSync, name: string, value: any) {
         t.account || null,
         t.film || t.url || null,
         state,
-        t.retryAt || null,
+        t.retryAt || t.recovery?.nextAttemptAt || null,
         payload
       );
     if (old.get(t.id)?.state !== state)

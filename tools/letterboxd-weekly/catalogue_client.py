@@ -5,6 +5,16 @@ import ssl
 import re
 import traceback
 import uuid
+import threading
+from functools import wraps
+
+HEALTH_LOCK = threading.RLock()
+DELIVERY_PROTOCOL = "ledger-v1-20261109"
+def serialized_health(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        with HEALTH_LOCK:return fn(*args, **kwargs)
+    return wrapped
 from http.client import HTTPSConnection
 from urllib.request import Request, build_opener, HTTPRedirectHandler, HTTPSHandler, ProxyHandler
 from urllib.parse import urlencode
@@ -13,7 +23,7 @@ from urllib.error import HTTPError
 ENDPOINT = 'https://catalogue.prpl.com.mx:8443/api/v1/letterboxd-worker/exchange'
 SUPPORTED_WRITE_KINDS = ('rating', 'review', 'diary')
 # Explicitly tested adapters; the release contract test checks the bundled manifest.
-DIARY_CONTENT_ADAPTERS = frozenset(('0.2.46', '0.2.47', '0.2.48', '0.2.49'))
+DIARY_CONTENT_ADAPTERS = frozenset(('0.2.46', '0.2.47', '0.2.48', '0.2.49', '0.2.50'))
 
 class CatalogueOriginConnection(HTTPSConnection):
     """Dial our LAN origin, retaining the public hostname for TLS verification."""
@@ -36,6 +46,7 @@ class NoRedirect(HTTPRedirectHandler):
         return None
 
 class CatalogueClient:
+    @serialized_health
     def record_failure(self, instance, stage, error):
         # Keep an append-only bounded history, not just the last successful poll.
         known = ('Invalid ', 'Unsupported ', 'Unexpected ', 'Wrong ', 'Unverified ',
@@ -79,6 +90,9 @@ class CatalogueClient:
             reason = 'read-check' if self.queue.db.execute('SELECT 1 FROM readonly_pauses WHERE instance=?',(instance,)).fetchone() else 'watchdog' if self.queue.db.execute('SELECT 1 FROM watchdog_pauses WHERE instance=?',(instance,)).fetchone() else 'uncertain-write' if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND action='media_write' AND state IN ('blocked','unknown')",(instance,)).fetchone() else 'manual'
         try: errors = list(json.loads((self.config_path.parent/'account-health.json').read_text()).get(instance,{}).values())
         except (OSError,ValueError,AttributeError): errors=[]
+        parked=self.queue.db.execute('SELECT r.code FROM delivery_retries r JOIN jobs j ON j.id=r.id LEFT JOIN list_acks a ON a.id=r.id WHERE j.instance=? AND r.revision=? AND r.next_at IS NULL AND a.id IS NULL LIMIT 1',(instance,DELIVERY_PROTOCOL)).fetchone()
+        if parked:
+            errors=[e for e in errors if e.get('stage')!='lists']+[{'stage':'lists','at':int(time.time()*1000),'type':'PayloadRejected',**({'httpStatus':parked['code']} if parked['code'] else {})}]
         kinds=self.supported_writes(instance)
         if self.workflow_capable(instance): kinds.append('diary-content')
         return {'paused':paused,'pauseReason':reason,'supportedWriteKinds':kinds,'errors':errors[-3:]}
@@ -87,7 +101,7 @@ class CatalogueClient:
         kinds=list(SUPPORTED_WRITE_KINDS)
         try:
             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
-            if version.get('version')=='0.2.49' and 0 <= time.time()-version.get('seenAt',0) < 600:
+            if version.get('version') in ('0.2.49','0.2.50') and 0 <= time.time()-version.get('seenAt',0) < 600:
                 kinds.append('watched')
         except (OSError,ValueError,TypeError): pass
         return kinds
@@ -138,6 +152,7 @@ class CatalogueClient:
         # Client-owned durable receipt recovery; never infer resume permission
         # from arbitrary succeeded jobs or from a manually paused account.
         with self.queue.db:
+            self.queue.db.execute('CREATE TABLE IF NOT EXISTS delivery_retries(id TEXT PRIMARY KEY, attempts INTEGER NOT NULL, next_at REAL, code INTEGER, revision TEXT NOT NULL)')
             self.queue.db.execute('CREATE TABLE IF NOT EXISTS write_resume_pending(id TEXT PRIMARY KEY, instance TEXT NOT NULL, account TEXT NOT NULL, entry_id TEXT)')
             self.queue.db.execute('CREATE TABLE IF NOT EXISTS write_reconcile_checks(id TEXT PRIMARY KEY, checked INTEGER NOT NULL)')
 
@@ -246,7 +261,7 @@ class CatalogueClient:
         config=json.loads(self.config_path.read_text())
         expected=config.get('accounts',{}).get(instance)
         if instance not in config.get('instances',[]) or not expected: return
-        payload={'version':1,'instance':instance,'supported':self.supported_writes(instance),'durableDelivery':1}
+        payload={'version':1,'instance':instance,'supported':self.supported_writes(instance)+['subject-holds'],'durableDelivery':1}
         if self.workflow_capable(instance):
             payload['supported'].append('diary-content')
         row=self.queue.db.execute("SELECT j.* FROM jobs j JOIN write_payloads w ON w.id=j.id LEFT JOIN write_acks a ON a.id=j.id WHERE j.instance=? AND a.id IS NULL ORDER BY j.created LIMIT 1",(instance,)).fetchone()
@@ -272,6 +287,11 @@ class CatalogueClient:
             finally:
                 self.exchange_observations(instance)
             return
+        if not row and self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND action='media_write' AND state IN ('unknown','blocked')",(instance,)).fetchone():
+            now=time.monotonic();key='reconcile:'+instance
+            if key not in self.last_attempt or now-self.last_attempt[key]>=60:
+                self.last_attempt[key]=now
+                self.reconcile_writes(instance,expected,config)
         if not row and self.exchange_observations(instance): return
         if not row and self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND action!='list_scan' AND state IN ('queued','offered','running')",(instance,)).fetchone():return
         job=self.request(config['token'],payload,writes=True)
@@ -331,6 +351,16 @@ class CatalogueClient:
         self.queue.enqueue('review_observe',instance,job['id'],payload=job)
         return True
 
+    def defer_list_delivery(self, row, error):
+        if not row:return
+        previous=self.queue.db.execute('SELECT attempts FROM delivery_retries WHERE id=?',(row['id'],)).fetchone()
+        attempts=(previous['attempts'] if previous else 0)+1
+        code=getattr(error,'code',None)
+        permanent=code in (400,409,413,422) or isinstance(error,ValueError)
+        delay=min(3600,45*2**min(attempts-1,7))
+        jitter=int(uuid.UUID(row['id']))%17
+        with self.queue.db:self.queue.db.execute('INSERT OR REPLACE INTO delivery_retries VALUES(?,?,?,?,?)',(row['id'],attempts,None if permanent else time.time()+delay+jitter,code,DELIVERY_PROTOCOL))
+
     def exchange_lists(self,instance):
         if not self.config_path.exists():return
         now=time.time()
@@ -340,10 +370,10 @@ class CatalogueClient:
         if instance not in config.get('instances',[]):return
         account=self.queue.db.execute('SELECT * FROM accounts WHERE instance=?',(instance,)).fetchone()
         if not account or account['username']!=config.get('accounts',{}).get(instance):raise ValueError('Unverified catalogue profile')
-        row=self.queue.db.execute("SELECT j.*,p.payload FROM jobs j JOIN list_payloads p ON p.id=j.id LEFT JOIN list_acks a ON a.id=j.id WHERE j.instance=? AND a.id IS NULL AND j.state IN ('succeeded','blocked','unknown') ORDER BY created LIMIT 1",(instance,)).fetchone()
+        row=self.queue.db.execute("SELECT j.*,p.payload FROM jobs j JOIN list_payloads p ON p.id=j.id LEFT JOIN list_acks a ON a.id=j.id LEFT JOIN delivery_retries r ON r.id=j.id WHERE j.instance=? AND a.id IS NULL AND (r.id IS NULL OR r.revision!=? OR r.next_at<=?) AND j.state IN ('succeeded','blocked','unknown') ORDER BY created LIMIT 1",(instance,DELIVERY_PROTOCOL,now)).fetchone()
         try:
             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
-            capable=version.get('version')=='0.2.49' and version.get('inPrivateAllowed') is True and 0<=now-version.get('seenAt',0)<600
+            capable=version.get('version') in ('0.2.49','0.2.50') and version.get('inPrivateAllowed') is True and 0<=now-version.get('seenAt',0)<600
         except (OSError,ValueError,TypeError):capable=False
         if not capable and not row:return
         if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND state IN ('queued','running','offered')",(instance,)).fetchone():return
@@ -360,7 +390,9 @@ class CatalogueClient:
             if row and error.code==410:
                 try: retired=json.loads(error.read(4096)).get('code')=='list-job-retired'
                 except (ValueError,AttributeError): pass
-            if not retired: raise
+            if not retired:
+                self.defer_list_delivery(row,error)
+                raise
             # Keep the original snapshot before acknowledging an absent server job.
             # Never reinterpret token/account mismatches (409) as retirement.
             archive=self.config_path.parent/'retired-list-reports'
@@ -378,6 +410,9 @@ class CatalogueClient:
                     if temp.exists():temp.unlink()
             with self.queue.db:self.queue.db.execute('INSERT OR IGNORE INTO list_acks VALUES(?)',(row['id'],))
             return
+        except (OSError,ValueError) as error:
+            self.defer_list_delivery(row,error)
+            raise
 
         if job.get('action') not in ('idle','list_scan'):raise ValueError('Invalid list job')
         if row:

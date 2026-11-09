@@ -136,6 +136,7 @@ class Queue:
           CREATE TABLE IF NOT EXISTS watchdog_pauses(instance TEXT PRIMARY KEY, since REAL NOT NULL);
           CREATE TABLE IF NOT EXISTS readonly_pauses(instance TEXT PRIMARY KEY, job TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS list_payloads(id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+          CREATE TABLE IF NOT EXISTS subject_holds(id TEXT PRIMARY KEY, instance TEXT NOT NULL, film TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS list_acks(id TEXT PRIMARY KEY);
         ''')
         self.db.execute('INSERT OR IGNORE INTO accounts VALUES(?,?,0)', (INSTANCE, 'prplmg'))
@@ -172,6 +173,8 @@ class Queue:
         account = self.db.execute('SELECT * FROM accounts WHERE instance=?', (instance,)).fetchone()
         if not account or (account['paused'] and action not in ('identity_probe','review_observe','review_probe','review_existing_probe','review_history_probe','cleanup_tabs','watchlist_scan','export_scan','list_scan')):
             raise ValueError('Unbound or paused account')
+        if action == 'media_write' and self.db.execute("SELECT 1 FROM subject_holds h JOIN jobs j ON j.id=h.id WHERE h.instance=? AND h.film=? AND j.state IN ('unknown','blocked')",(instance,payload['film'])).fetchone():
+            raise ValueError('Unresolved write for this film')
         if action in ('media_write','review_observe') and account['username'] != payload['account']:
             raise ValueError('Write account changed')
         if action == 'close_profile_for_test' and (instance != '6e282ef9-86a2-4356-9387-16f99807e283' or account['username'] != 'prplmg'):
@@ -351,8 +354,14 @@ class Queue:
                         self.db.execute('UPDATE accounts SET paused=0 WHERE instance=?',(instance,))
                         self.db.execute('DELETE FROM watchdog_pauses WHERE instance=?',(instance,))
                 if payload['outcome'] != 'succeeded' and row['action']!='list_scan':
-                    self.track_pause(instance,job,row['action'])
-                    self.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(instance,))
+                    # Only positively identified content failures may be film-scoped.
+                    # Identity/challenge/transport/watchdog uncertainty keeps its account hold.
+                    scoped = row['action']=='media_write' and payload.get('identity')==intent['account'] and not payload.get('challenge') and payload.get('writeOutcome')=='conflict'
+                    if scoped:
+                        self.db.execute('INSERT OR REPLACE INTO subject_holds VALUES(?,?,?)',(job,instance,intent['film']))
+                    else:
+                        self.track_pause(instance,job,row['action'])
+                        self.db.execute('UPDATE accounts SET paused=1 WHERE instance=?',(instance,))
                 elif row['action'] in ('review_observe','identity_probe'):
                     account=self.db.execute('SELECT username FROM accounts WHERE instance=?',(instance,)).fetchone()
                     pause=self.db.execute('SELECT j.created FROM readonly_pauses p JOIN jobs j ON j.id=p.job WHERE p.instance=?',(instance,)).fetchone()

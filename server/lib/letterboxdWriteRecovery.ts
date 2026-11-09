@@ -8,7 +8,7 @@ import type { ReviewFields } from './letterboxdReconcile';
 import type { SyncReceipt } from './letterboxdSyncReceipts';
 import type { WriteState } from './letterboxdWriteQueue';
 
-/** One bounded read-only recovery per uncertain review. Never enqueue a write. */
+/** Persisted read-only recovery cadence; never enqueue or repeat a mutation. */
 export function prepareWriteRecovery(
   writes: WriteState,
   observations: ObservationState,
@@ -21,9 +21,12 @@ export function prepareWriteRecovery(
         writes.settings[i.userId]?.account === i.account &&
         i.state === 'unknown' &&
         i.kind === 'review' &&
-        !i.recovery
+        (!i.recovery || (i.recovery.status === 'unavailable' && (i.recovery.nextAttemptAt || 0) <= now))
     )
     .slice(0, 2)) {
+    const attempts = (job.recovery?.attempts || (job.recovery ? 1 : 0)) + 1;
+    const previous = observations.requests.find(r => r.id === job.recovery?.observationId);
+    if (previous) previous.retired = {at:now,reason:'read-only write recovery retry'};
     const request = requestObservation(
       observations,
       {
@@ -40,6 +43,7 @@ export function prepareWriteRecovery(
       observationId: request.id,
       requestedAt: now,
       status: 'checking',
+      attempts,
     };
   }
 }
@@ -73,6 +77,7 @@ export function reconcileWriteRecovery(
       now - job.recovery.requestedAt > 10 * 60 * 1000
     ) {
       job.recovery.status = 'unavailable';
+      job.recovery.nextAttemptAt = now + Math.min(6 * 60 * 60 * 1000, 15 * 60 * 1000 * 2 ** Math.min(5, (job.recovery.attempts || 1) - 1));
       continue;
     }
     const observed = request.observation;

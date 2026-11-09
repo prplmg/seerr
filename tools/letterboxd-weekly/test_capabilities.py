@@ -31,7 +31,7 @@ class CapabilityContract(unittest.TestCase):
         self.assertIn('diary-content', self.client.request.call_args.args[1]['supported'])
         self.assertEqual(self.client.request.call_args.args[1]['durableDelivery'],1)
     def test_freshness_identity_and_unknown_versions_fail_closed(self):
-        for version, age in [('0.2.49',601),('0.2.49',-30),('0.2.50',0),('malformed',0)]:
+        for version, age in [('0.2.49',601),('0.2.49',-30),('0.2.51',0),('malformed',0)]:
             with self.subTest(version=version,age=age):
                 self.version(version,age)
                 self.assertFalse(self.client.workflow_capable(INSTANCE))

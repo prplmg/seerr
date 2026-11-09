@@ -6,6 +6,7 @@ import type { WriteState } from './letterboxdWriteQueue';
 import {
   DIARY_RECOVERY_EXPORT_MAX_AGE_MS,
   planDiaryWriteRecovery,
+  prepareWriteRecovery,
   reconcileDiaryWriteRecovery,
   reconcileWriteRecovery,
 } from './letterboxdWriteRecovery';
@@ -517,4 +518,20 @@ it('rejects the entry when Zelza had already logged it before the write', () => 
     planDiaryWriteRecovery(f.writes, f.observations, f.evidence, f.now),
     []
   );
+});
+
+it('persists read-only recovery backoff and retries without another write',()=>{
+ const f=fixture(),job=f.writes.intents[0];job.kind='review';job.desired={rating:4,text:'hello',spoiler:false};
+ f.observations.requests=[];
+ prepareWriteRecovery(f.writes,f.observations,f.now);
+ const first=job.recovery!.observationId;assert.equal(job.recovery!.attempts,1);
+ const request=f.observations.requests[0];request.state='unknown';
+ reconcileWriteRecovery(f.writes,f.observations,()=>{throw Error('Must not verify');},f.now+1);
+ const due=job.recovery!.nextAttemptAt!;assert(due>f.now);
+ prepareWriteRecovery(f.writes,f.observations,due-1);assert.equal(job.recovery!.observationId,first);
+ const restored=JSON.parse(JSON.stringify(f.writes));prepareWriteRecovery(restored,f.observations,due);
+ assert.notEqual(restored.intents[0].recovery.observationId,first);
+ assert.equal(restored.intents[0].recovery.attempts,2);
+ assert.equal(restored.intents[0].state,'unknown');assert.equal(restored.intents.length,1);
+ assert(f.observations.requests[0].retired);
 });

@@ -247,3 +247,12 @@ it('changed account cannot claim another account writes', () => {
   enqueueWrite(s, intent, 'local', 0);
   assert.equal(claimWrite(s, 1, 'other'), null);
 });
+it('negotiated subject holds block the same film while unrelated writes and durable delivery progress',()=>{
+ const s=setup();const held=enqueueWrite(s,intent,'local',0);held.state='unknown';
+ enqueueWrite(s,{...intent,originId:'rating:next-jaws'},'local',1);
+ const other=enqueueWrite(s,{...intent,originId:'rating:alien',film:'alien'},'local',2);
+ assert.equal(claimWrite(s,1,'prplmg',['rating'],true),null);
+ assert.equal(claimWrite(s,1,'prplmg',['rating','subject-holds'],true)?.id,other.id);
+ assert.equal(claimWrite(s,1,'prplmg',['rating','subject-holds'],true)?.id,other.id);
+ assert.equal(held.state,'unknown');
+});

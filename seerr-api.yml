@@ -2930,11 +2930,11 @@ paths:
                   description: Installed write adapters; omitted or empty permits reports only, never claims. Watchlist writes are excluded.
                   type: array
                   default: []
-                  maxItems: 5
+                  maxItems: 6
                   uniqueItems: true
                   items:
                     type: string
-                    enum: [rating, review, watched, diary, diary-content]
+                    enum: [rating, review, watched, diary, diary-content, subject-holds]
                 report:
                   type: object
                   additionalProperties: false

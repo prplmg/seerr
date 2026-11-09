@@ -40,6 +40,7 @@ const writeKinds = [
   'watched',
   'diary',
   'diary-content',
+  'subject-holds',
 ] as const;
 type SupportedKind = (typeof writeKinds)[number];
 export function parseSupportedWriteKinds(value: unknown): SupportedKind[] {

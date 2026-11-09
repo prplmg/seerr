@@ -23,6 +23,7 @@ let script = fs.readFileSync(path.resolve(__dirname, '../maintenance/release-eng
   .replaceAll('reconciliation-source.json', id + '-source.json')
   .replace('./deployment-health.cjs', './' + id + '-health.cjs')
   .replace('./rollout-control.cjs', './' + id + '-control.cjs')
+  .replace('./ledger-rollout.cjs', './' + id + '-ledger.cjs')
   .replaceAll('g7IGMd-mQTo3taLfl1Jf9', buildId);
 const ending = 'main().catch(e=>{console.error(e.message);process.exitCode=1});';
 if (!script.includes(ending)) throw Error('Release engine changed; update wrapper before deploying');
@@ -42,6 +43,7 @@ fs.writeFileSync(path.join(temp, id + '-source.json'), JSON.stringify(payload));
 fs.writeFileSync(path.join(temp, id + '.cjs'), script);
 fs.copyFileSync(path.join(__dirname, 'deployment-health.cjs'), path.join(temp, id + '-health.cjs'));
 fs.copyFileSync(path.resolve(__dirname, '../maintenance/rollout-control.cjs'), path.join(temp, id + '-control.cjs'));
+fs.copyFileSync(path.resolve(__dirname, '../maintenance/ledger-rollout.cjs'), path.join(temp, id + '-ledger.cjs'));
 // Native file redirection avoids Windows PowerShell transcript console-buffer errors.
 const runner = `const fs=require('fs'),cp=require('child_process');
 const fd=fs.openSync(${JSON.stringify(remote+'/'+id+'.log')},'a');
@@ -49,7 +51,7 @@ const child=cp.spawn(process.execPath,[${JSON.stringify(remote+'/'+id+'.cjs')}],
 child.on('error',e=>console.error(e.message));
 child.on('close',(code,signal)=>{fs.closeSync(fd);process.stdout.write(fs.readFileSync(${JSON.stringify(remote+'/'+id+'.log')},'utf8'));process.exitCode=code??1;});`;
 fs.writeFileSync(path.join(temp,id+'-runner.cjs'),runner);
-run('scp', ['-o', 'BatchMode=yes', path.join(temp, id + '-source.json'), path.join(temp, id + '.cjs'), path.join(temp,id+'-health.cjs'), path.join(temp,id+'-control.cjs'), path.join(temp,id+'-runner.cjs'), host + ':' + remote + '/']);
+run('scp', ['-o', 'BatchMode=yes', path.join(temp, id + '-source.json'), path.join(temp, id + '.cjs'), path.join(temp,id+'-health.cjs'), path.join(temp,id+'-control.cjs'), path.join(temp,id+'-ledger.cjs'), path.join(temp,id+'-runner.cjs'), host + ':' + remote + '/']);
 console.log('Building on PRPL-PC; Mini verifies the output before taking the maintenance lease.');
 ssh('C:\\ProgramData\\Seerr\\node\\node.exe C:\\ProgramData\\Seerr\\' + id + '-runner.cjs');
 console.log('Deployment complete. Backup and verification: ' + remote + '/' + id + '-release');

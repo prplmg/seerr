@@ -6,6 +6,18 @@ from pathlib import Path
 from queue_store import Queue, INSTANCE, validate_observation_result, write_payload
 
 class QueueTests(unittest.TestCase):
+    def test_subject_hold_survives_restart_and_blocks_only_that_film(self):
+        instance,payload=self.write_setup()
+        job=self.q.enqueue('media_write',instance,payload=payload);self.q.claim(instance)
+        self.q.event(instance,job,{'outcome':'blocked','writeOutcome':'conflict','identity':'prplmg','error':'remote-changed'},True)
+        self.q.db.close();self.q=Queue(self.path)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(instance,)).fetchone()[0],0)
+        with self.assertRaises(ValueError):self.q.enqueue('media_write',instance,payload=payload)
+        other=self.q.enqueue('media_write',instance,payload={**payload,'film':'alien'})
+        self.assertEqual(self.q.claim(instance)['id'],other)
+        self.q.event(instance,other,{'outcome':'unknown','identity':'prplmg','challenge':True,'error':'write-not-verified'},True)
+        self.assertEqual(self.q.db.execute('SELECT paused FROM accounts WHERE instance=?',(instance,)).fetchone()[0],1)
+
     def test_combined_diary_requires_complete_content_on_both_sides(self):
         payload={'kind':'diary','film':'test','account':'prplmg','originEntityId':'local:1',
                  'expected':{'watchedDate':None,'rewatch':False,'rating':4,'text':'','spoiler':False},

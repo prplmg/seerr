@@ -75,10 +75,12 @@ export function parseWorkerHealth(
 }
 export function summarizeWorkerHealth(
   health: WorkerHealth | undefined,
-  intents: Pick<WriteIntent, 'state' | 'kind' | 'created' | 'desired'>[],
+  intents: Pick<WriteIntent, 'state' | 'kind' | 'created' | 'desired' | 'recovery'>[],
   now = Date.now()
 ) {
   const fresh = !!health && now - health.receivedAt <= 10 * 60 * 1000;
+  const held = intents.filter(i => ['unknown','conflict'].includes(i.state));
+  const recoveryTimes = held.map(i => i.recovery?.nextAttemptAt).filter((n): n is number => typeof n === 'number');
   const queued = intents.filter((i) => i.state === 'queued');
   const unsupportedQueued = fresh
     ? queued.filter(
@@ -91,13 +93,15 @@ export function summarizeWorkerHealth(
       ? 'stale'
       : health.paused
         ? 'paused'
-        : unsupportedQueued
+        : unsupportedQueued || held.length
           ? 'blocked'
           : 'ready';
   return {
     runtime,
     pauseReason: health?.pauseReason,
     unsupportedQueued,
+    heldWrites: held.length,
+    nextRecoveryAt: recoveryTimes.length ? Math.min(...recoveryTimes) : null,
     oldestQueuedAt: queued.length
       ? Math.min(...queued.map((i) => i.created))
       : null,

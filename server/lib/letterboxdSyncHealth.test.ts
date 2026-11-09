@@ -217,3 +217,9 @@ it('blocked reflects only queued capabilities and preserves paused/stale/unknown
     'a blocked diary must not prevent a supported queued rating'
   );
 });
+it('reports unresolved content and the next read-only recovery instead of ready',()=>{
+ const now=Date.now(),job=intent('review',{});job.state='unknown';job.recovery={observationId:'read',requestedAt:now,status:'unavailable',nextAttemptAt:now+900000};
+ const health=parseWorkerHealth({paused:false,pauseReason:'none',supportedWriteKinds:['review'],errors:[]},now)!;
+ const result=summarizeWorkerHealth(health,[job],now);
+ assert.equal(result.runtime,'blocked');assert.equal(result.heldWrites,1);assert.equal(result.nextRecoveryAt,now+900000);
+});

@@ -27,6 +27,8 @@ export type WriteIntent = {
     requestedAt: number;
     status: 'checking' | 'mismatch' | 'unavailable' | 'verified';
     differingFields?: string[];
+    attempts?: number;
+    nextAttemptAt?: number;
   };
   state:
     | 'queued'
@@ -261,7 +263,7 @@ export function claimWrite(
   state: WriteState,
   userId: number,
   account: string,
-  supported: (WriteKind | 'diary-content')[] = [],
+  supported: (WriteKind | 'diary-content' | 'subject-holds')[] = [],
   durableDelivery = false
 ) {
   const setting = state.settings[userId];
@@ -273,8 +275,9 @@ export function claimWrite(
       i.userId === userId &&
       ['dispatched', 'unknown', 'conflict'].includes(i.state)
   );
-  if (durableDelivery && pending.length === 1) {
-    const prior = pending[0];
+  const dispatched = pending.filter(i => i.state === 'dispatched');
+  if (durableDelivery && dispatched.length === 1 && (pending.length === 1 || supported.includes('subject-holds'))) {
+    const prior = dispatched[0];
     if (
       prior.account === account &&
       prior.state === 'dispatched' &&
@@ -288,7 +291,7 @@ export function claimWrite(
     state.intents.some(
       (i) =>
         i.userId === userId &&
-        ['dispatched', 'unknown', 'conflict'].includes(i.state)
+        (i.state === 'dispatched' || (!supported.includes('subject-holds') && ['unknown','conflict'].includes(i.state)))
     )
   )
     return null;
@@ -297,6 +300,7 @@ export function claimWrite(
       i.userId === userId &&
       i.account === account &&
       i.state === 'queued' &&
+      !pending.some(p => p.account === account && p.film === i.film) &&
       supportsWriteIntent(i, supported)
   );
   if (job) {

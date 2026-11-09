@@ -47,19 +47,21 @@ def exchange_loop():
         instance=exchanges.get()
         try:
             failures = client.exchange_cycle(instance)
-            (root / 'catalogue-health.json').write_text(json.dumps({
+            with exchange_lock:(root / 'catalogue-health.json').write_text(json.dumps({
                 'checkedAt': time.time(), 'instance': instance,
                 'healthy': not failures, 'failures': failures,
             }))
         except Exception:
-            (root / 'catalogue-health.json').write_text(json.dumps({'failedAt':time.time(),'error':'Catalogue exchange unavailable'}))
+            with exchange_lock:(root / 'catalogue-health.json').write_text(json.dumps({'failedAt':time.time(),'error':'Catalogue exchange unavailable'}))
         finally:
             with exchange_lock:
                 if instance in dirty_exchanges:
                     dirty_exchanges.discard(instance)
                     exchanges.put(instance)
                 else:pending_exchanges.discard(instance)
-threading.Thread(target=exchange_loop,daemon=True,name='catalogue-exchange').start()
+# At most two profiles exchange concurrently; pending_exchanges still serializes each profile.
+for worker in range(2):
+    threading.Thread(target=exchange_loop,daemon=True,name='catalogue-exchange-'+str(worker)).start()
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
@@ -101,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
             if instance not in refreshed_instances:
                 refreshed_instances.add(instance)
                 return self.reply(200, {'action':'reload-extension'})
-            if parse_qs(url.query).get('version') != ['0.2.49']:
+            if parse_qs(url.query).get('version') != ['0.2.50']:
                 return self.reply(200, {'action':'reload-extension'})
             # External requests must not delay the local delivery/acknowledgement path.
             schedule_exchange(instance)
