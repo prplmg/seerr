@@ -66,6 +66,7 @@ export default function ListEditor({
 }) {
   const t = usePartyText();
   const draftKey = listDraftKey(userId, listId);
+  const [hasCollaborators, setHasCollaborators] = useState(false);
   const [owned, setOwned] = useState(!listId);
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [recovery, setRecovery] = useState<ListDraft>();
@@ -106,6 +107,7 @@ export default function ListEditor({
           setTitle(data.title);
           setDescription(data.description);
           setOwned(data.owned);
+          setHasCollaborators(data.hasCollaborators);
           setRevision(data.revision);
           setVisibility(data.visibility || 'public');
           setRows(
@@ -421,10 +423,12 @@ export default function ListEditor({
                 )}
               </option>
               <option value="private">
-                {t(
-                  'Private — invited people only',
-                  'Privada — solo personas invitadas'
-                )}
+                {hasCollaborators
+                  ? t(
+                      'Private — invited people only',
+                      'Privada — solo personas invitadas'
+                    )
+                  : t('Private — only you', 'Privada — solo tú')}
               </option>
             </select>
           </label>

@@ -51,6 +51,7 @@ export type List = {
   saved: boolean;
   owned: boolean;
   shared?: boolean;
+  hasCollaborators?: boolean;
   canEdit?: boolean;
   liked: boolean;
   available: number;
@@ -960,10 +961,12 @@ function Details() {
       <h1 className="my-4 text-3xl font-bold">{data.title}</h1>
       {data.visibility === 'private' && (
         <p className="text-sm text-purple-300">
-          {t(
-            'Private — invited people only',
-            'Privada — solo personas invitadas'
-          )}
+          {data.hasCollaborators
+            ? t(
+                'Private — invited people only',
+                'Privada — solo personas invitadas'
+              )
+            : t('Private — only you', 'Privada — solo tú')}
         </p>
       )}
       <p className="text-gray-400">
@@ -1005,14 +1008,6 @@ function Details() {
         </div>
       )}
       <div className="mb-6 flex flex-wrap items-center gap-4">
-        {!readOnly && data.source === 'catalogue' && (
-          <ListSharing
-            key={data.id}
-            id={data.id}
-            owned={data.owned}
-            onChange={() => void mutate()}
-          />
-        )}
         {data.canEdit && !data.owned && (
           <span className="text-sm text-purple-300">
             {t('Can edit', 'Puede editar')}
@@ -1030,6 +1025,14 @@ function Details() {
           <SaveList
             id={data.id}
             saved={data.saved}
+            onChange={() => void mutate()}
+          />
+        )}
+        {!readOnly && data.source === 'catalogue' && (
+          <ListSharing
+            key={data.id}
+            id={data.id}
+            owned={data.owned}
             onChange={() => void mutate()}
           />
         )}

@@ -1,7 +1,10 @@
 import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
-import { catalogueOrigin, listSharePath } from '@server/interfaces/api/listShare';
 import { ShareIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  catalogueOrigin,
+  listSharePath,
+} from '@server/interfaces/api/listShare';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
@@ -77,7 +80,7 @@ export default function ListSharing({
     }
   };
   return (
-    <div className="w-full">
+    <>
       <button
         className="inline-flex items-center gap-2 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white"
         onClick={() => {
@@ -93,7 +96,7 @@ export default function ListSharing({
       {open && (
         <section
           aria-label={t('Share list', 'Compartir lista')}
-          className="mt-3 max-w-xl rounded-2xl border border-gray-600 bg-gray-800 p-4 text-gray-100"
+          className="mt-3 w-full max-w-xl rounded-2xl border border-gray-600 bg-gray-800 p-4 text-gray-100"
         >
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-white">
@@ -263,6 +266,6 @@ export default function ListSharing({
           )}
         </section>
       )}
-    </div>
+    </>
   );
 }

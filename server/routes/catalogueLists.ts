@@ -156,6 +156,7 @@ router.get('/:id', async (req, res, next) => {
     return res.json({
       id: list.id,
       owned: list.ownerId === req.user!.id,
+      hasCollaborators: Object.keys(list.collaborators || {}).length > 0,
       title: list.title,
       description: list.description,
       revision: list.checkedAt,

@@ -249,6 +249,7 @@ async function buildDiscoveryData(userId: number) {
     source: l.source,
     visibility: l.visibility,
     owned: l.ownerId === userId,
+    hasCollaborators: Object.keys(l.collaborators || {}).length > 0,
     shared:
       l.source === 'catalogue' &&
       l.ownerId !== userId &&

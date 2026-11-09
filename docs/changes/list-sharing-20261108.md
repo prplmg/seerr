@@ -18,3 +18,9 @@ No push or production deployment performed. Existing pending finder-badge/placeh
 Removed the permanent Reload control and full-link field. Reload latest appears only inside a sharing revision-conflict alert, and saving remains blocked until that conflict is reloaded. The link field appears only when clipboard copying fails. Successful saves briefly show Saved ✓ on the save button (2.5 seconds); successful copies similarly show Copied ✓. No success footer. Failed requests still show actionable errors. Fresh previews: outputs/list-sharing-clean-20261108/share-mobile.png and share-desktop.png in the parent workspace.
 
 Typecheck and focused lint passed. Local mocked Chrome checks passed for the clean default view, save state, conflict-only reload, clipboard failure fallback and successful recovery, role changes/removal and mobile containment. Still not deployed.
+
+## 2026-11-09 pending action-row correction
+
+Share now follows Save/Saved in the list detail action row, alongside Edit list; expanding sharing places its panel on the next full-width row. Removed the full-width wrapper that isolated the Share button. Private labels on list details and in the editor now use Private — only you when no collaborators exist, and Private — invited people only when at least one grant exists. APIs expose only a hasCollaborators boolean for this label; no participant identities are added to list summaries.
+
+Application typecheck and focused lint passed. Actual sharing component in a mocked mobile action row verified Share to the right of Saved at the same vertical position, expanded panel below, and no horizontal overflow. Local only; not deployed.

@@ -6,6 +6,7 @@ export type MovieChoice = {
 };
 export type EditableCatalogueList = {
   owned: boolean;
+  hasCollaborators: boolean;
   id: string;
   title: string;
   description: string;
