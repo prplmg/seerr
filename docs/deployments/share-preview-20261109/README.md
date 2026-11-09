@@ -1,0 +1,9 @@
+# Share preview cleanup — deployed 2026-11-09
+
+LIVE build FIf0BHa9AyvR9rlHVvmdw; release catalogue-20261109194228873-2352; source5ffc1be6 including219a5d29. One runtime file deployed: server/lib/listSharePreview.ts. Removed decorative domain/taglines and private subtitle; full existing logo_full.svg used in artwork and page header. Centered private illustration, image URL version3. Unrelated next-env.d.ts preserved; no Git push.
+
+Existing three sharing/privacy tests and server types passed before deployment, with fresh public/private screenshots. Single PRPL-PC build44.407s/install1.657s, awaited completion without reading build logs/process status. Canonical maintenance rollout: staged online,31junctions verified, staged login/JS/server/SQLite passed; branded maintenance and native Mini API checked, lease cleared and public health passed. No worker or toggle changes.
+
+Live source and logo hashes passed. Existing anonymous private share HTML and1200x630PNG returned200; private metadata hidden, no lilac subtitle, full logo present; PNG matches current compiled private renderer. No public created-list fixture exists live: public-page behavior and poster collage verified through existing local fixtures, plus compiled public fallback on Mini, without changing a list's visibility. Full publication/binding toggle fingerprint unchanged; prior deployed source hashes preserved. All six profiles unpaused and no pending/held catalogue writes at verification.
+
+Rollback: C:/ProgramData/Seerr/catalogue-20261109194228873-2352-release/previous (IMyC6iBka0tFOzjraTMQg), with ledger-aware backup/rollback. Evidence outputs/share-preview-rollout-20261109/{rollout.log,before.log,after.log,preview-verified.log}. Messaging apps may retain old previews already cached despite the new image URL; no promise of immediate refresh for previously sent messages.

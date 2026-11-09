@@ -5,3 +5,5 @@ Removed decorative domain, “A list for you”, “Something worth watching” 
 Server TypeScript and all three existing sharing/privacy route tests passed. Not deployed. Third-party messaging apps may retain already-cached previews after deployment.
 
 Preview artwork and page header now use the actual home/sidebar logo_full.svg wordmark instead of rendered text. Logo rasterization is cached; both public and private previews verified with fresh screenshots. Image version3. Types and3sharing tests passed; still not deployed.
+
+Deployed2026-11-09 as FIf0BHa9AyvR9rlHVvmdw. Earlier pending notes superseded; see [release receipt](../deployments/share-preview-20261109/README.md).
