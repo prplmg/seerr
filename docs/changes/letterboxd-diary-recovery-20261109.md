@@ -1,6 +1,6 @@
 # Letterboxd diary verification and durable worker reconciliation
 
-Status: local implementation; not deployed. **RELEASE BLOCKED by subsequent audit:** automation emits failureReason, which the current bridge report validator rejects. Component test results below do not establish end-to-end compatibility. See docs/incidents/letterboxd-pipeline-audit-20261109.md; fix and add a real producer/consumer contract test before rollout. Existing production toggles unchanged. No automatic resubmission of uncertain writes.
+Status: deployed 2026-11-09 as part of the task-ledger migration. The subsequent diagnostic-field and receipt-request schema blockers were fixed and tested against actual producers/receivers before final verification. See [release receipt](../deployments/letterboxd-ledger-20261109/README.md). Existing toggles unchanged; uncertain writes were not blindly resubmitted.
 
 ## Evidence and diagnosis
 

@@ -1,6 +1,6 @@
-# Letterboxd task ledger migration — local checkpoint, 2026-11-09
+# Letterboxd task ledger migration — deployed 2026-11-09
 
-Status: implementation in progress; NOT deployed and NOT ready for cutover. Existing user toggles, schedules and production jobs have not been changed by this work. The earlier pending diary recovery remains pending too. Preserve unrelated next-env.d.ts changes.
+Status: deployed with coordinated server/worker/browser updates. Final build `Ga2jPHD7DjJyo_7YXJGIA`; extension `0.2.50`. See [release receipt](../deployments/letterboxd-ledger-20261109/README.md). The checkpoint sections below retain the implementation history; their pending-release statements are superseded by that receipt. User toggles unchanged; unrelated next-env.d.ts preserved.
 
 ## Implemented locally
 
@@ -23,7 +23,7 @@ Status: implementation in progress; NOT deployed and NOT ready for cutover. Exis
 - List late-report regression passed, including shared subscriber preservation and one application of the snapshot.
 - Server TypeScript check passed before final formatting; no production rollout performed.
 
-## Still required before release
+## Original cutover checklist (completed; see release receipt)
 
 1. Complete centrally owned recovery scheduling and explicit blocker scope; content uncertainty must not silently become account-wide indefinite suspension. Preserve authentication/manual/watchdog holds and never blindly retry an executed mutation.
 2. Complete bounded fair transport scheduling across profiles and durable retry classification. Permanent payload/schema errors must retain evidence without repeatedly blocking every later delivery.
