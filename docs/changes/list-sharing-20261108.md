@@ -12,3 +12,9 @@ Implemented locally; not deployed. Applies only to Multimeldia-created lists, no
 Validation: 25 focused domain and actual-OpenAPI API tests passed. Broader related suite: 39 passed, one pre-existing discovery preview expectation failed (expects one explore result, receives zero). Reproduced the identical failure using the unchanged HEAD discovery route; unrelated to sharing and not altered. Both application/server typechecks and focused lint passed. Local Chrome tested actual Share component with mocked users: viewer/editor assignments, removal, refreshed revision, no horizontal overflow at 390 px and no browser errors. Mobile/desktop previews in parent workspace outputs/list-sharing-20261108/. Native OS sharing not tested on physical devices.
 
 No push or production deployment performed. Existing pending finder-badge/placeholder commit remains separate; next-env.d.ts remains excluded.
+
+## Sharing panel simplification
+
+Removed the permanent Reload control and full-link field. Reload latest appears only inside a sharing revision-conflict alert, and saving remains blocked until that conflict is reloaded. The link field appears only when clipboard copying fails. Successful saves briefly show Saved ✓ on the save button (2.5 seconds); successful copies similarly show Copied ✓. No success footer. Failed requests still show actionable errors. Fresh previews: outputs/list-sharing-clean-20261108/share-mobile.png and share-desktop.png in the parent workspace.
+
+Typecheck and focused lint passed. Local mocked Chrome checks passed for the clean default view, save state, conflict-only reload, clipboard failure fallback and successful recovery, role changes/removal and mobile containment. Still not deployed.

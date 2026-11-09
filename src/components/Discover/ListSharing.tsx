@@ -2,7 +2,7 @@ import CachedImage from '@app/components/Common/CachedImage';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { ShareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
 type Access = Record<string, 'viewer' | 'editor'>;
@@ -28,6 +28,18 @@ export default function ListSharing({
   const [revision, setRevision] = useState<number>();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [conflict, setConflict] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    if (!saved && !copied) return;
+    const timer = window.setTimeout(() => {
+      setSaved(false);
+      setCopied(false);
+    }, 2500);
+    return () => window.clearTimeout(timer);
+  }, [saved, copied]);
   const endpoint = `/api/v1/discovery-lists/created/${encodeURIComponent(id)}/sharing`;
   const { data, error, mutate } = useSWR<Sharing>(
     open && owned ? endpoint : null
@@ -37,14 +49,11 @@ export default function ListSharing({
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link());
-      setMessage(t('Link copied', 'Enlace copiado'));
+      setCopyFailed(false);
+      setCopied(true);
     } catch {
-      setMessage(
-        t(
-          'Could not copy. Select the link below to copy it.',
-          'No se pudo copiar. Selecciona el enlace para copiarlo.'
-        )
-      );
+      setCopyFailed(true);
+      setCopied(false);
     }
   };
   const save = async () => {
@@ -55,8 +64,9 @@ export default function ListSharing({
       setDraft(null);
       await mutate();
       onChange();
-      setMessage(t('Access updated', 'Acceso actualizado'));
+      setSaved(true);
     } catch (e) {
+      setConflict(axios.isAxiosError(e) && e.response?.status === 409);
       setMessage(
         axios.isAxiosError(e)
           ? e.response?.data?.message || 'Could not save access.'
@@ -72,7 +82,8 @@ export default function ListSharing({
         className="inline-flex items-center gap-2 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white"
         onClick={() => {
           setOpen(!open);
-          setMessage('');
+          setCopyFailed(false);
+          setCopied(false);
         }}
         aria-expanded={open}
       >
@@ -104,7 +115,9 @@ export default function ListSharing({
           </p>
           <div className="flex flex-wrap gap-2">
             <button className={control} onClick={() => void copy()}>
-              {t('Copy link', 'Copiar enlace')}
+              {copied
+                ? t('Copied ✓', 'Copiado ✓')
+                : t('Copy link', 'Copiar enlace')}
             </button>
             {typeof navigator !== 'undefined' && !!navigator.share && (
               <button
@@ -117,13 +130,23 @@ export default function ListSharing({
               </button>
             )}
           </div>
-          <input
-            aria-label={t('List link', 'Enlace de lista')}
-            className={`${control} mt-2 w-full text-sm`}
-            readOnly
-            value={typeof window === 'undefined' ? '' : link()}
-            onFocus={(e) => e.target.select()}
-          />
+          {copyFailed && (
+            <div className="mt-2">
+              <p role="alert" className="text-sm text-gray-300">
+                {t(
+                  'Could not copy. Select this link to copy it manually.',
+                  'No se pudo copiar. Selecciona el enlace para copiarlo manualmente.'
+                )}
+              </p>
+              <input
+                aria-label={t('List link', 'Enlace de lista')}
+                className={`${control} mt-2 w-full text-sm`}
+                readOnly
+                value={typeof window === 'undefined' ? '' : link()}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+          )}
           {owned && (
             <>
               <p className="mb-2 mt-4 text-sm text-gray-300">
@@ -177,7 +200,8 @@ export default function ListSharing({
                         else delete next[u.id];
                         if (draft === null) setRevision(data.revision);
                         setDraft(next);
-                        setMessage('');
+                        setSaved(false);
+                        if (!conflict) setMessage('');
                       }}
                     >
                       <option value="">{t('Not added', 'Sin añadir')}</option>
@@ -193,30 +217,49 @@ export default function ListSharing({
               </div>
               <div className="mt-3 flex justify-end gap-3">
                 <button
-                  className={control}
-                  disabled={busy}
-                  onClick={() => {
-                    setDraft(null);
-                    setMessage('');
-                    void mutate();
-                  }}
-                >
-                  {t('Reload', 'Recargar')}
-                </button>
-                <button
                   className="rounded-full bg-purple-600 px-4 py-2 text-white disabled:opacity-50"
-                  disabled={busy || !draft}
+                  disabled={busy || !draft || conflict}
                   onClick={() => void save()}
                 >
-                  {t('Save access', 'Guardar acceso')}
+                  {saved
+                    ? t('Saved ✓', 'Guardado ✓')
+                    : t('Save access', 'Guardar acceso')}
                 </button>
               </div>
             </>
           )}
           {message && (
-            <p role="status" className="mt-3 text-sm text-purple-200">
-              {message}
-            </p>
+            <div role="alert" className="mt-3 text-sm text-purple-200">
+              <p>{message}</p>
+              {conflict && (
+                <button
+                  className={`${control} mt-2`}
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      const latest = await mutate();
+                      if (!latest) throw Error('No sharing settings');
+                      setDraft(null);
+                      setRevision(latest.revision);
+                      setConflict(false);
+                      setMessage('');
+                    } catch {
+                      setMessage(
+                        t(
+                          'Could not reload. Try again.',
+                          'No se pudo recargar. Reintenta.'
+                        )
+                      );
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {t('Reload latest', 'Recargar versión actual')}
+                </button>
+              )}
+            </div>
           )}
         </section>
       )}
