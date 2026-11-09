@@ -1,0 +1,225 @@
+import CachedImage from '@app/components/Common/CachedImage';
+import { usePartyText } from '@app/components/WatchParty/messages';
+import { ShareIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import axios from 'axios';
+import { useState } from 'react';
+import useSWR from 'swr';
+
+type Access = Record<string, 'viewer' | 'editor'>;
+type Sharing = {
+  revision: number;
+  collaborators: Access;
+  users: { id: number; name: string; avatar?: string }[];
+};
+const control =
+  'rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-white';
+export default function ListSharing({
+  id,
+  owned,
+  onChange,
+}: {
+  id: string;
+  owned: boolean;
+  onChange: () => void;
+}) {
+  const t = usePartyText();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<Access | null>(null);
+  const [revision, setRevision] = useState<number>();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const endpoint = `/api/v1/discovery-lists/created/${encodeURIComponent(id)}/sharing`;
+  const { data, error, mutate } = useSWR<Sharing>(
+    open && owned ? endpoint : null
+  );
+  const link = () =>
+    `${window.location.origin}/lists/${encodeURIComponent(id)}`;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link());
+      setMessage(t('Link copied', 'Enlace copiado'));
+    } catch {
+      setMessage(
+        t(
+          'Could not copy. Select the link below to copy it.',
+          'No se pudo copiar. Selecciona el enlace para copiarlo.'
+        )
+      );
+    }
+  };
+  const save = async () => {
+    setBusy(true);
+    setMessage('');
+    try {
+      await axios.put(endpoint, { revision, collaborators: draft });
+      setDraft(null);
+      await mutate();
+      onChange();
+      setMessage(t('Access updated', 'Acceso actualizado'));
+    } catch (e) {
+      setMessage(
+        axios.isAxiosError(e)
+          ? e.response?.data?.message || 'Could not save access.'
+          : 'Could not save access.'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="w-full">
+      <button
+        className="inline-flex items-center gap-2 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white"
+        onClick={() => {
+          setOpen(!open);
+          setMessage('');
+        }}
+        aria-expanded={open}
+      >
+        <ShareIcon className="h-5 w-5" />
+        {t('Share', 'Compartir')}
+      </button>
+      {open && (
+        <section
+          aria-label={t('Share list', 'Compartir lista')}
+          className="mt-3 max-w-xl rounded-2xl border border-gray-600 bg-gray-800 p-4 text-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-white">
+              {t('Share list', 'Compartir lista')}
+            </h2>
+            <button
+              aria-label={t('Close sharing', 'Cerrar')}
+              disabled={busy}
+              onClick={() => setOpen(false)}
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+          <p className="my-3 text-sm text-gray-400">
+            {t(
+              'A link opens the list; it does not grant access. Public lists are visible to all Multimeldia users.',
+              'El enlace abre la lista; no concede acceso. Las listas públicas son visibles para todos los usuarios.'
+            )}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button className={control} onClick={() => void copy()}>
+              {t('Copy link', 'Copiar enlace')}
+            </button>
+            {typeof navigator !== 'undefined' && !!navigator.share && (
+              <button
+                className={control}
+                onClick={() =>
+                  void navigator.share({ url: link() }).catch(() => {})
+                }
+              >
+                {t('Share link…', 'Compartir enlace…')}
+              </button>
+            )}
+          </div>
+          <input
+            aria-label={t('List link', 'Enlace de lista')}
+            className={`${control} mt-2 w-full text-sm`}
+            readOnly
+            value={typeof window === 'undefined' ? '' : link()}
+            onFocus={(e) => e.target.select()}
+          />
+          {owned && (
+            <>
+              <p className="mb-2 mt-4 text-sm text-gray-300">
+                {t(
+                  'Added people see this list in Shared with you automatically. Saving it remains their choice.',
+                  'Las personas añadidas ven la lista en Compartidas contigo automáticamente. Guardarla sigue siendo su decisión.'
+                )}
+              </p>
+              {error && (
+                <p role="alert">
+                  {t(
+                    'Could not load sharing settings.',
+                    'No se pudo cargar el acceso.'
+                  )}
+                </p>
+              )}
+              {!data && !error && (
+                <p role="status">{t('Loading…', 'Cargando…')}</p>
+              )}
+              <div className="max-h-64 space-y-2 overflow-y-auto">
+                {data?.users.map((u) => (
+                  <label
+                    key={u.id}
+                    className="flex items-center gap-3 rounded-xl bg-gray-900 p-2"
+                  >
+                    <span className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-700">
+                      {u.avatar ? (
+                        <CachedImage
+                          src={u.avatar}
+                          type="avatar"
+                          alt=""
+                          width={32}
+                          height={32}
+                        />
+                      ) : (
+                        <span className="flex h-full items-center justify-center">
+                          {u.name[0]}
+                        </span>
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{u.name}</span>
+                    <select
+                      aria-label={`${t('Access for', 'Acceso de')} ${u.name}`}
+                      className={`${control} max-w-[50%] text-sm`}
+                      disabled={busy}
+                      value={(draft ?? data.collaborators)[u.id] ?? ''}
+                      onChange={(e) => {
+                        const next = { ...(draft ?? data.collaborators) };
+                        if (e.target.value)
+                          next[u.id] = e.target.value as 'viewer' | 'editor';
+                        else delete next[u.id];
+                        if (draft === null) setRevision(data.revision);
+                        setDraft(next);
+                        setMessage('');
+                      }}
+                    >
+                      <option value="">{t('Not added', 'Sin añadir')}</option>
+                      <option value="viewer">
+                        {t('Can view', 'Puede ver')}
+                      </option>
+                      <option value="editor">
+                        {t('Can edit', 'Puede editar')}
+                      </option>
+                    </select>
+                  </label>
+                ))}
+              </div>
+              <div className="mt-3 flex justify-end gap-3">
+                <button
+                  className={control}
+                  disabled={busy}
+                  onClick={() => {
+                    setDraft(null);
+                    setMessage('');
+                    void mutate();
+                  }}
+                >
+                  {t('Reload', 'Recargar')}
+                </button>
+                <button
+                  className="rounded-full bg-purple-600 px-4 py-2 text-white disabled:opacity-50"
+                  disabled={busy || !draft}
+                  onClick={() => void save()}
+                >
+                  {t('Save access', 'Guardar acceso')}
+                </button>
+              </div>
+            </>
+          )}
+          {message && (
+            <p role="status" className="mt-3 text-sm text-purple-200">
+              {message}
+            </p>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}

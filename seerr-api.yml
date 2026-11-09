@@ -2376,7 +2376,7 @@ paths:
           name: filter
           schema:
             type: string
-            enum: [all, saved, created, liked, discover, unlinked]
+            enum: [all, saved, created, liked, discover, unlinked, shared]
       responses:
         '200':
           description: List summaries
@@ -2426,6 +2426,40 @@ paths:
           description: Created list identifier
         '400':
           description: Invalid list
+  /discovery-lists/created/{id}/sharing:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Owner-only list access settings and selectable users
+      responses:
+        '200': { description: Sharing settings }
+        '404': { description: Not owned }
+    put:
+      summary: Owner-only revision-checked list access update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [revision, collaborators]
+              properties:
+                revision: { type: integer, minimum: 1 }
+                collaborators:
+                  type: object
+                  maxProperties: 200
+                  additionalProperties:
+                    type: string
+                    enum: [viewer, editor]
+      responses:
+        '200': { description: Access updated }
+        '400': { description: Invalid access or unknown user }
+        '404': { description: Not owned }
+        '409': { description: List changed since opened }
   /discovery-lists/created/{id}:
     parameters:
       - in: path
@@ -2433,14 +2467,14 @@ paths:
         required: true
         schema: { type: string }
     get:
-      summary: Load the current user's catalogue list for editing
+      summary: Load an owned or editor-accessible catalogue list
       responses:
         '200':
           description: List metadata, revision and ordered movies
         '404':
           description: Not an editable list owned by this user
     put:
-      summary: Update an owned catalogue list using its last-read revision
+      summary: Update an editable catalogue list using its last-read revision
       requestBody: *catalogueListBody
       responses:
         '200':

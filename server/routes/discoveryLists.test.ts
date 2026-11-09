@@ -158,7 +158,7 @@ async function harness(failImport = false, requester = 1, requestStatus = 2) {
             store: { saved: { 1: ['missing', l.id] }, liked: {} },
             lists: [l],
             mine: [l],
-            summary: (x: any) => ({ ...x, items: undefined }),
+            summary: (x: any) => ({ ...x, items: undefined, shared: id === 2 }),
             available: new Set(['movie:1', 'movie:2']),
             seen: new Set(['movie:1']),
             ratings: [],
@@ -860,6 +860,21 @@ it('sort progress validates access without rebuilding discovery data or watchlis
       401
     );
     assert.equal((await h.request('/sort-progress/invalid')).status, 400);
+  } finally {
+    await h.close();
+  }
+});
+
+it('Shared with you uses visible shared lists without requiring a bookmark', async () => {
+  const h = await harness();
+  try {
+    h.setEnabled(true);
+    const own = await (await h.request('?filter=shared')).json();
+    assert.equal(own.results.length, 0);
+    const shared = await (
+      await h.request('?filter=shared', 'GET', undefined, true, '2', true)
+    ).json();
+    assert.equal(shared.results.length, 1);
   } finally {
     await h.close();
   }

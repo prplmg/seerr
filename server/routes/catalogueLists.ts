@@ -1,11 +1,15 @@
 import TheMovieDb from '@server/api/themoviedb';
+import { getRepository } from '@server/datasource';
+import { User } from '@server/entity/User';
 import type { MovieChoice } from '@server/interfaces/api/catalogueLists';
 import { parseMovieLine } from '@server/interfaces/api/catalogueLists';
 import {
   CatalogueListError,
   deleteCatalogueList,
+  editableCatalogueList,
   ownedCatalogueList,
   saveCatalogueList,
+  shareCatalogueList,
   validateCatalogueList,
 } from '@server/lib/catalogueLists';
 import { readListStore, updateListStore } from '@server/lib/discoveryLists';
@@ -87,20 +91,76 @@ router.get('/search', async (req, res, next) => {
     next(e);
   }
 });
-router.get('/:id', async (req, res, next) => {
+router.get('/:id/sharing', async (req, res, next) => {
   try {
     const list = ownedCatalogueList(
       readListStore(),
       req.user!.id,
       req.params.id
     );
+    const users = await getRepository(User).find();
+    return res.json({
+      revision: list.checkedAt,
+      collaborators: list.collaborators || {},
+      users: users
+        .filter((u) => u.id !== req.user!.id)
+        .map((u) => ({ id: u.id, name: u.displayName, avatar: u.avatar })),
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+router.put('/:id/sharing', async (req, res, next) => {
+  try {
+    ownedCatalogueList(readListStore(), req.user!.id, req.params.id);
+    const access = req.body?.collaborators;
+    if (!access || typeof access !== 'object' || Array.isArray(access))
+      throw new CatalogueListError(400, 'Invalid list access.');
+    const users = await getRepository(User).find();
+    if (
+      Object.keys(access).some((id) => !users.some((u) => String(u.id) === id))
+    )
+      throw new CatalogueListError(400, 'User not found.');
+    const list = updateListStore((store) =>
+      shareCatalogueList(
+        store,
+        req.user!.id,
+        req.params.id,
+        req.body.revision,
+        access
+      )
+    );
+    return res.json({ revision: list.checkedAt });
+  } catch (e) {
+    next(e);
+  }
+});
+router.get('/:id', async (req, res, next) => {
+  try {
+    const list = editableCatalogueList(
+      readListStore(),
+      req.user!.id,
+      req.params.id
+    );
+    const resolvedMovies = await movies(list.items.map((f) => f.tmdbId));
+    const current = editableCatalogueList(
+      readListStore(),
+      req.user!.id,
+      req.params.id
+    );
+    if (current.checkedAt !== list.checkedAt)
+      throw new CatalogueListError(
+        409,
+        'This list changed while loading. Reopen it.'
+      );
     return res.json({
       id: list.id,
+      owned: list.ownerId === req.user!.id,
       title: list.title,
       description: list.description,
       revision: list.checkedAt,
       visibility: list.visibility,
-      movies: await movies(list.items.map((f) => f.tmdbId)),
+      movies: resolvedMovies,
     });
   } catch (e) {
     next(e);
@@ -120,7 +180,7 @@ router.post('/', async (req, res, next) => {
 });
 router.put('/:id', async (req, res, next) => {
   try {
-    ownedCatalogueList(readListStore(), req.user!.id, req.params.id);
+    editableCatalogueList(readListStore(), req.user!.id, req.params.id);
     const value = validateCatalogueList(req.body);
     await movies(value.movieIds);
     const list = updateListStore((store) =>

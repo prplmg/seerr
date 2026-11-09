@@ -249,6 +249,13 @@ async function buildDiscoveryData(userId: number) {
     source: l.source,
     visibility: l.visibility,
     owned: l.ownerId === userId,
+    shared:
+      l.source === 'catalogue' &&
+      l.ownerId !== userId &&
+      !!l.collaborators?.[userId],
+    canEdit:
+      l.source === 'catalogue' &&
+      (l.ownerId === userId || l.collaborators?.[userId] === 'editor'),
     liked: !!l.url && liked.has(l.url),
     saved: saved.has(l.id),
     progress: listProgress(l, userId, watched, now),

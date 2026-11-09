@@ -21,6 +21,7 @@ export type DiscoveryList = {
   source: 'curated' | 'letterboxd' | 'catalogue';
   url?: string;
   ownerId?: number;
+  collaborators?: Record<string, 'viewer' | 'editor'>;
   visibility: 'public' | 'private' | 'unknown';
   checkedAt: number;
   unavailable?: boolean;
@@ -58,6 +59,7 @@ export function visibleList(
     !list.unavailable &&
     !list.deletedAt &&
     (list.ownerId === userId ||
+      (list.source === 'catalogue' && !!list.collaborators?.[userId]) ||
       (list.visibility === 'public' &&
         (list.source === 'curated' ||
           list.source === 'catalogue' ||

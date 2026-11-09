@@ -66,6 +66,7 @@ export default function ListEditor({
 }) {
   const t = usePartyText();
   const draftKey = listDraftKey(userId, listId);
+  const [owned, setOwned] = useState(!listId);
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [recovery, setRecovery] = useState<ListDraft>();
   const [storageFailed, setStorageFailed] = useState(false);
@@ -104,6 +105,7 @@ export default function ListEditor({
         .then(({ data }) => {
           setTitle(data.title);
           setDescription(data.description);
+          setOwned(data.owned);
           setRevision(data.revision);
           setVisibility(data.visibility || 'public');
           setRows(
@@ -320,7 +322,9 @@ export default function ListEditor({
         backgroundClickable={false}
         cancelButtonProps={{ disabled: busy }}
         onOk={mode === 'review' ? () => void save() : undefined}
-        onTertiary={listId && onDeleted ? () => void removeList() : undefined}
+        onTertiary={
+          owned && listId && onDeleted ? () => void removeList() : undefined
+        }
         tertiaryText={t('Delete list', 'Eliminar lista')}
         tertiaryButtonType="danger"
         tertiaryDisabled={busy || !loaded || !!recovery}
@@ -404,7 +408,7 @@ export default function ListEditor({
               aria-label={t('Visibility', 'Visibilidad')}
               className={`${input} mt-1`}
               value={visibility}
-              disabled={busy || !loaded || !!recovery}
+              disabled={!owned || busy || !loaded || !!recovery}
               onChange={(e) => {
                 dirty.current = true;
                 setVisibility(e.target.value as 'public' | 'private');
@@ -417,7 +421,10 @@ export default function ListEditor({
                 )}
               </option>
               <option value="private">
-                {t('Private — only you', 'Privada — solo tú')}
+                {t(
+                  'Private — invited people only',
+                  'Privada — solo personas invitadas'
+                )}
               </option>
             </select>
           </label>

@@ -337,25 +337,35 @@ router.get('/', async (req, res, next) => {
     const d = await discoveryData(res.locals.discoveryUserId),
       filter = String(req.query.filter || 'all');
     if (
-      !['all', 'saved', 'created', 'liked', 'discover', 'unlinked'].includes(
-        filter
-      )
+      ![
+        'all',
+        'saved',
+        'created',
+        'liked',
+        'discover',
+        'unlinked',
+        'shared',
+      ].includes(filter)
     )
       return res.sendStatus(400);
     const rows = (
-      filter === 'discover' || filter === 'unlinked' ? d.lists : d.mine
+      filter === 'discover' || filter === 'unlinked' || filter === 'shared'
+        ? d.lists
+        : d.mine
     )
       .map(d.summary)
       .filter((l) =>
-        filter === 'unlinked'
-          ? l.owned && l.source === 'catalogue' && !l.saved
-          : filter === 'saved'
-            ? l.saved
-            : filter === 'created'
-              ? l.owned
-              : filter === 'liked'
-                ? l.liked
-                : true
+        filter === 'shared'
+          ? l.shared
+          : filter === 'unlinked'
+            ? l.owned && l.source === 'catalogue' && !l.saved
+            : filter === 'saved'
+              ? l.saved
+              : filter === 'created'
+                ? l.owned
+                : filter === 'liked'
+                  ? l.liked
+                  : true
       );
     const unavailable = ['all', 'saved'].includes(filter)
       ? (d.store.saved[res.locals.discoveryUserId] || []).filter(

@@ -29,6 +29,50 @@ export function ownedCatalogueList(
     throw new CatalogueListError(404, 'Editable list not found.');
   return list;
 }
+export function editableCatalogueList(
+  store: ListStore,
+  userId: number,
+  id: string
+) {
+  const list = store.lists.find(
+    (l) => l.id === id && !l.deletedAt && l.source === 'catalogue'
+  );
+  if (
+    !list ||
+    (list.ownerId !== userId && list.collaborators?.[userId] !== 'editor')
+  )
+    throw new CatalogueListError(404, 'Editable list not found.');
+  return list;
+}
+export function shareCatalogueList(
+  store: ListStore,
+  ownerId: number,
+  id: string,
+  revision: unknown,
+  collaborators: Record<string, 'viewer' | 'editor'>,
+  now = Date.now()
+) {
+  const list = ownedCatalogueList(store, ownerId, id);
+  if (revision !== list.checkedAt)
+    throw new CatalogueListError(
+      409,
+      'This list changed. Reload sharing before saving.'
+    );
+  if (
+    Object.keys(collaborators).length > 200 ||
+    Object.entries(collaborators).some(
+      ([id, role]) =>
+        !/^[1-9]\d*$/.test(id) ||
+        !Number.isSafeInteger(Number(id)) ||
+        Number(id) === ownerId ||
+        !['viewer', 'editor'].includes(role)
+    )
+  )
+    throw new CatalogueListError(400, 'Invalid list access.');
+  list.collaborators = { ...collaborators };
+  list.checkedAt = Math.max(now, list.checkedAt + 1);
+  return list;
+}
 export function validateCatalogueList(body: unknown) {
   const value = body as {
     title?: unknown;
@@ -71,11 +115,18 @@ export function saveCatalogueList(
 ) {
   initializeCreatedBookmarks(store);
   const value = validateCatalogueList(body);
-  const old = id ? ownedCatalogueList(store, userId, id) : undefined;
+  const old = id ? editableCatalogueList(store, userId, id) : undefined;
+  if (
+    old &&
+    old.ownerId !== userId &&
+    value.visibility !== undefined &&
+    value.visibility !== old.visibility
+  )
+    throw new CatalogueListError(403, 'Only the owner can change visibility.');
   if (old && value.revision !== old.checkedAt)
     throw new CatalogueListError(
       409,
-      'This list changed in another tab. Reopen it before saving.'
+      'This list was changed by another editor or in another tab. Your draft is kept; reopen the list before saving.'
     );
   if (
     !old &&
@@ -91,9 +142,10 @@ export function saveCatalogueList(
     id: old?.id || 'catalogue-' + randomUUID(),
     title: value.title,
     description: value.description,
-    creator,
+    creator: old?.creator ?? creator,
+    collaborators: old?.collaborators,
     source: 'catalogue' as const,
-    ownerId: userId,
+    ownerId: old?.ownerId ?? userId,
     visibility:
       value.visibility ??
       (old?.visibility === 'private'

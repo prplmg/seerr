@@ -22,6 +22,7 @@ import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
 import ForYouLayout from './ForYouLayout';
 import ListEditor from './ListEditor';
+import ListSharing from './ListSharing';
 import { ReleaseUpdates } from './ReleaseUpdates';
 import SaveList from './SaveList';
 import { listAuthorStyle } from './listAuthorStyle';
@@ -49,6 +50,8 @@ export type List = {
   url?: string;
   saved: boolean;
   owned: boolean;
+  shared?: boolean;
+  canEdit?: boolean;
   liked: boolean;
   available: number;
   progress: {
@@ -647,6 +650,7 @@ function Library({ explore = false }: { explore?: boolean }) {
               ['other', 'Lists', 'Listas'],
               ['saved', 'Saved', 'Guardadas'],
               ['created', 'Created', 'Creadas'],
+              ['shared', 'Shared with you', 'Compartidas contigo'],
               ['unlinked', 'Unlinked', 'Desvinculadas'],
               ['liked', 'Liked on Letterboxd', 'Me gustan en Letterboxd'],
             ].map(([id, en, es]) => (
@@ -956,7 +960,10 @@ function Details() {
       <h1 className="my-4 text-3xl font-bold">{data.title}</h1>
       {data.visibility === 'private' && (
         <p className="text-sm text-purple-300">
-          {t('Private — only you', 'Privada — solo tú')}
+          {t(
+            'Private — invited people only',
+            'Privada — solo personas invitadas'
+          )}
         </p>
       )}
       <p className="text-gray-400">
@@ -998,9 +1005,22 @@ function Details() {
         </div>
       )}
       <div className="mb-6 flex flex-wrap items-center gap-4">
+        {!readOnly && data.source === 'catalogue' && (
+          <ListSharing
+            key={data.id}
+            id={data.id}
+            owned={data.owned}
+            onChange={() => void mutate()}
+          />
+        )}
+        {data.canEdit && !data.owned && (
+          <span className="text-sm text-purple-300">
+            {t('Can edit', 'Puede editar')}
+          </span>
+        )}
         {!readOnly &&
           !data.virtual &&
-          data.owned &&
+          data.canEdit &&
           data.source === 'catalogue' && (
             <button className={style} onClick={() => setEditOpen(true)}>
               {t('Edit list', 'Editar lista')}

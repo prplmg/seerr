@@ -6,8 +6,10 @@ import assert from 'node:assert/strict';
 import { it } from 'node:test';
 import {
   deleteCatalogueList,
+  editableCatalogueList,
   ownedCatalogueList,
   saveCatalogueList,
+  shareCatalogueList,
   validateCatalogueList,
 } from './catalogueLists';
 import { visibleList, type ListStore } from './discoveryLists';
@@ -177,4 +179,91 @@ it('created lists start saved; explicit unsaving survives edits and legacy norma
   setListSaved(legacy, 7, 'old-created', false);
   initializeCreatedBookmarks(legacy);
   assert.deepEqual(legacy.saved[7], []);
+});
+
+it('sharing grants private access without saving; editors preserve owner and cannot escalate', async () => {
+  const { personalList } = await import('./discoveryLists');
+  const s = store();
+  let l = saveCatalogueList(
+    s,
+    7,
+    'Owner',
+    { ...body, visibility: 'private' },
+    undefined,
+    1000
+  );
+  shareCatalogueList(
+    s,
+    7,
+    l.id,
+    l.checkedAt,
+    { 8: 'viewer', 9: 'editor' },
+    2000
+  );
+  assert(visibleList(l, 8));
+  assert(visibleList(l, 9));
+  assert(!visibleList(l, 10));
+  assert(!personalList(l, s, 8));
+  assert(!personalList(l, s, 9));
+  assert.throws(() => editableCatalogueList(s, 8, l.id));
+  assert.equal(editableCatalogueList(s, 9, l.id).id, l.id);
+  assert.throws(() =>
+    shareCatalogueList(s, 9, l.id, l.checkedAt, { 10: 'editor' })
+  );
+  assert.throws(() => deleteCatalogueList(s, 9, l.id, l.checkedAt));
+  assert.throws(
+    () =>
+      saveCatalogueList(
+        s,
+        9,
+        'Editor',
+        { ...body, revision: l.checkedAt, visibility: 'public' },
+        l.id
+      ),
+    /Only the owner/
+  );
+  const version = l.checkedAt;
+  l = saveCatalogueList(
+    s,
+    9,
+    'Editor',
+    { ...body, title: 'Edited', revision: version },
+    l.id,
+    3000
+  );
+  assert.equal(l.ownerId, 7);
+  assert.equal(l.creator, 'Owner');
+  assert.equal(l.visibility, 'private');
+  assert.equal(l.collaborators?.[8], 'viewer');
+  assert.throws(
+    () =>
+      saveCatalogueList(s, 7, 'Owner', { ...body, revision: version }, l.id),
+    /another editor/
+  );
+  assert.throws(() => shareCatalogueList(s, 7, l.id, version, {}), /changed/);
+  const draftVersion = l.checkedAt;
+  shareCatalogueList(s, 7, l.id, l.checkedAt, { 8: 'viewer' }, 4000);
+  assert(!visibleList(l, 9));
+  assert.throws(
+    () =>
+      saveCatalogueList(
+        s,
+        9,
+        'Editor',
+        { ...body, revision: draftVersion },
+        l.id
+      ),
+    /not found/
+  );
+  assert.throws(
+    () => shareCatalogueList(s, 7, l.id, l.checkedAt, { 7: 'editor' }),
+    /Invalid/
+  );
+  assert.throws(
+    () =>
+      shareCatalogueList(s, 7, l.id, l.checkedAt, { '9': 'owner' } as never),
+    /Invalid/
+  );
+  deleteCatalogueList(s, 7, l.id, l.checkedAt, 5000);
+  assert(!visibleList(l, 8));
 });

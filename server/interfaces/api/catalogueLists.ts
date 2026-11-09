@@ -5,6 +5,7 @@ export type MovieChoice = {
   poster: string | null;
 };
 export type EditableCatalogueList = {
+  owned: boolean;
   id: string;
   title: string;
   description: string;
