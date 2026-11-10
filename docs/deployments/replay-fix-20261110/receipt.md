@@ -1,0 +1,4 @@
+# Analytics-only fix — 2026-11-10
+Live EJkMjUh3XYLMOExpGTMKG through7c711b2f. Canonical PRPL-PC build and maintenance switch completed. Native/public health, source hashes and served chunks verified. All global/user/sync toggles unchanged; routine Plex scan timestamps advanced. Cache files/policies untouched, unrelated next-env.d.ts excluded. No push.
+
+Replay starts independently of page-title readiness and is not stopped during ordinary signed-in navigation. Identifying with person properties is conditional on changed identity/username. Successful watchlist creation emits watchlist_added with title/ID/type and event_label. TypeScript, lint and label regression passed. Real PostHog ingestion/replay completeness not independently verified; blocked SDKs or current admin events-only/off modes can still prevent recordings. Rollback C:/ProgramData/Seerr/catalogue-20261110185303791-49437-release.
