@@ -17,7 +17,7 @@ export default function AnalyticsTestSelector() {
   if (!user || !isAdmin || !currentSettings.analyticsTrial?.enabled)
     return null;
   return (
-    <section className="ph-no-capture mb-8 rounded-xl border border-gray-700 bg-gray-800 p-4 text-gray-100">
+    <section className="mb-8 rounded-xl border border-gray-700 bg-gray-800 p-4 text-gray-100">
       <label htmlFor="analytics-test-mode" className="mb-2 block font-semibold">
         Analytics test mode
       </label>

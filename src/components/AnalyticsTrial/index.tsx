@@ -4,6 +4,12 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useContext, useEffect } from 'react';
 
+import {
+  capturePath,
+  credentialSelector,
+  maskCredentialInput,
+  redactCredentialUrl,
+} from './capture';
 import { readAnalyticsMode } from './mode';
 
 type SDK = {
@@ -11,20 +17,14 @@ type SDK = {
   set_config: (config: Record<string, unknown>) => void;
   init: (token: string, config: Record<string, unknown>) => void;
   capture: (event: string, properties: Record<string, unknown>) => void;
-  identify: (id: string) => void;
+  identify: (id: string, properties: Record<string, unknown>) => void;
   reset: () => void;
   stopSessionRecording: () => void;
   startSessionRecording: () => void;
   opt_out_capturing: () => void;
   opt_in_capturing: () => void;
 };
-const safePage = (url: string) => {
-  const path = url.split(/[?#]/)[0];
-  if (['/', '/for-you', '/find-to-watch', '/ai-search'].includes(path))
-    return path;
-  if (/^\/(movie|tv)\/\d+$/.test(path)) return path.replace(/\d+$/, ':id');
-  return null;
-};
+const safePage = capturePath;
 
 // Deliberately independent of PostHog: the control group records these too.
 export default function AnalyticsTrial() {
@@ -32,6 +32,11 @@ export default function AnalyticsTrial() {
   const isAdmin = hasPermission(Permission.ADMIN);
   const router = useRouter();
   const userId = user?.id;
+  const username =
+    user?.displayName ||
+    user?.username ||
+    user?.plexUsername ||
+    user?.jellyfinUsername;
   const { currentSettings } = useContext(SettingsContext);
   const { enabled, token, host, experiment } =
     currentSettings.analyticsTrial || {};
@@ -85,7 +90,13 @@ export default function AnalyticsTrial() {
         .post('/api/v1/analytics-trial/metrics', {
           session,
           variant,
-          page: initialPage,
+          page: /^\/(movie|tv)\/\d+$/.test(initialPage)
+            ? initialPage.replace(/\d+$/, ':id')
+            : ['/', '/for-you', '/find-to-watch', '/ai-search'].includes(
+                  initialPage
+                )
+              ? initialPage
+              : 'excluded',
           metrics: { ...values, elapsed: performance.now(), width: innerWidth },
         })
         .catch(() => undefined);
@@ -109,8 +120,7 @@ export default function AnalyticsTrial() {
       }
       sdk.opt_in_capturing();
       sdk.capture('$pageview', { page: name, trial_variant: variant });
-      if (variant === 'replay' && !url.includes('?'))
-        sdk.startSessionRecording();
+      if (variant === 'replay') sdk.startSessionRecording();
     };
     const action = (event: Event) => {
       const el =
@@ -163,19 +173,32 @@ export default function AnalyticsTrial() {
               capture_heatmaps: false,
               capture_performance: false,
               capture_exceptions: false,
+              enable_recording_console_log: false,
               disable_surveys: true,
               disable_session_recording: true,
               person_profiles: 'identified_only',
               session_recording: {
                 maskAllInputs: true,
-                maskTextSelector: '*',
-                blockSelector:
-                  'input,textarea,[contenteditable],.ph-no-capture',
+                maskInputFn: maskCredentialInput,
+                maskTextSelector: '[data-analytics-credential]',
+                blockSelector: credentialSelector,
+                recordHeaders: false,
+                recordBody: false,
+                maskCapturedNetworkRequestFn: (request: { name?: string }) => {
+                  if (request.name)
+                    request.name = redactCredentialUrl(request.name);
+                  return request;
+                },
               },
               before_send: (e: { properties: Record<string, unknown> }) => {
                 if (!active || !safePage(location.pathname)) return null;
-                e.properties.$current_url =
-                  location.origin + (safePage(location.pathname) || '/');
+                e.properties.$current_url = redactCredentialUrl(location.href);
+                if (username) e.properties.username = username;
+                const media = location.pathname.match(/^\/(movie|tv)\/(\d+)$/);
+                if (media) {
+                  e.properties.media_type = media[1];
+                  e.properties.media_id = Number(media[2]);
+                }
                 delete e.properties.$referrer;
                 delete e.properties.$initial_referrer;
                 return e;
@@ -187,7 +210,7 @@ export default function AnalyticsTrial() {
                 }
                 values.sdkReady = performance.now();
                 sdk?.opt_in_capturing();
-                sdk?.identify(String(userId));
+                sdk?.identify(String(userId), { name: username, username });
                 page(location.pathname + location.search);
               },
             };
@@ -215,6 +238,15 @@ export default function AnalyticsTrial() {
       document.removeEventListener('visibilitychange', leave);
       document.removeEventListener('click', action, true);
     };
-  }, [userId, isAdmin, router.events, enabled, host, token, experiment]);
+  }, [
+    userId,
+    username,
+    isAdmin,
+    router.events,
+    enabled,
+    host,
+    token,
+    experiment,
+  ]);
   return null;
 }

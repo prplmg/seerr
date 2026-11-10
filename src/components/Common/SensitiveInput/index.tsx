@@ -30,6 +30,7 @@ const SensitiveInput = ({ as = 'input', ...props }: SensitiveInputProps) => {
         data-1pignore="true"
         data-lpignore="true"
         {...componentProps}
+        data-analytics-credential="true"
         className={`rounded-l-only ${componentProps.className ?? ''}`}
         type={
           props.type === 'textarea'
