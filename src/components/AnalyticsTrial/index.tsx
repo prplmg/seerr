@@ -16,6 +16,8 @@ import { readAnalyticsMode } from './mode';
 
 type SDK = {
   __loaded?: boolean;
+  get_distinct_id?: () => string;
+  get_property?: (key: string) => unknown;
   set_config: (config: Record<string, unknown>) => void;
   init: (token: string, config: Record<string, unknown>) => void;
   capture: (event: string, properties: Record<string, unknown>) => void;
@@ -120,6 +122,8 @@ export default function AnalyticsTrial() {
         loadSdk?.();
         return;
       }
+      // Recording must not depend on a PageTitle mounting or metadata resolving.
+      if (variant === 'replay') sdk.startSessionRecording();
       if (document.documentElement.dataset.analyticsPath !== name) return;
       if (lastPage === url) return;
       lastPage = url;
@@ -183,6 +187,12 @@ export default function AnalyticsTrial() {
         } catch {
           /* No payload to report. */
         }
+        if (method === 'post' && url.split('?')[0] === '/api/v1/watchlist')
+          sdk?.capture('watchlist_added', {
+            media_id: body.tmdbId,
+            media_title: body.title,
+            media_type: body.mediaType,
+          });
         const interaction = url.match(
           /^\/api\/v1\/review-interactions\/([^/]+)\/(comments|reactions)(?:\/([^/?]+))?$/
         );
@@ -230,9 +240,9 @@ export default function AnalyticsTrial() {
     });
     const pageReady = () => page(location.pathname + location.search);
     window.addEventListener('catalogue-page-ready', pageReady);
-    const routeStart = () => {
+    const routeStart = (url: string) => {
       lastPage = '';
-      stop();
+      if (!safePage(url)) stop();
     };
     router.events.on('routeChangeStart', routeStart);
     router.events.on('routeChangeComplete', page);
@@ -331,7 +341,17 @@ export default function AnalyticsTrial() {
                 }
                 values.sdkReady = performance.now();
                 sdk?.opt_in_capturing();
-                sdk?.identify(String(userId), { name: username, username });
+                if (
+                  sdk?.get_distinct_id?.() !== String(userId) ||
+                  sdk?.get_property?.('catalogue_username') !== username
+                ) {
+                  sdk?.identify(String(userId), { name: username, username });
+                  (
+                    sdk as SDK & {
+                      register?: (p: Record<string, unknown>) => void;
+                    }
+                  )?.register?.({ catalogue_username: username });
+                }
                 page(location.pathname + location.search);
               },
             };
