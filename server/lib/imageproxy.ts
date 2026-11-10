@@ -280,6 +280,9 @@ class ImageProxy {
       );
 
       if (!maxAge) maxAge = 86400;
+      // Stable artwork URLs can be reused longer; avatar policy stays unchanged.
+      if (this.key === 'tmdb' || this.key === 'tvdb')
+        maxAge = 30 * 24 * 60 * 60;
       const expireAt = Date.now() + maxAge * 1000;
       const etag = (response.headers.etag ?? '').replace(/[^\w-]/g, '');
 

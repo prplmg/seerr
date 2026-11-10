@@ -59,7 +59,7 @@ router.get<{
     res.writeHead(200, {
       'Content-Type': `image/${imageData.meta.extension}`,
       'Content-Length': imageData.imageBuffer.length,
-      'Cache-Control': `public, max-age=${imageData.meta.curRevalidate}`,
+      'Cache-Control': 'public, max-age=2592000',
       'OS-Cache-Key': imageData.meta.cacheKey,
       'OS-Cache-Status': imageData.meta.cacheMiss ? 'MISS' : 'HIT',
     });
