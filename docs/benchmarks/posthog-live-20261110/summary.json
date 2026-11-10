@@ -1,0 +1,301 @@
+{
+  "captured_at": "2026-11-10T06:52:09.697Z",
+  "successful_runs": 18,
+  "failed_runs": [],
+  "summary": {
+    "off": {
+      "runs": 6,
+      "fcp_ms": {
+        "median": 1642.0,
+        "min": 1348,
+        "max": 3156
+      },
+      "lcp_ms": {
+        "median": 6342.0,
+        "min": 5624,
+        "max": 8356
+      },
+      "ttfb_ms": {
+        "median": 567.7,
+        "min": 470.7,
+        "max": 2172.4
+      },
+      "content_ready_ms": {
+        "median": 4822.85,
+        "min": 4429.7,
+        "max": 6512.7
+      },
+      "ready_after_ttfb_ms": {
+        "median": 4213.95,
+        "min": 3893.0,
+        "max": 4849.5
+      },
+      "cpu_ms": {
+        "median": 1298.58,
+        "min": 978.22,
+        "max": 1572.72
+      },
+      "interaction_cpu_ms": {
+        "median": 572.54,
+        "min": 439.38,
+        "max": 763.56
+      },
+      "long_task_ms": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "posthog_kib": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    },
+    "events": {
+      "runs": 6,
+      "fcp_ms": {
+        "median": 1796.0,
+        "min": 984,
+        "max": 5972
+      },
+      "lcp_ms": {
+        "median": 6604.0,
+        "min": 5272,
+        "max": 26876
+      },
+      "ttfb_ms": {
+        "median": 732.45,
+        "min": 507.7,
+        "max": 3540.3
+      },
+      "content_ready_ms": {
+        "median": 4953.9,
+        "min": 4154.4,
+        "max": 22346.1
+      },
+      "ready_after_ttfb_ms": {
+        "median": 4153.2,
+        "min": 3490.9,
+        "max": 19872.4
+      },
+      "cpu_ms": {
+        "median": 1364.94,
+        "min": 905.62,
+        "max": 2429.31
+      },
+      "interaction_cpu_ms": {
+        "median": 659.7,
+        "min": 496.01,
+        "max": 790.95
+      },
+      "long_task_ms": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "posthog_kib": {
+        "median": 120.2,
+        "min": 120.02,
+        "max": 120.21
+      }
+    },
+    "replay": {
+      "runs": 6,
+      "fcp_ms": {
+        "median": 1986.0,
+        "min": 1656,
+        "max": 2860
+      },
+      "lcp_ms": {
+        "median": 6970.0,
+        "min": 6012,
+        "max": 24164
+      },
+      "ttfb_ms": {
+        "median": 1056.5,
+        "min": 664.1,
+        "max": 1770.5
+      },
+      "content_ready_ms": {
+        "median": 5715.0,
+        "min": 4345.5,
+        "max": 19241.1
+      },
+      "ready_after_ttfb_ms": {
+        "median": 4201.7,
+        "min": 3474.7,
+        "max": 18166.8
+      },
+      "cpu_ms": {
+        "median": 1715.65,
+        "min": 1062.66,
+        "max": 1884.81
+      },
+      "interaction_cpu_ms": {
+        "median": 610.48,
+        "min": 461.24,
+        "max": 939.39
+      },
+      "long_task_ms": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "posthog_kib": {
+        "median": 188.78,
+        "min": 188.64,
+        "max": 188.89
+      }
+    }
+  },
+  "paired": {
+    "events": {
+      "fcp_ms": {
+        "pairs": 6,
+        "median_delta": 84.0,
+        "bootstrap_95_interval": [
+          -1280.0,
+          3694.0
+        ]
+      },
+      "lcp_ms": {
+        "pairs": 6,
+        "median_delta": 58.0,
+        "bootstrap_95_interval": [
+          -1844.0,
+          11952.0
+        ]
+      },
+      "ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 175.8,
+        "bootstrap_95_interval": [
+          -789.1,
+          2429.25
+        ]
+      },
+      "content_ready_ms": {
+        "pairs": 6,
+        "median_delta": 32.5,
+        "bootstrap_95_interval": [
+          -1415.7,
+          10181.8
+        ]
+      },
+      "ready_after_ttfb_ms": {
+        "pairs": 6,
+        "median_delta": -134.8,
+        "bootstrap_95_interval": [
+          -748.6,
+          7866.05
+        ]
+      },
+      "cpu_ms": {
+        "pairs": 6,
+        "median_delta": 121.31,
+        "bootstrap_95_interval": [
+          -284.09,
+          746.63
+        ]
+      },
+      "interaction_cpu_ms": {
+        "pairs": 6,
+        "median_delta": 82.52,
+        "bootstrap_95_interval": [
+          -65.31,
+          184.41
+        ]
+      },
+      "long_task_ms": {
+        "pairs": 6,
+        "median_delta": 0.0,
+        "bootstrap_95_interval": [
+          0.0,
+          0.0
+        ]
+      },
+      "posthog_kib": {
+        "pairs": 6,
+        "median_delta": 120.2,
+        "bootstrap_95_interval": [
+          120.1,
+          120.21
+        ]
+      }
+    },
+    "replay": {
+      "fcp_ms": {
+        "pairs": 6,
+        "median_delta": 246.0,
+        "bootstrap_95_interval": [
+          -652.0,
+          1350.0
+        ]
+      },
+      "lcp_ms": {
+        "pairs": 6,
+        "median_delta": 628.0,
+        "bootstrap_95_interval": [
+          -456.0,
+          8982.0
+        ]
+      },
+      "ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 324.05,
+        "bootstrap_95_interval": [
+          -496.4,
+          1226.1
+        ]
+      },
+      "content_ready_ms": {
+        "pairs": 6,
+        "median_delta": 938.0,
+        "bootstrap_95_interval": [
+          -275.85,
+          7081.45
+        ]
+      },
+      "ready_after_ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 187.85,
+        "bootstrap_95_interval": [
+          -818.3,
+          7320.3
+        ]
+      },
+      "cpu_ms": {
+        "pairs": 6,
+        "median_delta": 364.7,
+        "bootstrap_95_interval": [
+          -265.9,
+          853.22
+        ]
+      },
+      "interaction_cpu_ms": {
+        "pairs": 6,
+        "median_delta": 83.02,
+        "bootstrap_95_interval": [
+          -231.31,
+          394.77
+        ]
+      },
+      "long_task_ms": {
+        "pairs": 6,
+        "median_delta": 0.0,
+        "bootstrap_95_interval": [
+          0.0,
+          0.0
+        ]
+      },
+      "posthog_kib": {
+        "pairs": 6,
+        "median_delta": 188.78,
+        "bootstrap_95_interval": [
+          188.67,
+          188.84
+        ]
+      }
+    }
+  }
+}
