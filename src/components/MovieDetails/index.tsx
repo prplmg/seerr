@@ -460,7 +460,9 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
           />
         </div>
       )}
-      <PageTitle title={data.title} />
+      <PageTitle
+        title={`${data.title}${data.releaseDate ? ` (${data.releaseDate.slice(0, 4)})` : ''}`}
+      />
       <IssueModal
         onCancel={() => setShowIssueModal(false)}
         show={showIssueModal}

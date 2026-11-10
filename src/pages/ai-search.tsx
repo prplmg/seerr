@@ -7,6 +7,7 @@ import {
   searchEntry,
 } from '@app/components/AiSearch/navigationState';
 import { searchStream } from '@app/components/AiSearch/searchStream';
+import { trackEvent } from '@app/components/AnalyticsTrial/events';
 import PageTitle from '@app/components/Common/PageTitle';
 import TitleCard from '@app/components/TitleCard';
 import { useUser } from '@app/hooks/useUser';
@@ -188,6 +189,10 @@ export default function AiSearchPage() {
         controller.signal
       );
       if (controller.signal.aborted) return;
+      trackEvent(filters ? 'ai_search_refined' : 'ai_search_used', {
+        query: searchQuery.trim(),
+        people_count: selectedPeople.length + 1,
+      });
       setResponse(data);
       if (!filters && data.people && peopleData)
         setPeople(

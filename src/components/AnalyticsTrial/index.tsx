@@ -3,6 +3,7 @@ import { Permission, useUser } from '@app/hooks/useUser';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useContext, useEffect } from 'react';
+import { safeSettings } from './events';
 
 import {
   capturePath,
@@ -108,6 +109,7 @@ export default function AnalyticsTrial() {
       sdk?.stopSessionRecording();
       sdk?.opt_out_capturing();
     };
+    let lastPage = '';
     const page = (url: string) => {
       const name = safePage(url);
       if (!name) {
@@ -118,8 +120,25 @@ export default function AnalyticsTrial() {
         loadSdk?.();
         return;
       }
+      if (document.documentElement.dataset.analyticsPath !== name) return;
+      if (lastPage === url) return;
+      lastPage = url;
       sdk.opt_in_capturing();
-      sdk.capture('$pageview', { page: name, trial_variant: variant });
+      sdk.capture('$pageview', {
+        page: name,
+        page_name:
+          (
+            {
+              '/': 'Discovery Page',
+              '/ai-search': 'AI Search Page',
+              '/for-you': 'For You Page',
+              '/lists': 'My Lists Page',
+            } as Record<string, string>
+          )[name] ||
+          document.documentElement.dataset.analyticsTitle ||
+          document.title,
+        trial_variant: variant,
+      });
       if (variant === 'replay') sdk.startSessionRecording();
     };
     const action = (event: Event) => {
@@ -134,7 +153,78 @@ export default function AnalyticsTrial() {
           trial_variant: variant,
         });
     };
-    router.events.on('routeChangeStart', stop);
+    const completed = (event: Event) => {
+      const { name, properties } = (event as CustomEvent).detail;
+      if (variant !== 'off') sdk?.capture(name, properties);
+    };
+    document.defaultView?.addEventListener('catalogue-analytics', completed);
+    const interceptor = axios.interceptors.response.use((response) => {
+      const { url = '', method, data } = response.config;
+      if (
+        variant !== 'off' &&
+        /^(post|put|patch)$/.test(method || '') &&
+        /\/settings\//.test(url) &&
+        !/\/(test|sync|run|cancel|flush|regenerate)(\?|$)/.test(url)
+      ) {
+        let values = data;
+        try {
+          if (typeof values === 'string') values = JSON.parse(values);
+        } catch {
+          values = undefined;
+        }
+        sdk?.capture('settings_saved', {
+          section: url.split('?')[0],
+          values: safeSettings(values),
+        });
+      }
+      if (variant !== 'off') {
+        let body: Record<string, unknown> = {};
+        try {
+          body = typeof data === 'string' ? JSON.parse(data) : data || {};
+        } catch {
+          /* No payload to report. */
+        }
+        const interaction = url.match(
+          /^\/api\/v1\/review-interactions\/([^/]+)\/(comments|reactions)(?:\/([^/?]+))?$/
+        );
+        if (interaction && /^(post|put|patch|delete)$/.test(method || '')) {
+          const event =
+            interaction[2] === 'reactions'
+              ? body.active
+                ? 'reaction_added'
+                : 'reaction_removed'
+              : (
+                  {
+                    post: 'comment_created',
+                    patch: 'comment_updated',
+                    delete: 'comment_deleted',
+                  } as Record<string, string>
+                )[method!];
+          if (event)
+            sdk?.capture(event, {
+              review_id: decodeURIComponent(interaction[1]),
+              comment_id: body.commentId || interaction[3] || body.id,
+              emoji: body.emoji,
+            });
+        }
+        if (
+          /^\/api\/v1\/discovery-lists/.test(url) &&
+          /^(post|put|patch|delete)$/.test(method || '')
+        )
+          sdk?.capture('list_action_completed', {
+            endpoint: url.split('?')[0],
+            method,
+          });
+      }
+      return response;
+    });
+    const pageReady = () => page(location.pathname + location.search);
+    window.addEventListener('catalogue-page-ready', pageReady);
+    const routeStart = () => {
+      lastPage = '';
+      stop();
+    };
+    router.events.on('routeChangeStart', routeStart);
     router.events.on('routeChangeComplete', page);
     document.addEventListener('visibilitychange', leave);
     document.addEventListener('click', action, true);
@@ -227,13 +317,16 @@ export default function AnalyticsTrial() {
       })
       .catch(() => undefined);
     return () => {
+      window.removeEventListener('catalogue-page-ready', pageReady);
+      axios.interceptors.response.eject(interceptor);
+      window.removeEventListener('catalogue-analytics', completed);
       report();
       active = false;
       stop();
       sdk?.reset();
       observers.forEach((o) => o.disconnect());
       if (timer) clearInterval(timer);
-      router.events.off('routeChangeStart', stop);
+      router.events.off('routeChangeStart', routeStart);
       router.events.off('routeChangeComplete', page);
       document.removeEventListener('visibilitychange', leave);
       document.removeEventListener('click', action, true);

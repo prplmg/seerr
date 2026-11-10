@@ -1,3 +1,4 @@
+import { trackEvent } from '@app/components/AnalyticsTrial/events';
 import Button from '@app/components/Common/Button';
 import CachedImage from '@app/components/Common/CachedImage';
 import StarPicker from '@app/components/Reviews/StarPicker';
@@ -369,6 +370,26 @@ export function MovieReviews({
             ),
           }
         );
+      const previous = mine?.entries?.find((entry) => entry.id === editingId);
+      const properties = {
+        media_id: movieId,
+        media_type: mediaType,
+        review_id: editingId,
+        season_number: seasonNumber,
+        episode_number: episodeNumber,
+      };
+      if (!remove) {
+        if (rating && Number(rating) !== previous?.rating)
+          trackEvent(previous?.rating ? 'rating_updated' : 'rating_created', {
+            ...properties,
+            rating: Number(rating),
+          });
+        if (text.trim() && text !== previous?.text)
+          trackEvent(
+            previous?.text ? 'review_updated' : 'review_created',
+            properties
+          );
+      }
       await Promise.all([
         mutate(),
         refreshMine(),
@@ -593,7 +614,8 @@ export function MovieReviews({
                   <div className="mr-auto flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
                       {r.source === 'local' && r.userId === user?.id && (
-                        <button data-analytics-action="edit_review"
+                        <button
+                          data-analytics-action="edit_review"
                           className="shrink-0 whitespace-nowrap text-purple-300 hover:underline"
                           onClick={() => startEditing(r)}
                         >
@@ -634,11 +656,20 @@ export function MovieReviews({
                       !r.externalUrl && (
                         <span
                           role="img"
-                          aria-label={t('Synced with Letterboxd', 'Sincronizado con Letterboxd')}
-                          title={t('Synced with Letterboxd', 'Sincronizado con Letterboxd')}
+                          aria-label={t(
+                            'Synced with Letterboxd',
+                            'Sincronizado con Letterboxd'
+                          )}
+                          title={t(
+                            'Synced with Letterboxd',
+                            'Sincronizado con Letterboxd'
+                          )}
                           className="ml-auto inline-flex shrink-0 text-green-400"
                         >
-                          <CheckCircleIcon aria-hidden="true" className="h-4 w-4" />
+                          <CheckCircleIcon
+                            aria-hidden="true"
+                            className="h-4 w-4"
+                          />
                         </span>
                       )
                     )}
