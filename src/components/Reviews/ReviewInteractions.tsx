@@ -20,8 +20,9 @@ type Comment = {
   canDelete: boolean;
   user: { id: number; name: string; avatar: string } | null;
 };
-const control =
-  'rounded-full border border-gray-600 px-3 py-2 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50';
+const controlBase =
+  'rounded-full border border-gray-600 px-3 py-2 text-sm hover:bg-gray-700 disabled:opacity-50';
+const control = controlBase + ' text-purple-200';
 export default function ReviewInteractions({
   reviewId,
   viewerId,
@@ -123,7 +124,9 @@ export default function ReviewInteractions({
           aria-label={
             t('Comments', 'Comentarios') + ' · ' + (summary?.comments ?? 0)
           }
-          className={`${control} inline-flex shrink-0 items-center gap-1`}
+          className={`${controlBase} inline-flex shrink-0 items-center gap-1 ${
+            (summary?.comments ?? 0) > 0 ? 'text-purple-200' : 'text-gray-400'
+          }`}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >

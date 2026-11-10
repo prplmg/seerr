@@ -8,8 +8,9 @@ import { ReactionPill } from './ReactionPeople';
 import ReviewInteractions, {
   type InteractionSummary,
 } from './ReviewInteractions';
-const pill =
-  'shrink-0 rounded-full border border-gray-600 px-2 leading-5 text-purple-200 disabled:opacity-50';
+const pillBase =
+  'shrink-0 rounded-full border border-gray-600 px-2 leading-5 disabled:opacity-50';
+const pill = pillBase + ' text-purple-200';
 
 export default function DiscoveryReviewFooter({
   initiallyOpen = false,
@@ -93,7 +94,9 @@ export default function DiscoveryReviewFooter({
           aria-label={
             t('Comments', 'Comentarios') + ' · ' + (summary?.comments ?? 0)
           }
-          className={pill + ' inline-flex items-center gap-1'}
+          className={`${pillBase} inline-flex items-center gap-1 ${
+            (summary?.comments ?? 0) > 0 ? 'text-purple-200' : 'text-gray-400'
+          }`}
           onClick={() => setSheet('comments')}
         >
           <ChatBubbleOvalLeftIcon className="h-4 w-4" />
