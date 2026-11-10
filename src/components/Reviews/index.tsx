@@ -593,7 +593,7 @@ export function MovieReviews({
                   <div className="mr-auto flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
                       {r.source === 'local' && r.userId === user?.id && (
-                        <button
+                        <button data-analytics-action="edit_review"
                           className="shrink-0 whitespace-nowrap text-purple-300 hover:underline"
                           onClick={() => startEditing(r)}
                         >

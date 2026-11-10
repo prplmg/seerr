@@ -1,3 +1,4 @@
+import { analyticsTrialConfig, type AnalyticsTrialConfig } from '@server/lib/analyticsTrialConfig';
 import { MediaServerType } from '@server/constants/server';
 import { Permission } from '@server/lib/permissions';
 import { runMigrations } from '@server/lib/settings/migrator';
@@ -190,6 +191,7 @@ interface PublicSettings {
 }
 
 interface FullPublicSettings extends PublicSettings {
+  analyticsTrial: AnalyticsTrialConfig;
   applicationTitle: string;
   applicationUrl: string;
   hideAvailable: boolean;
@@ -732,6 +734,7 @@ class Settings {
   get fullPublicSettings(): FullPublicSettings {
     return {
       ...this.data.public,
+      analyticsTrial: analyticsTrialConfig(),
       applicationTitle: this.data.main.applicationTitle,
       applicationUrl: this.data.main.applicationUrl,
       hideAvailable: this.data.main.hideAvailable,

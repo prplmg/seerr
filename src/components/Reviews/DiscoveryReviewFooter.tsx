@@ -82,6 +82,7 @@ export default function DiscoveryReviewFooter({
         <button
           className={pill}
           disabled={busy}
+          data-analytics-action="open_reaction_picker"
           aria-label={t('Add reaction', 'Añadir reacción')}
           onClick={(event) => {
             setAnchor(event.currentTarget);
@@ -91,6 +92,7 @@ export default function DiscoveryReviewFooter({
           ＋
         </button>
         <button
+          data-analytics-action="open_comments"
           aria-label={
             t('Comments', 'Comentarios') + ' · ' + (summary?.comments ?? 0)
           }

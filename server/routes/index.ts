@@ -1,3 +1,4 @@
+import analyticsTrialRoutes from './analyticsTrial';
 import GithubAPI from '@server/api/github';
 import PushoverAPI from '@server/api/pushover';
 import TheMovieDb from '@server/api/themoviedb';
@@ -56,6 +57,7 @@ import watchPartyRoutes from './watchParty';
 const router = Router();
 
 router.use(checkUser);
+router.use('/analytics-trial', isAuthenticated(), analyticsTrialRoutes);
 router.use('/discovery-lists', isAuthenticated(), discoveryListRoutes);
 router.use('/letterboxd-worker', letterboxdWorkerRoutes);
 router.use(

@@ -1,4 +1,5 @@
-﻿import { listLoginDestination } from '@server/interfaces/api/listShare';
+import AnalyticsTrial from '@app/components/AnalyticsTrial';
+import { listLoginDestination } from '@server/interfaces/api/listShare';
 import Layout from '@app/components/Layout';
 import LoadingBar from '@app/components/LoadingBar';
 import PWAHeader from '@app/components/PWAHeader';
@@ -221,7 +222,7 @@ const CoreApp: Omit<NextAppComponentType, 'origGetInitialProps'> = ({
               <MaintenanceBanner />
               <StatusChecker />
               <ServiceWorkerSetup />
-              <UserContext initialUser={user}>{component}</UserContext>
+              <UserContext initialUser={user}><AnalyticsTrial />{component}</UserContext>
               <Toaster
                 position="top-right"
                 toastOptions={{ duration: 4000 }}

@@ -22,6 +22,7 @@ export interface SettingsAboutResponse {
 }
 
 export interface PublicSettingsResponse {
+  analyticsTrial?: import('@server/lib/analyticsTrialConfig').AnalyticsTrialConfig;
   jellyfinHost?: string;
   jellyfinExternalHost?: string;
   jellyfinServerName?: string;

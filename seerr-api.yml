@@ -2163,6 +2163,41 @@ components:
       name: X-Api-Key
 
 paths:
+  /analytics-trial/config:
+    get:
+      responses:
+        '200':
+          description: Runtime trial configuration for authenticated users
+  /analytics-trial/metrics:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [session, variant, page, metrics]
+              properties:
+                session:
+                  type: string
+                  maxLength: 36
+                variant:
+                  type: string
+                  enum: [off, events, replay]
+                page:
+                  type: string
+                  maxLength: 40
+                metrics:
+                  type: object
+                  maxProperties: 13
+                  additionalProperties:
+                    type: number
+      responses:
+        '204':
+          description: Measurement accepted or experiment disabled
+        '400':
+          description: Invalid measurement
   /discovery-lists/media/{type}/{id}:
     parameters:
       - $ref: '#/components/parameters/DiscoveryPreviewUser'
