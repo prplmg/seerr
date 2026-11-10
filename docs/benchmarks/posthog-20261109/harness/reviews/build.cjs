@@ -1,0 +1,15 @@
+const fs=require('fs'),path=require('path'),esbuild=require('../../../koalasync-fork/node_modules/esbuild');const root=path.resolve('seerr-weekly-lists'),out=__dirname;
+const mocks={
+'@app/hooks/useUser':'export const useUser=()=>({user:{id:1}})',
+'@app/components/WatchParty/messages':'export const usePartyText=()=>((en,es)=>en)',
+'@app/components/Common/CachedImage':'export default ({alt,...p})=><img alt={alt} {...p}/>',
+'@app/components/Common/Button':'export default ({buttonType,...p})=><button {...p}/>',
+'@app/components/Slider':'export default ()=>null',
+'next/link':'export default ({href,...p})=><a href={href} {...p}/>',
+'next/router':'const router={query:{},asPath:"/movie/1",replace:()=>{}}; export const useRouter=()=>router',
+'swr':'export const useSWRConfig=()=>({mutate:()=>{}}); export default key=>({mutate:()=>{},data:Array.isArray(key)?{a:{reactions:[],comments:0},b:{reactions:[],comments:0}}:key?.includes("/mine/")?{review:null,entries:[],latestViewing:null}:key?.includes("/reviews?")?{total:40,results:Array.from({length:20},(_,n)=>[{id:"a",userId:1,tmdbId:1,mediaType:"movie",source:"local",rating:4,text:"",publishedAt:"2026-10-21",syncedToLetterboxd:true,user:{name:"prplmg"}},{id:"b",userId:1,tmdbId:1,mediaType:"movie",source:"local",rating:4,text:"",publishedAt:"2026-10-21",syncingToLetterboxd:true,user:{name:"prplmg"}}].map(r=>({...r,id:r.id+n,text:"A synthetic review used only for the isolated performance benchmark. ".repeat(3)}))).flat()}:undefined})',
+'./ReviewInteractions':'export default ()=>null',
+'./QuickEmojiPicker':'export default ()=>null',
+'./ReactionPeople':'export const ReactionPill=()=>null',
+};
+(async()=>{fs.writeFileSync(out+'/entry.tsx',`import React from 'react';import{createRoot}from'react-dom/client';import{MovieReviews}from'${root}/src/components/Reviews';createRoot(document.getElementById('root')!).render(<main className="p-4 text-gray-100"><MovieReviews movieId={1}/></main>);`);await esbuild.build({entryPoints:[out+'/entry.tsx'],outfile:out+'/app.js',bundle:true,minify:true,format:'esm',absWorkingDir:root,tsconfig:root+'/tsconfig.json',nodePaths:[root+'/node_modules'],jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'mocks',setup(b){b.onResolve({filter:/.*/},a=>mocks[a.path]?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mocks[a.path],loader:'jsx',resolveDir:root}));}}]});const css=await require(root+'/node_modules/postcss')([require(root+'/node_modules/tailwindcss')({...require(root+'/tailwind.config.js'),content:[root+'/src/components/Reviews/**/*.tsx',out+'/entry.tsx']})]).process(fs.readFileSync(root+'/src/styles/globals.css','utf8'),{from:root+'/src/styles/globals.css'});fs.writeFileSync(out+'/styles.css',css.css+'\nbody{background:#111827;font-family:system-ui}');fs.writeFileSync(out+'/index.html','<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="styles.css"><div id="root"></div><script type="module" src="app.js"></script>');})();

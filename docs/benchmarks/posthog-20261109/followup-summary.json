@@ -1,0 +1,37 @@
+{
+  "visits": 18,
+  "modes": [
+    {
+      "mode": "off",
+      "readyMedian": 220.1000000005588,
+      "taskMedian": 846.4125,
+      "maxClick": 162.1777919999986,
+      "maxFrameWait": 34.46954100000221,
+      "meanClick": 97.24675230555593
+    },
+    {
+      "mode": "events",
+      "readyMedian": 284.5000000009313,
+      "taskMedian": 979.9865,
+      "maxClick": 161.46108400000958,
+      "maxFrameWait": 34.52720800000043,
+      "meanClick": 97.57538541666683
+    },
+    {
+      "mode": "replay",
+      "readyMedian": 288.19999999925494,
+      "taskMedian": 1278.176,
+      "maxClick": 192.80174999999872,
+      "maxFrameWait": 35.03783399999884,
+      "meanClick": 110.41476266666693
+    }
+  ],
+  "events": {
+    "pairedReady": 62.416666666666664,
+    "pairedTask": 112.08799999999997
+  },
+  "replay": {
+    "pairedReady": 67.68333333265036,
+    "pairedTask": 446.95
+  }
+}

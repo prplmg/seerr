@@ -1,0 +1,10 @@
+{
+  "pages": 180,
+  "sequential": 144,
+  "burstGroups": 9,
+  "warmVisits": 72,
+  "errors": 0,
+  "allEnabledVisitsCapturedAndDelivered": true,
+  "allReplayVisitsCapturedSnapshots": true,
+  "allWarmScriptsCached": true
+}

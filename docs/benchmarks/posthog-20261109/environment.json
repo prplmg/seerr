@@ -1,0 +1,13 @@
+{
+  "node": "v20.19.5",
+  "platform": "darwin",
+  "arch": "arm64",
+  "chrome": "Google Chrome 157.0.8103.50",
+  "source": "b99962a6836edcc7ea69b000687c4825bb5ef12a",
+  "artifacts": {
+    "reviews/app.js": "f88552682ef8609fce5cc34f09e0f3cdfe45e7586b27f0d597681e26ab805d60",
+    "finder/preview.js": "134ec6dc93e971f82f17359c3cbde3cde6bf06c166cf503ba788a5c7757a5324",
+    "node_modules/posthog-js/dist/array.js": "a327fac90c42412d5b26398c8f5bae17d30102aa12be97f8452934c6e7613c3b",
+    "node_modules/posthog-js/dist/lazy-recorder.js": "74d8805d1e59818b4120fdb952800909ec428a864a3d6838f85710806198950d"
+  }
+}

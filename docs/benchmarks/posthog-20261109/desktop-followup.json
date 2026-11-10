@@ -1,0 +1,2795 @@
+[
+  {
+    "route": "/reviews",
+    "mode": "off",
+    "ready": 212.59999999962747,
+    "long": [],
+    "lcp": 216,
+    "fcp": 216,
+    "sdkReady": 0,
+    "events": [],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      }
+    ],
+    "storageBytes": 2,
+    "domNodes": 1158,
+    "clickTimes": [
+      154.51987499999996,
+      81.86325000000033,
+      86.49800000000005,
+      87.23591699999997,
+      85.64054100000021,
+      83.57304199999999
+    ],
+    "clickStages": [
+      {
+        "clickMs": 127.07333300000005,
+        "frameWaitMs": 27.456208999999944
+      },
+      {
+        "clickMs": 59.05625000000009,
+        "frameWaitMs": 22.8095000000003
+      },
+      {
+        "clickMs": 61.50258399999984,
+        "frameWaitMs": 24.9978329999999
+      },
+      {
+        "clickMs": 66.38237500000014,
+        "frameWaitMs": 20.856209000000035
+      },
+      {
+        "clickMs": 62.26608299999998,
+        "frameWaitMs": 23.377332999999908
+      },
+      {
+        "clickMs": 63.23541699999987,
+        "frameWaitMs": 20.339916000000358
+      }
+    ],
+    "loadAverage": [
+      3.765625,
+      9.9873046875,
+      7.541015625
+    ],
+    "cpuMs": 799.91,
+    "heapBytes": 16075612,
+    "receipts": [],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 0
+  },
+  {
+    "route": "/reviews",
+    "mode": "events",
+    "ready": 275.5,
+    "long": [
+      {
+        "start": 127.5,
+        "duration": 58
+      }
+    ],
+    "lcp": 276,
+    "fcp": 276,
+    "sdkReady": 147.5,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 1980
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      }
+    ],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1572,
+    "domNodes": 1161,
+    "clickTimes": [
+      145.13554100000056,
+      74.73116699999991,
+      84.10916600000019,
+      101.46220799999992,
+      83.03308399999969,
+      72.01920799999971
+    ],
+    "clickStages": [
+      {
+        "clickMs": 119.5204160000003,
+        "frameWaitMs": 25.620334000000184
+      },
+      {
+        "clickMs": 53.81237500000043,
+        "frameWaitMs": 20.922749999999724
+      },
+      {
+        "clickMs": 61.67408299999988,
+        "frameWaitMs": 22.439624999999978
+      },
+      {
+        "clickMs": 66.93737499999952,
+        "frameWaitMs": 34.52720800000043
+      },
+      {
+        "clickMs": 61.263833999999406,
+        "frameWaitMs": 21.77350000000024
+      },
+      {
+        "clickMs": 52.05041700000038,
+        "frameWaitMs": 19.974499999999352
+      }
+    ],
+    "loadAverage": [
+      3.7841796875,
+      9.8876953125,
+      7.52001953125
+    ],
+    "cpuMs": 908.353,
+    "heapBytes": 15094428,
+    "receipts": [
+      {
+        "run": "17ce1df5-1c36-416d-a0c3-c2229106ad33",
+        "path": "/e/",
+        "bytes": 15786
+      },
+      {
+        "run": "17ce1df5-1c36-416d-a0c3-c2229106ad33",
+        "path": "/e/",
+        "bytes": 9889
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 0
+  },
+  {
+    "route": "/reviews",
+    "mode": "replay",
+    "ready": 289.19999999925494,
+    "long": [
+      {
+        "start": 65,
+        "duration": 50
+      },
+      {
+        "start": 133.90000000037253,
+        "duration": 60
+      },
+      {
+        "start": 230.69999999925494,
+        "duration": 50
+      },
+      {
+        "start": 289.69999999925494,
+        "duration": 105
+      },
+      {
+        "start": 576.6999999992549,
+        "duration": 57
+      }
+    ],
+    "lcp": 288,
+    "fcp": 288,
+    "sdkReady": 156.7999999988824,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 2098
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "$snapshot",
+        "bytes": 118800
+      }
+    ],
+    "recording": true,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/static/1.447.7/lazy-recorder.js",
+        "transfer": 0,
+        "encoded": 68944
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/s/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1836,
+    "domNodes": 1162,
+    "clickTimes": [
+      171.54899999999907,
+      99.73637500000041,
+      105.96029199999975,
+      95.3724170000005,
+      97.01333299999897,
+      96.9189580000002
+    ],
+    "clickStages": [
+      {
+        "clickMs": 136.51879100000042,
+        "frameWaitMs": 35.03783399999884
+      },
+      {
+        "clickMs": 74.40187500000138,
+        "frameWaitMs": 25.340666999998575
+      },
+      {
+        "clickMs": 84.1387080000004,
+        "frameWaitMs": 21.832291999999143
+      },
+      {
+        "clickMs": 60.99579199999971,
+        "frameWaitMs": 34.38158300000032
+      },
+      {
+        "clickMs": 63.76933300000019,
+        "frameWaitMs": 33.248499999999694
+      },
+      {
+        "clickMs": 62.84187500000007,
+        "frameWaitMs": 34.082791999999245
+      }
+    ],
+    "loadAverage": [
+      3.64111328125,
+      9.75634765625,
+      7.4873046875
+    ],
+    "cpuMs": 1279.2269999999999,
+    "heapBytes": 23648524,
+    "receipts": [
+      {
+        "run": "53e3e6d8-744a-47be-a996-732a8ccdc3dd",
+        "path": "/e/",
+        "bytes": 11732
+      },
+      {
+        "run": "53e3e6d8-744a-47be-a996-732a8ccdc3dd",
+        "path": "/e/",
+        "bytes": 19175
+      },
+      {
+        "run": "53e3e6d8-744a-47be-a996-732a8ccdc3dd",
+        "path": "/s/",
+        "bytes": 149178
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 0
+  },
+  {
+    "route": "/reviews",
+    "mode": "events",
+    "ready": 267.09999999962747,
+    "long": [
+      {
+        "start": 124.29999999888241,
+        "duration": 56
+      }
+    ],
+    "lcp": 268,
+    "fcp": 268,
+    "sdkReady": 144.90000000037253,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 1980
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1955
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      }
+    ],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1572,
+    "domNodes": 1161,
+    "clickTimes": [
+      133.8574579999986,
+      77.53512499999852,
+      83.63554199999999,
+      84.0260419999995,
+      84.28491600000052,
+      88.42874999999913
+    ],
+    "clickStages": [
+      {
+        "clickMs": 116.86670799999956,
+        "frameWaitMs": 17.00116700000035
+      },
+      {
+        "clickMs": 58.34637499999917,
+        "frameWaitMs": 19.19329199999993
+      },
+      {
+        "clickMs": 62.97462500000074,
+        "frameWaitMs": 20.661416999999346
+      },
+      {
+        "clickMs": 65.17916700000023,
+        "frameWaitMs": 18.847374999999374
+      },
+      {
+        "clickMs": 64.51950000000033,
+        "frameWaitMs": 19.76616599999943
+      },
+      {
+        "clickMs": 65.58849999999984,
+        "frameWaitMs": 22.84087499999987
+      }
+    ],
+    "loadAverage": [
+      3.74951171875,
+      9.67724609375,
+      7.47265625
+    ],
+    "cpuMs": 889.01,
+    "heapBytes": 14489416,
+    "receipts": [
+      {
+        "run": "f56ef4bd-9c93-41fb-a690-1229b9c7fe9c",
+        "path": "/e/",
+        "bytes": 15784
+      },
+      {
+        "run": "f56ef4bd-9c93-41fb-a690-1229b9c7fe9c",
+        "path": "/e/",
+        "bytes": 9892
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 1
+  },
+  {
+    "route": "/reviews",
+    "mode": "replay",
+    "ready": 306.2000000011176,
+    "long": [
+      {
+        "start": 64.40000000037253,
+        "duration": 51
+      },
+      {
+        "start": 136.7000000011176,
+        "duration": 67
+      },
+      {
+        "start": 244.7000000011176,
+        "duration": 54
+      },
+      {
+        "start": 306.80000000074506,
+        "duration": 106
+      },
+      {
+        "start": 618,
+        "duration": 52
+      }
+    ],
+    "lcp": 304,
+    "fcp": 304,
+    "sdkReady": 162.40000000037253,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 2098
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "$snapshot",
+        "bytes": 118845
+      }
+    ],
+    "recording": true,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/static/1.447.7/lazy-recorder.js",
+        "transfer": 0,
+        "encoded": 68944
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/s/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1836,
+    "domNodes": 1162,
+    "clickTimes": [
+      167.70349999999962,
+      99.79079199999978,
+      107.00820799999929,
+      104.40420799999993,
+      99.81108300000051,
+      93.15125000000262
+    ],
+    "clickStages": [
+      {
+        "clickMs": 150.01637499999924,
+        "frameWaitMs": 17.688458000000537
+      },
+      {
+        "clickMs": 74.50624999999854,
+        "frameWaitMs": 25.285792000002402
+      },
+      {
+        "clickMs": 81.67145800000071,
+        "frameWaitMs": 25.338332999999693
+      },
+      {
+        "clickMs": 71.85470799999894,
+        "frameWaitMs": 32.55070799999885
+      },
+      {
+        "clickMs": 67.33983300000182,
+        "frameWaitMs": 32.47279200000048
+      },
+      {
+        "clickMs": 59.655625000003056,
+        "frameWaitMs": 33.49641699999847
+      }
+    ],
+    "loadAverage": [
+      3.689453125,
+      9.56591796875,
+      7.4462890625
+    ],
+    "cpuMs": 1316.096,
+    "heapBytes": 23564092,
+    "receipts": [
+      {
+        "run": "e08b39e0-c383-4850-8569-ebcd8e300af1",
+        "path": "/e/",
+        "bytes": 11732
+      },
+      {
+        "run": "e08b39e0-c383-4850-8569-ebcd8e300af1",
+        "path": "/e/",
+        "bytes": 19175
+      },
+      {
+        "run": "e08b39e0-c383-4850-8569-ebcd8e300af1",
+        "path": "/s/",
+        "bytes": 149223
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 1
+  },
+  {
+    "route": "/reviews",
+    "mode": "off",
+    "ready": 224.90000000037253,
+    "long": [
+      {
+        "start": 59,
+        "duration": 51
+      }
+    ],
+    "lcp": 224,
+    "fcp": 224,
+    "sdkReady": 0,
+    "events": [],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      }
+    ],
+    "storageBytes": 2,
+    "domNodes": 1158,
+    "clickTimes": [
+      162.1777919999986,
+      81.89991600000212,
+      94.54191700000229,
+      82.56716700000106,
+      83.12975000000006,
+      86.52566600000137
+    ],
+    "clickStages": [
+      {
+        "clickMs": 127.70979199999783,
+        "frameWaitMs": 34.46954100000221
+      },
+      {
+        "clickMs": 60.98579099999915,
+        "frameWaitMs": 20.915000000000873
+      },
+      {
+        "clickMs": 63.221457999999984,
+        "frameWaitMs": 31.321917000001122
+      },
+      {
+        "clickMs": 57.6195000000007,
+        "frameWaitMs": 24.948707999999897
+      },
+      {
+        "clickMs": 62.2610829999976,
+        "frameWaitMs": 20.87000000000262
+      },
+      {
+        "clickMs": 62.280791000001045,
+        "frameWaitMs": 24.245749999998225
+      }
+    ],
+    "loadAverage": [
+      3.5537109375,
+      9.43994140625,
+      7.4140625
+    ],
+    "cpuMs": 851.288,
+    "heapBytes": 16283608,
+    "receipts": [],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 1
+  },
+  {
+    "route": "/reviews",
+    "mode": "replay",
+    "ready": 266.59999999962747,
+    "long": [
+      {
+        "start": 123.19999999925494,
+        "duration": 58
+      },
+      {
+        "start": 267.2999999988824,
+        "duration": 93
+      },
+      {
+        "start": 553.1999999992549,
+        "duration": 60
+      }
+    ],
+    "lcp": 268,
+    "fcp": 268,
+    "sdkReady": 145.09999999962747,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 2098
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2383
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "$snapshot",
+        "bytes": 118800
+      }
+    ],
+    "recording": true,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/static/1.447.7/lazy-recorder.js",
+        "transfer": 0,
+        "encoded": 68944
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/s/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1836,
+    "domNodes": 1162,
+    "clickTimes": [
+      192.80174999999872,
+      115.47300000000178,
+      104.12287500000093,
+      91.54087500000242,
+      94.10504099999889,
+      91.64287500000137
+    ],
+    "clickStages": [
+      {
+        "clickMs": 158.53812499999913,
+        "frameWaitMs": 34.26520800000071
+      },
+      {
+        "clickMs": 80.4887920000001,
+        "frameWaitMs": 34.98579100000279
+      },
+      {
+        "clickMs": 82.18866600000183,
+        "frameWaitMs": 21.93658399999913
+      },
+      {
+        "clickMs": 59.9654580000024,
+        "frameWaitMs": 31.57683299999917
+      },
+      {
+        "clickMs": 68.4260409999988,
+        "frameWaitMs": 25.68025000000125
+      },
+      {
+        "clickMs": 62.697000000000116,
+        "frameWaitMs": 28.947124999998778
+      }
+    ],
+    "loadAverage": [
+      3.50927734375,
+      9.3330078125,
+      7.38818359375
+    ],
+    "cpuMs": 1356.242,
+    "heapBytes": 24618044,
+    "receipts": [
+      {
+        "run": "2f66a582-9572-47f5-824a-5a9b71307a36",
+        "path": "/e/",
+        "bytes": 11731
+      },
+      {
+        "run": "2f66a582-9572-47f5-824a-5a9b71307a36",
+        "path": "/e/",
+        "bytes": 19173
+      },
+      {
+        "run": "2f66a582-9572-47f5-824a-5a9b71307a36",
+        "path": "/s/",
+        "bytes": 149178
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 2
+  },
+  {
+    "route": "/reviews",
+    "mode": "off",
+    "ready": 220.30000000074506,
+    "long": [
+      {
+        "start": 58.09999999962747,
+        "duration": 50
+      }
+    ],
+    "lcp": 220,
+    "fcp": 220,
+    "sdkReady": 0,
+    "events": [],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      }
+    ],
+    "storageBytes": 2,
+    "domNodes": 1158,
+    "clickTimes": [
+      160.06629199999952,
+      89.56437500000175,
+      99.65770899999916,
+      97.63904200000252,
+      82.77900000000227,
+      83.56104100000084
+    ],
+    "clickStages": [
+      {
+        "clickMs": 133.4044580000009,
+        "frameWaitMs": 26.663000000000466
+      },
+      {
+        "clickMs": 68.64129099999991,
+        "frameWaitMs": 20.92450000000099
+      },
+      {
+        "clickMs": 68.32783399999607,
+        "frameWaitMs": 31.33179100000416
+      },
+      {
+        "clickMs": 67.28708400000323,
+        "frameWaitMs": 30.353415999998106
+      },
+      {
+        "clickMs": 60.33058300000266,
+        "frameWaitMs": 22.449291999997513
+      },
+      {
+        "clickMs": 62.21645799999533,
+        "frameWaitMs": 21.345625000001746
+      }
+    ],
+    "loadAverage": [
+      3.54833984375,
+      9.244140625,
+      7.3681640625
+    ],
+    "cpuMs": 902.957,
+    "heapBytes": 16262324,
+    "receipts": [],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 2
+  },
+  {
+    "route": "/reviews",
+    "mode": "events",
+    "ready": 283.30000000074506,
+    "long": [
+      {
+        "start": 130.09999999962747,
+        "duration": 60
+      },
+      {
+        "start": 418.09999999962747,
+        "duration": 51
+      }
+    ],
+    "lcp": 284,
+    "fcp": 284,
+    "sdkReady": 151,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 1980
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      }
+    ],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1569,
+    "domNodes": 1161,
+    "clickTimes": [
+      158.2094999999972,
+      90.69479100000171,
+      82.57841600000393,
+      83.736834000003,
+      83.07312500000262,
+      102.95850000000064
+    ],
+    "clickStages": [
+      {
+        "clickMs": 131.46595900000102,
+        "frameWaitMs": 26.744874999996682
+      },
+      {
+        "clickMs": 62.133874999999534,
+        "frameWaitMs": 28.56212499999674
+      },
+      {
+        "clickMs": 64.36900000000605,
+        "frameWaitMs": 18.21087499999703
+      },
+      {
+        "clickMs": 65.99612500000512,
+        "frameWaitMs": 17.741583999995783
+      },
+      {
+        "clickMs": 64.39320800000132,
+        "frameWaitMs": 18.68133300000045
+      },
+      {
+        "clickMs": 72.3327089999948,
+        "frameWaitMs": 30.627333000004
+      }
+    ],
+    "loadAverage": [
+      3.54833984375,
+      9.244140625,
+      7.3681640625
+    ],
+    "cpuMs": 974.876,
+    "heapBytes": 16423952,
+    "receipts": [
+      {
+        "run": "c7af0295-8452-4d06-91ce-b1875560a0ed",
+        "path": "/e/",
+        "bytes": 13827
+      },
+      {
+        "run": "c7af0295-8452-4d06-91ce-b1875560a0ed",
+        "path": "/e/",
+        "bytes": 11847
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 2
+  },
+  {
+    "route": "/reviews",
+    "mode": "off",
+    "ready": 219.90000000037253,
+    "long": [
+      {
+        "start": 59.600000001490116,
+        "duration": 51
+      }
+    ],
+    "lcp": 220,
+    "fcp": 220,
+    "sdkReady": 0,
+    "events": [],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      }
+    ],
+    "storageBytes": 2,
+    "domNodes": 1158,
+    "clickTimes": [
+      131.03516600000148,
+      78.47295799999847,
+      86.64858300000196,
+      96.31674999999814,
+      81.03041700000176,
+      86.82249999999476
+    ],
+    "clickStages": [
+      {
+        "clickMs": 116.27950000000419,
+        "frameWaitMs": 14.757040999997116
+      },
+      {
+        "clickMs": 57.1594169999953,
+        "frameWaitMs": 21.314665999998397
+      },
+      {
+        "clickMs": 62.75274999999965,
+        "frameWaitMs": 23.898000000001048
+      },
+      {
+        "clickMs": 75.01504099999875,
+        "frameWaitMs": 21.303208999997878
+      },
+      {
+        "clickMs": 57.22516699999687,
+        "frameWaitMs": 23.807458000002953
+      },
+      {
+        "clickMs": 64.20049999999901,
+        "frameWaitMs": 22.623584000000847
+      }
+    ],
+    "loadAverage": [
+      3.42431640625,
+      9.12353515625,
+      7.33642578125
+    ],
+    "cpuMs": 836.881,
+    "heapBytes": 16002468,
+    "receipts": [],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 3
+  },
+  {
+    "route": "/reviews",
+    "mode": "events",
+    "ready": 288,
+    "long": [
+      {
+        "start": 61.59999999962747,
+        "duration": 50
+      },
+      {
+        "start": 130.59999999962747,
+        "duration": 60
+      },
+      {
+        "start": 229.90000000037253,
+        "duration": 52
+      },
+      {
+        "start": 426.09999999962747,
+        "duration": 51
+      }
+    ],
+    "lcp": 288,
+    "fcp": 288,
+    "sdkReady": 152.09999999962747,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 1980
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      }
+    ],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1572,
+    "domNodes": 1161,
+    "clickTimes": [
+      149.86770799999795,
+      105.24379200000112,
+      80.83699999999953,
+      83.74483299999702,
+      83.94933299999684,
+      87.65029199999844
+    ],
+    "clickStages": [
+      {
+        "clickMs": 122.23954200000298,
+        "frameWaitMs": 27.629124999999476
+      },
+      {
+        "clickMs": 73.5236670000013,
+        "frameWaitMs": 31.72154099999898
+      },
+      {
+        "clickMs": 63.440124999993714,
+        "frameWaitMs": 17.398291000004974
+      },
+      {
+        "clickMs": 65.02924999999959,
+        "frameWaitMs": 18.717208000001847
+      },
+      {
+        "clickMs": 64.32883299999958,
+        "frameWaitMs": 19.622041999995417
+      },
+      {
+        "clickMs": 68.63145899999654,
+        "frameWaitMs": 19.02020800000173
+      }
+    ],
+    "loadAverage": [
+      3.79052734375,
+      9.1044921875,
+      7.33984375
+    ],
+    "cpuMs": 985.097,
+    "heapBytes": 15162876,
+    "receipts": [
+      {
+        "run": "51e88095-cb3f-441c-9204-8a5cb278954f",
+        "path": "/e/",
+        "bytes": 13825
+      },
+      {
+        "run": "51e88095-cb3f-441c-9204-8a5cb278954f",
+        "path": "/e/",
+        "bytes": 11849
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 3
+  },
+  {
+    "route": "/reviews",
+    "mode": "replay",
+    "ready": 289.3999999985099,
+    "long": [
+      {
+        "start": 131,
+        "duration": 63
+      },
+      {
+        "start": 233.09999999962747,
+        "duration": 50
+      },
+      {
+        "start": 290.5,
+        "duration": 100
+      },
+      {
+        "start": 572.5,
+        "duration": 54
+      }
+    ],
+    "lcp": 292,
+    "fcp": 292,
+    "sdkReady": 154.5,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 2098
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2383
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2383
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "$snapshot",
+        "bytes": 118799
+      }
+    ],
+    "recording": true,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/static/1.447.7/lazy-recorder.js",
+        "transfer": 0,
+        "encoded": 68944
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/s/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1836,
+    "domNodes": 1162,
+    "clickTimes": [
+      174.26800000000367,
+      104.83295799999905,
+      104.11087499999849,
+      95.18395800000144,
+      98.51075000000128,
+      105.61104200000409
+    ],
+    "clickStages": [
+      {
+        "clickMs": 139.31862499999988,
+        "frameWaitMs": 34.95087500000227
+      },
+      {
+        "clickMs": 75.27850000000035,
+        "frameWaitMs": 29.555749999999534
+      },
+      {
+        "clickMs": 73.38650000000052,
+        "frameWaitMs": 30.726041999994777
+      },
+      {
+        "clickMs": 63.178916999997455,
+        "frameWaitMs": 32.00604100000055
+      },
+      {
+        "clickMs": 68.66341699999612,
+        "frameWaitMs": 29.848750000004657
+      },
+      {
+        "clickMs": 74.69950000000244,
+        "frameWaitMs": 30.913416999996116
+      }
+    ],
+    "loadAverage": [
+      3.80712890625,
+      9.01953125,
+      7.31982421875
+    ],
+    "cpuMs": 1263.018,
+    "heapBytes": 23832160,
+    "receipts": [
+      {
+        "run": "cb3b4039-0b78-4d44-93d4-fe0e8714eef9",
+        "path": "/e/",
+        "bytes": 11731
+      },
+      {
+        "run": "cb3b4039-0b78-4d44-93d4-fe0e8714eef9",
+        "path": "/e/",
+        "bytes": 19174
+      },
+      {
+        "run": "cb3b4039-0b78-4d44-93d4-fe0e8714eef9",
+        "path": "/s/",
+        "bytes": 149177
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 3
+  },
+  {
+    "route": "/reviews",
+    "mode": "events",
+    "ready": 285.7000000011176,
+    "long": [
+      {
+        "start": 60.90000000037253,
+        "duration": 50
+      },
+      {
+        "start": 132.09999999962747,
+        "duration": 60
+      },
+      {
+        "start": 228.90000000037253,
+        "duration": 51
+      }
+    ],
+    "lcp": 288,
+    "fcp": 288,
+    "sdkReady": 153.5,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 1980
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      }
+    ],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1572,
+    "domNodes": 1161,
+    "clickTimes": [
+      153.40541700000176,
+      89.10933300000033,
+      95.53612499999872,
+      80.8340840000019,
+      96.30404200000339,
+      80.33883400000195
+    ],
+    "clickStages": [
+      {
+        "clickMs": 124.44695800000045,
+        "frameWaitMs": 28.96008399999846
+      },
+      {
+        "clickMs": 71.47770799999853,
+        "frameWaitMs": 17.633083000000624
+      },
+      {
+        "clickMs": 65.44637499999953,
+        "frameWaitMs": 30.091542000001937
+      },
+      {
+        "clickMs": 62.88883399999759,
+        "frameWaitMs": 17.9465410000048
+      },
+      {
+        "clickMs": 68.21170800000255,
+        "frameWaitMs": 28.093667000001005
+      },
+      {
+        "clickMs": 61.991500000003725,
+        "frameWaitMs": 18.349042000001646
+      }
+    ],
+    "loadAverage": [
+      3.90234375,
+      8.95263671875,
+      7.30615234375
+    ],
+    "cpuMs": 1009.8309999999999,
+    "heapBytes": 15377824,
+    "receipts": [
+      {
+        "run": "65e39f76-35f3-4fd1-9372-dda6c618d865",
+        "path": "/e/",
+        "bytes": 13821
+      },
+      {
+        "run": "65e39f76-35f3-4fd1-9372-dda6c618d865",
+        "path": "/e/",
+        "bytes": 11850
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 4
+  },
+  {
+    "route": "/reviews",
+    "mode": "replay",
+    "ready": 283.09999999962747,
+    "long": [
+      {
+        "start": 126.40000000037253,
+        "duration": 62
+      },
+      {
+        "start": 225.90000000037253,
+        "duration": 50
+      },
+      {
+        "start": 283.7000000011176,
+        "duration": 97
+      }
+    ],
+    "lcp": 284,
+    "fcp": 284,
+    "sdkReady": 149.09999999962747,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 2098
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2383
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "$snapshot",
+        "bytes": 118801
+      }
+    ],
+    "recording": true,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/static/1.447.7/lazy-recorder.js",
+        "transfer": 0,
+        "encoded": 68944
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/s/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1836,
+    "domNodes": 1162,
+    "clickTimes": [
+      153.6867080000011,
+      106.4577500000014,
+      93.93033299999661,
+      107.06229199999507,
+      93.36158300000534,
+      91.87445899999875
+    ],
+    "clickStages": [
+      {
+        "clickMs": 128.49408300000505,
+        "frameWaitMs": 25.194292000000132
+      },
+      {
+        "clickMs": 78.16991699999926,
+        "frameWaitMs": 28.29020799999853
+      },
+      {
+        "clickMs": 68.12358300000051,
+        "frameWaitMs": 25.807832999998936
+      },
+      {
+        "clickMs": 74.0191249999989,
+        "frameWaitMs": 33.04412500000035
+      },
+      {
+        "clickMs": 67.12491600000067,
+        "frameWaitMs": 26.238541999999143
+      },
+      {
+        "clickMs": 67.28804200000013,
+        "frameWaitMs": 24.587791999998444
+      }
+    ],
+    "loadAverage": [
+      3.830078125,
+      8.853515625,
+      7.28076171875
+    ],
+    "cpuMs": 1276.3139999999999,
+    "heapBytes": 23590880,
+    "receipts": [
+      {
+        "run": "2ecabd59-4d91-41f3-80f3-8eee13e12c66",
+        "path": "/e/",
+        "bytes": 14116
+      },
+      {
+        "run": "2ecabd59-4d91-41f3-80f3-8eee13e12c66",
+        "path": "/e/",
+        "bytes": 16789
+      },
+      {
+        "run": "2ecabd59-4d91-41f3-80f3-8eee13e12c66",
+        "path": "/s/",
+        "bytes": 149179
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 4
+  },
+  {
+    "route": "/reviews",
+    "mode": "off",
+    "ready": 217.40000000037253,
+    "long": [],
+    "lcp": 220,
+    "fcp": 220,
+    "sdkReady": 0,
+    "events": [],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      }
+    ],
+    "storageBytes": 2,
+    "domNodes": 1158,
+    "clickTimes": [
+      151.47533400000248,
+      80.30966700000135,
+      83.4878749999989,
+      85.16179199999897,
+      81.72145799999998,
+      86.57733300000109
+    ],
+    "clickStages": [
+      {
+        "clickMs": 121.26937500000349,
+        "frameWaitMs": 30.20762499999546
+      },
+      {
+        "clickMs": 59.49895800000377,
+        "frameWaitMs": 20.812041999997746
+      },
+      {
+        "clickMs": 60.592124999995576,
+        "frameWaitMs": 22.89729200000147
+      },
+      {
+        "clickMs": 64.16833400000178,
+        "frameWaitMs": 20.99516600000061
+      },
+      {
+        "clickMs": 60.821875000001455,
+        "frameWaitMs": 20.900915999998688
+      },
+      {
+        "clickMs": 68.65445799999725,
+        "frameWaitMs": 17.924334000003
+      }
+    ],
+    "loadAverage": [
+      3.84326171875,
+      8.7724609375,
+      7.26123046875
+    ],
+    "cpuMs": 841.537,
+    "heapBytes": 16296948,
+    "receipts": [],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 4
+  },
+  {
+    "route": "/reviews",
+    "mode": "replay",
+    "ready": 287.19999999925494,
+    "long": [
+      {
+        "start": 131.30000000074506,
+        "duration": 63
+      },
+      {
+        "start": 287.40000000037253,
+        "duration": 99
+      },
+      {
+        "start": 558.1999999992549,
+        "duration": 53
+      }
+    ],
+    "lcp": 288,
+    "fcp": 288,
+    "sdkReady": 155.80000000074506,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 2098
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2384
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 2385
+      },
+      {
+        "event": "$snapshot",
+        "bytes": 118845
+      }
+    ],
+    "recording": true,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/static/1.447.7/lazy-recorder.js",
+        "transfer": 0,
+        "encoded": 68944
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1836,
+    "domNodes": 1162,
+    "clickTimes": [
+      154.4265000000014,
+      92.2622080000001,
+      96.15862499999639,
+      91.16929099999834,
+      93.83195900000283,
+      90.08633299999929
+    ],
+    "clickStages": [
+      {
+        "clickMs": 133.62016700000095,
+        "frameWaitMs": 20.807667000000947
+      },
+      {
+        "clickMs": 63.212750000006054,
+        "frameWaitMs": 29.05108299999847
+      },
+      {
+        "clickMs": 66.21154200000456,
+        "frameWaitMs": 29.947707999992417
+      },
+      {
+        "clickMs": 62.97583300000406,
+        "frameWaitMs": 28.19483300000138
+      },
+      {
+        "clickMs": 66.01604200000293,
+        "frameWaitMs": 27.81745800000499
+      },
+      {
+        "clickMs": 62.882792000003974,
+        "frameWaitMs": 27.204624999998487
+      }
+    ],
+    "loadAverage": [
+      3.85546875,
+      8.69287109375,
+      7.24169921875
+    ],
+    "cpuMs": 1277.125,
+    "heapBytes": 23383156,
+    "receipts": [
+      {
+        "run": "542f5042-7b3b-4066-99ea-fd59eaa00ce3",
+        "path": "/e/",
+        "bytes": 14117
+      },
+      {
+        "run": "542f5042-7b3b-4066-99ea-fd59eaa00ce3",
+        "path": "/e/",
+        "bytes": 16790
+      },
+      {
+        "run": "542f5042-7b3b-4066-99ea-fd59eaa00ce3",
+        "path": "/s/",
+        "bytes": 149223
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 5
+  },
+  {
+    "route": "/reviews",
+    "mode": "off",
+    "ready": 220.5,
+    "long": [
+      {
+        "start": 57.399999998509884,
+        "duration": 52
+      },
+      {
+        "start": 163,
+        "duration": 50
+      }
+    ],
+    "lcp": 220,
+    "fcp": 220,
+    "sdkReady": 0,
+    "events": [],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      }
+    ],
+    "storageBytes": 2,
+    "domNodes": 1158,
+    "clickTimes": [
+      155.90712500001246,
+      95.40395900000294,
+      81.96129099999962,
+      83.01449999999022,
+      84.95154099998763,
+      87.1445420000091
+    ],
+    "clickStages": [
+      {
+        "clickMs": 124.42633300001035,
+        "frameWaitMs": 31.48187499999767
+      },
+      {
+        "clickMs": 61.45479200000409,
+        "frameWaitMs": 33.950499999991735
+      },
+      {
+        "clickMs": 61.769166000012774,
+        "frameWaitMs": 20.19366699999955
+      },
+      {
+        "clickMs": 63.73991699999897,
+        "frameWaitMs": 19.27608299998974
+      },
+      {
+        "clickMs": 63.019707999992534,
+        "frameWaitMs": 21.933166999995592
+      },
+      {
+        "clickMs": 65.38445900000806,
+        "frameWaitMs": 21.76183299999684
+      }
+    ],
+    "loadAverage": [
+      3.85546875,
+      8.69287109375,
+      7.24169921875
+    ],
+    "cpuMs": 853.749,
+    "heapBytes": 15969736,
+    "receipts": [],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 5
+  },
+  {
+    "route": "/reviews",
+    "mode": "events",
+    "ready": 290.5,
+    "long": [
+      {
+        "start": 61.09999999962747,
+        "duration": 50
+      },
+      {
+        "start": 131.19999999925494,
+        "duration": 61
+      },
+      {
+        "start": 228.59999999962747,
+        "duration": 55
+      },
+      {
+        "start": 439.09999999962747,
+        "duration": 50
+      }
+    ],
+    "lcp": 292,
+    "fcp": 292,
+    "sdkReady": 152.5,
+    "events": [
+      {
+        "event": "$pageview",
+        "bytes": 1980
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1956
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1960
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1957
+      },
+      {
+        "event": "benchmark_action",
+        "bytes": 1959
+      }
+    ],
+    "recording": false,
+    "resources": [
+      {
+        "name": "/reviews/styles.css",
+        "transfer": 0,
+        "encoded": 8545
+      },
+      {
+        "name": "/reviews/app.js",
+        "transfer": 0,
+        "encoded": 93136
+      },
+      {
+        "name": "/init.js",
+        "transfer": 0,
+        "encoded": 692
+      },
+      {
+        "name": "/sdk.js",
+        "transfer": 0,
+        "encoded": 121332
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config.js",
+        "transfer": 0,
+        "encoded": 20
+      },
+      {
+        "name": "/array/phc_isolated_synthetic_benchmark/config",
+        "transfer": 436,
+        "encoded": 136
+      },
+      {
+        "name": "/favicon.ico",
+        "transfer": 300,
+        "encoded": 0
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      },
+      {
+        "name": "/e/",
+        "transfer": 312,
+        "encoded": 12
+      }
+    ],
+    "storageBytes": 1572,
+    "domNodes": 1161,
+    "clickTimes": [
+      161.46108400000958,
+      89.65183299999626,
+      96.54329200000211,
+      96.5402080000058,
+      80.83504199999152,
+      87.35224999999627
+    ],
+    "clickStages": [
+      {
+        "clickMs": 134.09845900000073,
+        "frameWaitMs": 27.364125000007334
+      },
+      {
+        "clickMs": 71.02158299999428,
+        "frameWaitMs": 18.631958000012673
+      },
+      {
+        "clickMs": 63.79512499998964,
+        "frameWaitMs": 32.74954200000502
+      },
+      {
+        "clickMs": 63.5528750000085,
+        "frameWaitMs": 32.98862499999814
+      },
+      {
+        "clickMs": 61.46229199999652,
+        "frameWaitMs": 19.374582999997074
+      },
+      {
+        "clickMs": 68.46083300000464,
+        "frameWaitMs": 18.89291699999012
+      }
+    ],
+    "loadAverage": [
+      3.78662109375,
+      8.59814453125,
+      7.216796875
+    ],
+    "cpuMs": 991.683,
+    "heapBytes": 15139576,
+    "receipts": [
+      {
+        "run": "29a47440-da39-42e0-8b09-d4e66a62cc26",
+        "path": "/e/",
+        "bytes": 13818
+      },
+      {
+        "run": "29a47440-da39-42e0-8b09-d4e66a62cc26",
+        "path": "/e/",
+        "bytes": 11846
+      }
+    ],
+    "errors": [],
+    "width": 1440,
+    "phase": "warm",
+    "round": 5
+  }
+]
