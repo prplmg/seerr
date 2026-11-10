@@ -1,8 +1,10 @@
 import { SettingsContext } from '@app/context/SettingsContext';
-import { useUser } from '@app/hooks/useUser';
+import { Permission, useUser } from '@app/hooks/useUser';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useContext, useEffect } from 'react';
+
+import { readAnalyticsMode } from './mode';
 
 type SDK = {
   __loaded?: boolean;
@@ -26,7 +28,8 @@ const safePage = (url: string) => {
 
 // Deliberately independent of PostHog: the control group records these too.
 export default function AnalyticsTrial() {
-  const { user } = useUser();
+  const { user, hasPermission } = useUser();
+  const isAdmin = hasPermission(Permission.ADMIN);
   const router = useRouter();
   const userId = user?.id;
   const { currentSettings } = useContext(SettingsContext);
@@ -128,35 +131,8 @@ export default function AnalyticsTrial() {
     void Promise.resolve({ enabled, token, host, experiment })
       .then((data) => {
         if (!active || !data.enabled) return;
-        const key = `analytics-trial:${userId}:${data.experiment}`;
-        let stored:
-          | { id: string; variant: string; expires: number }
-          | undefined;
-        try {
-          stored = JSON.parse(sessionStorage.getItem(key) || 'null');
-        } catch {
-          /* New session. */
-        }
-        if (
-          !stored ||
-          stored.expires < Date.now() ||
-          !['off', 'events', 'replay'].includes(stored.variant)
-        ) {
-          const random = new Uint32Array(1);
-          crypto.getRandomValues(random);
-          stored = {
-            id: crypto.randomUUID(),
-            variant: ['off', 'events', 'replay'][random[0] % 3],
-            expires: Date.now() + 30 * 60_000,
-          };
-          try {
-            sessionStorage.setItem(key, JSON.stringify(stored));
-          } catch {
-            /* In-memory session still works. */
-          }
-        }
-        session = stored.id;
-        variant = stored.variant;
+        session = crypto.randomUUID();
+        variant = readAnalyticsMode(userId, isAdmin);
         timer = setInterval(report, 30_000);
         values.assigned = performance.now();
         if (variant === 'off') return;
@@ -239,6 +215,6 @@ export default function AnalyticsTrial() {
       document.removeEventListener('visibilitychange', leave);
       document.removeEventListener('click', action, true);
     };
-  }, [userId, router.events, enabled, host, token, experiment]);
+  }, [userId, isAdmin, router.events, enabled, host, token, experiment]);
   return null;
 }

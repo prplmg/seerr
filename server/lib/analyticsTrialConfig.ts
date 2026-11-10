@@ -12,6 +12,6 @@ export function analyticsTrialConfig(): AnalyticsTrialConfig {
     ['https://us.i.posthog.com', 'https://eu.i.posthog.com'].includes(
       host || ''
     )
-    ? { enabled: true, token, host, experiment: 'normal-startup-v1' }
+    ? { enabled: true, token, host, experiment: 'explicit-modes-v2' }
     : { enabled: false };
 }
