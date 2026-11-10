@@ -21,3 +21,7 @@ Local pending changes: rating_created/rating_updated and review_created/review_u
 PageTitle supplies route-specific labels after metadata loads. Discovery Page, AI Search Page, For You Page and My Lists Page have explicit labels. Movie/series pages include title/year and type prefix; list pages use List plus their title. No metadata lookup added. Route changes reset pageview deduplication. Existing off/events/replay selection remains authoritative.
 
 Validation: TypeScript and focused settings-redaction test passed. Production event ingestion is not verified; these changes are not deployed.
+
+## Pending follow-up: media requests and navigation
+
+media_requested is emitted from successful POST /api/v1/request responses, including movie/TV/collection request flows, with media ID/type, requested seasons and returned request ID. Approval/update endpoints are not new requests. Explicit event media context is no longer overwritten by the current detail-page URL. Navigation only stops replay; it no longer opts out then opts in on every route. Initialization opts in once; teardown still opts out. Auth-route before_send exclusion remains. TypeScript and focused lint passed. Not deployed.

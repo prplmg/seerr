@@ -107,7 +107,6 @@ export default function AnalyticsTrial() {
     };
     const stop = () => {
       sdk?.stopSessionRecording();
-      sdk?.opt_out_capturing();
     };
     let lastPage = '';
     const page = (url: string) => {
@@ -123,7 +122,6 @@ export default function AnalyticsTrial() {
       if (document.documentElement.dataset.analyticsPath !== name) return;
       if (lastPage === url) return;
       lastPage = url;
-      sdk.opt_in_capturing();
       sdk.capture('$pageview', {
         page: name,
         page_name:
@@ -184,6 +182,13 @@ export default function AnalyticsTrial() {
         } catch {
           /* No payload to report. */
         }
+        if (method === 'post' && url.split('?')[0] === '/api/v1/request')
+          sdk?.capture('media_requested', {
+            media_id: body.mediaId,
+            media_type: body.mediaType,
+            seasons: body.seasons,
+            request_id: response.data?.id,
+          });
         const interaction = url.match(
           /^\/api\/v1\/review-interactions\/([^/]+)\/(comments|reactions)(?:\/([^/?]+))?$/
         );
@@ -285,7 +290,7 @@ export default function AnalyticsTrial() {
                 e.properties.$current_url = redactCredentialUrl(location.href);
                 if (username) e.properties.username = username;
                 const media = location.pathname.match(/^\/(movie|tv)\/(\d+)$/);
-                if (media) {
+                if (media && e.properties.media_id === undefined) {
                   e.properties.media_type = media[1];
                   e.properties.media_id = Number(media[2]);
                 }
@@ -322,6 +327,7 @@ export default function AnalyticsTrial() {
       window.removeEventListener('catalogue-analytics', completed);
       report();
       active = false;
+      sdk?.opt_out_capturing();
       stop();
       sdk?.reset();
       observers.forEach((o) => o.disconnect());
