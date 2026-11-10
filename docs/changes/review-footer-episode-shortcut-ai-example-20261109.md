@@ -7,3 +7,5 @@ Series Seasons heading now has Last watched SxxExx when the current user's exist
 AI Search selects a random initial example on client mount to avoid server/client hydration mismatch. Existing8second rotation and pause-on-focus/input/history behavior retained; typed/restored query untouched.
 
 Client TypeScript and focused ESLint passed. No deployment, settings changes or Git push. Letterboxd's deployed migration/reviewed-diary association behavior consolidated separately in the Network journal; these UI changes do not change synchronization.
+
+Deployed2026-11-09 (America/Merida) as -aO7yYScrUQYCzawZBkKF. Earlier pending statements superseded; see [release receipt](../deployments/review-ui-20261109/README.md).
