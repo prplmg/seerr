@@ -1,6 +1,6 @@
 # Normal-startup PostHog trial
 
-Implemented and deployed November 10, 2026. Live build: cldUxQM6eTR5WFth-jdUs. See ../../deployments/posthog-trial-20261110/receipt.md.
+Implemented and deployed November 10, 2026. Current live build: 1J9J9K5Ye6fznmCFWON0p. See ../../deployments/posthog-explicit-20261110/receipt.md.
 
 All authenticated users now default to events plus replay. Random assignment is removed, including all reads of legacy randomized session keys. Admins can explicitly select Off, Events only or Events + replay in Profile → Settings → Analytics test mode. Selection is scoped to the current tab and signed-in user, persisted in sessionStorage and applied with a full reload. Non-admin users ignore saved overrides. Returning to Events + replay removes the override. Existing privacy exclusions and masking remain. The experiment identifier is explicit-modes-v2.
 
