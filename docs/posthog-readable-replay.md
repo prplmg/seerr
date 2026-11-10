@@ -25,3 +25,7 @@ Validation: TypeScript and focused settings-redaction test passed. Production ev
 ## Pending follow-up: media requests and navigation
 
 media_requested is emitted from successful POST /api/v1/request responses, including movie/TV/collection request flows, with media ID/type, requested seasons and returned request ID. Approval/update endpoints are not new requests. Explicit event media context is no longer overwritten by the current detail-page URL. Navigation only stops replay; it no longer opts out then opts in on every route. Initialization opts in once; teardown still opts out. Auth-route before_send exclusion remains. TypeScript and focused lint passed. Not deployed.
+
+## Pending normalized event labels
+
+Every outgoing event receives event_label from a shared formatter while event names remain stable. Page visits, requests, rating/review changes, comments/reactions, AI searches, settings and list mutations have readable descriptions. Request dialogs provide title/year directly for the actual requested media, including individual collection items, without fetching metadata. List verbs distinguish save/unsave/create/delete/sharing/import where the endpoint establishes the action. Titles use existing request/response or matching page context; missing titles use truthful generic/ID fallbacks. System events also receive fallback labels. Existing historical events are not backfilled. Local label regression tests, TypeScript and lint passed; not deployed.

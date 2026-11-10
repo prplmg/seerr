@@ -1,3 +1,4 @@
+import { trackEvent } from '@app/components/AnalyticsTrial/events';
 import Alert from '@app/components/Common/Alert';
 import Badge from '@app/components/Common/Badge';
 import Modal from '@app/components/Common/Modal';
@@ -224,6 +225,13 @@ const TvRequestModal = ({
               (season) => !getAllRequestedSeasons().includes(season)
             ),
         ...overrideParams,
+      });
+      trackEvent('media_requested', {
+        media_id: data?.id,
+        media_type: 'tv',
+        media_title: data?.name,
+        release_year: data?.firstAirDate?.slice(0, 4),
+        request_id: response.data.id,
       });
       mutate('/api/v1/request?filter=all&take=10&sort=modified&skip=0');
 

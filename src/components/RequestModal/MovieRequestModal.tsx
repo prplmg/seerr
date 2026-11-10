@@ -1,3 +1,4 @@
+import { trackEvent } from '@app/components/AnalyticsTrial/events';
 import Alert from '@app/components/Common/Alert';
 import Modal from '@app/components/Common/Modal';
 import type { RequestOverrides } from '@app/components/RequestModal/AdvancedRequester';
@@ -96,6 +97,13 @@ const MovieRequestModal = ({
         is4k,
         ignoreQuota: requestOverrides?.ignoreQuota,
         ...overrideParams,
+      });
+      trackEvent('media_requested', {
+        media_id: data?.id,
+        media_type: 'movie',
+        media_title: data?.title,
+        release_year: data?.releaseDate?.slice(0, 4),
+        request_id: response.data.id,
       });
       mutate('/api/v1/request?filter=all&take=10&sort=modified&skip=0');
       mutate('/api/v1/request/count');

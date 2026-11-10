@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useContext, useEffect } from 'react';
 import { safeSettings } from './events';
+import { eventLabel } from './labels';
 
 import {
   capturePath,
@@ -182,13 +183,6 @@ export default function AnalyticsTrial() {
         } catch {
           /* No payload to report. */
         }
-        if (method === 'post' && url.split('?')[0] === '/api/v1/request')
-          sdk?.capture('media_requested', {
-            media_id: body.mediaId,
-            media_type: body.mediaType,
-            seasons: body.seasons,
-            request_id: response.data?.id,
-          });
         const interaction = url.match(
           /^\/api\/v1\/review-interactions\/([^/]+)\/(comments|reactions)(?:\/([^/?]+))?$/
         );
@@ -219,6 +213,17 @@ export default function AnalyticsTrial() {
           sdk?.capture('list_action_completed', {
             endpoint: url.split('?')[0],
             method,
+            saved: body.saved,
+            list_title:
+              body.title ||
+              response.data?.title ||
+              (document.documentElement.dataset.analyticsPath ===
+                location.pathname &&
+              document.documentElement.dataset.analyticsTitle?.startsWith(
+                'List: '
+              )
+                ? document.documentElement.dataset.analyticsTitle.slice(6)
+                : undefined),
           });
       }
       return response;
@@ -285,7 +290,10 @@ export default function AnalyticsTrial() {
                   return request;
                 },
               },
-              before_send: (e: { properties: Record<string, unknown> }) => {
+              before_send: (e: {
+                event: string;
+                properties: Record<string, unknown>;
+              }) => {
                 if (!active || !safePage(location.pathname)) return null;
                 e.properties.$current_url = redactCredentialUrl(location.href);
                 if (username) e.properties.username = username;
@@ -294,6 +302,24 @@ export default function AnalyticsTrial() {
                   e.properties.media_type = media[1];
                   e.properties.media_id = Number(media[2]);
                 }
+                const pagePath = document.documentElement.dataset.analyticsPath;
+                if (
+                  media &&
+                  pagePath === location.pathname &&
+                  Number(media[2]) === e.properties.media_id &&
+                  !e.properties.media_title
+                ) {
+                  const title =
+                    document.documentElement.dataset.analyticsTitle || '';
+                  const match = title.match(
+                    /^(?:Movie|Series): (.*?)(?: \((\d{4})\))?$/
+                  );
+                  if (match) {
+                    e.properties.media_title = match[1];
+                    e.properties.release_year = match[2];
+                  }
+                }
+                e.properties.event_label = eventLabel(e.event, e.properties);
                 delete e.properties.$referrer;
                 delete e.properties.$initial_referrer;
                 return e;

@@ -1,3 +1,4 @@
+import { trackEvent } from '@app/components/AnalyticsTrial/events';
 import Alert from '@app/components/Common/Alert';
 import Badge from '@app/components/Common/Badge';
 import CachedImage from '@app/components/Common/CachedImage';
@@ -202,11 +203,18 @@ const CollectionRequestModal = ({
         (
           data?.parts.filter((part) => selectedParts.includes(part.id)) ?? []
         ).map(async (part) => {
-          await axios.post<MediaRequest>('/api/v1/request', {
+          const response = await axios.post<MediaRequest>('/api/v1/request', {
             mediaId: part.id,
             mediaType: 'movie',
             is4k,
             ...overrideParams,
+          });
+          trackEvent('media_requested', {
+            media_id: part.id,
+            media_type: 'movie',
+            media_title: part.title,
+            release_year: part.releaseDate?.slice(0, 4),
+            request_id: response.data.id,
           });
         })
       );
