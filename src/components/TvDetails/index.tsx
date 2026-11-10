@@ -48,7 +48,7 @@ import { sortCrewPriority } from '@app/utils/creditHelpers';
 import defineMessages from '@app/utils/defineMessages';
 import { refreshIntervalHelper } from '@app/utils/refreshIntervalHelper';
 import { Disclosure, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
 import {
   ArrowRightCircleIcon,
   CogIcon,
@@ -164,6 +164,31 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
     router.query.tvId ? `/api/v1/tv/${router.query.tvId}/letterboxd` : null,
     { revalidateOnFocus: false }
   );
+
+  const [episodeJump, setEpisodeJump] = useState(0);
+  const { data: viewingHistory, error: viewingError } = useSWR<{
+    enabled: boolean;
+    watchers: { id: number; latestEpisode?: { season: number; episode: number } }[];
+  }>(user && data?.id ? `/api/v1/social/tv/${data.id}` : null, {
+    refreshInterval: 120000, dedupingInterval: 30000, errorRetryCount: 2,
+  });
+  const lastEpisode = !viewingError && viewingHistory?.enabled
+    ? viewingHistory.watchers.find((person) => person.id === user?.id)?.latestEpisode
+    : undefined;
+  const canJump = lastEpisode && data?.seasons.some((season) =>
+    season.seasonNumber === lastEpisode.season && season.episodeCount > 0 &&
+    (settings.currentSettings.enableSpecialEpisodes || lastEpisode.season !== 0)
+  );
+  const jumpToLastEpisode = async () => {
+    if (!lastEpisode) return;
+    const query = { ...router.query };
+    delete query.reviewEpisode;
+    await router.replace({ pathname: router.pathname, query: {
+      ...query, reviewSeason: String(lastEpisode.season), viewEpisode: String(lastEpisode.episode),
+    } }, undefined, { shallow: true, scroll: false });
+    // Remount the target season even when its URL is already selected but it was collapsed.
+    setEpisodeJump((value) => value + 1);
+  };
 
   const sortedCrew = useMemo(
     () => sortCrewPriority(data?.credits.crew ?? []),
@@ -842,7 +867,18 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
               ))}
             </div>
           )}
-          <h2 className="py-4">{intl.formatMessage(messages.seasonstitle)}</h2>
+          <div className="flex flex-wrap items-center gap-3 py-4">
+            <h2>{intl.formatMessage(messages.seasonstitle)}</h2>
+            {canJump && lastEpisode && (
+              <button type="button" onClick={() => void jumpToLastEpisode()}
+                className="inline-flex items-center gap-1.5 rounded-full border border-gray-600 px-3 py-1 text-sm text-purple-300 hover:bg-gray-800"
+                title={`${intl.locale.startsWith('es') ? 'Último episodio visto' : 'Last watched episode'} · S${lastEpisode.season}E${lastEpisode.episode}`}>
+                <ArrowUturnLeftIcon className="h-4 w-4" aria-hidden="true" />
+                {intl.locale.startsWith('es') ? 'Último visto' : 'Last watched'}
+                <span>S{String(lastEpisode.season).padStart(2, '0')}E{String(lastEpisode.episode).padStart(2, '0')}</span>
+              </button>
+            )}
+          </div>
           <div className="flex w-full flex-col space-y-2">
             {data.seasons
               .slice()
@@ -906,7 +942,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
 
                 return (
                   <Disclosure
-                    key={`season-discoslure-${season.seasonNumber}-${router.query.reviewSeason === String(season.seasonNumber)}`}
+                    key={`season-discoslure-${season.seasonNumber}-${router.query.reviewSeason === String(season.seasonNumber)}-${router.query.reviewSeason === String(season.seasonNumber) ? episodeJump : 0}`}
                     defaultOpen={
                       router.query.reviewSeason === String(season.seasonNumber)
                     }

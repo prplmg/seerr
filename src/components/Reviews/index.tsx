@@ -4,6 +4,7 @@ import StarPicker from '@app/components/Reviews/StarPicker';
 import Slider from '@app/components/Slider';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import { useUser } from '@app/hooks/useUser';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -593,15 +594,15 @@ export function MovieReviews({
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
                       {r.source === 'local' && r.userId === user?.id && (
                         <button
-                          className="text-purple-300 hover:underline"
+                          className="shrink-0 whitespace-nowrap text-purple-300 hover:underline"
                           onClick={() => startEditing(r)}
                         >
-                          {t('Edit this entry', 'Editar esta entrada')}
+                          {t('Edit', 'Editar')}
                         </button>
                       )}
                       {r.externalUrl && (
                         <a
-                          className="text-green-400 hover:underline"
+                          className="shrink-0 whitespace-nowrap text-green-400 hover:underline"
                           href={r.externalUrl}
                           target="_blank"
                           rel="noreferrer"
@@ -625,26 +626,19 @@ export function MovieReviews({
                       >
                         <span
                           aria-hidden="true"
-                          className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-gray-600 border-t-gray-300 motion-reduce:animate-none"
+                          className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-gray-600 border-t-gray-300 motion-reduce:animate-none"
                         />
-                        <span aria-hidden="true" className="sm:hidden">
-                          {t('Syncing…', 'Sincronizando…')}
-                        </span>
-                        <span aria-hidden="true" className="hidden sm:inline">
-                          {t(
-                            'Syncing with Letterboxd…',
-                            'Sincronizando con Letterboxd…'
-                          )}
-                        </span>
                       </span>
                     ) : (
                       r.syncedToLetterboxd &&
                       !r.externalUrl && (
-                        <span className="ml-auto text-right text-gray-400">
-                          {t(
-                            'Synced with Letterboxd',
-                            'Sincronizado con Letterboxd'
-                          )}
+                        <span
+                          role="img"
+                          aria-label={t('Synced with Letterboxd', 'Sincronizado con Letterboxd')}
+                          title={t('Synced with Letterboxd', 'Sincronizado con Letterboxd')}
+                          className="ml-auto inline-flex shrink-0 text-green-400"
+                        >
+                          <CheckCircleIcon aria-hidden="true" className="h-4 w-4" />
                         </span>
                       )
                     )}

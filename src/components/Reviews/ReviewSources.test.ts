@@ -80,7 +80,7 @@ it('body does not duplicate footer actions in detail or compact cards', () => {
     );
   }
 });
-it('detail footer keeps actions before a muted right-aligned sync label', () => {
+it('detail footer keeps nonwrapping edit action and compact labelled sync icons', () => {
   const source = fs.readFileSync(path.join(__dirname, 'index.tsx'), 'utf8');
   const footer = source.slice(
     source.indexOf('<ReviewBody review={r} />'),
@@ -88,9 +88,10 @@ it('detail footer keeps actions before a muted right-aligned sync label', () => 
   );
   assert.match(footer, /href=\{r.externalUrl\}/);
   assert.match(footer, /r\.syncedToLetterboxd\s*&&\s*!r\.externalUrl\s*&&/);
-  assert.match(footer, /ml-auto text-right text-gray-400/);
+  assert.match(footer, /<CheckCircleIcon aria-hidden="true" className="h-4 w-4"/);
+  assert.match(footer, /shrink-0 whitespace-nowrap/);
   assert.ok(
-    footer.indexOf('Edit this entry') < footer.indexOf('Synced with Letterboxd')
+    footer.indexOf("t('Edit',") < footer.indexOf('Synced with Letterboxd')
   );
   assert.ok(
     footer.indexOf('Letterboxd ↗') <

@@ -67,6 +67,9 @@ export default function AiSearchPage() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [queryFocused, setQueryFocused] = useState(false);
   useEffect(() => {
+    setPlaceholderIndex(Math.floor(Math.random() * searchPlaceholders.length));
+  }, []);
+  useEffect(() => {
     if (query || queryFocused || historyOpen) return;
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible')
