@@ -1,0 +1,3 @@
+# Event label rollout — 2026-11-10
+Live NjOCFnENLnSOYrlfKXRFg, implementation through34171be2. PRPL-PC canonical maintenance rollout completed; branded maintenance, staged checks, native/public health, source hashes and served client chunks passed. Global/user/sync toggles unchanged; only Plex lastScan timestamps moved. next-env.d.ts excluded. No push. Rollback C:/ProgramData/Seerr/catalogue-20261110163106087-45765-release.
+Includes event_label normalization, actual request title/year, media_requested and removal of route-by-route opt-in. PostHog receipt of new events not independently verified. Global replay control remains proposed, not implemented. No caching changes in this release.

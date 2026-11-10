@@ -1,0 +1,14 @@
+{
+  "build": "NjOCFnENLnSOYrlfKXRFg",
+  "enabled": true,
+  "host": "https://us.i.posthog.com",
+  "experiment": "explicit-modes-v2",
+  "sourceHashes": true,
+  "publicChunk": true,
+  "adminSelectorChunk": true,
+  "authenticatedMetrics": 204,
+  "anonymousDenied": 401,
+  "health": 200,
+  "maintenanceCleared": true,
+  "at": "2026-11-10T16:36:39.135Z"
+}
