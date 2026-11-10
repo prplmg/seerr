@@ -145,6 +145,7 @@ const MovieRequestModal = ({
     requestOverrides,
     data?.id,
     data?.title,
+    data?.releaseDate,
     is4k,
     onComplete,
     addToast,
