@@ -1,0 +1,13 @@
+{
+  "build": "cldUxQM6eTR5WFth-jdUs",
+  "enabled": true,
+  "host": "https://us.i.posthog.com",
+  "experiment": "normal-startup-v1",
+  "sourceHashes": true,
+  "publicChunk": true,
+  "authenticatedMetrics": 204,
+  "anonymousDenied": 401,
+  "health": 200,
+  "maintenanceCleared": true,
+  "at": "2026-11-10T06:14:22.882Z"
+}

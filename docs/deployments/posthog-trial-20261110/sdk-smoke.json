@@ -1,0 +1,74 @@
+[
+  {
+    "variant": "off",
+    "network": [],
+    "replay": false,
+    "independentMetrics": true
+  },
+  {
+    "variant": "events",
+    "network": [
+      {
+        "url": "https://us-assets.i.posthog.com/static/1.447.7/array.js",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/flags/",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/e/",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/e/",
+        "status": 200
+      },
+      {
+        "url": "https://us-assets.i.posthog.com/array/phc_n2C6Ffp7rrsouhQwW7tpym5dvFMYmrm3XHZiRAQnz3KR/config.js",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/e/",
+        "status": 200
+      }
+    ],
+    "replay": false,
+    "independentMetrics": true
+  },
+  {
+    "variant": "replay",
+    "network": [
+      {
+        "url": "https://us-assets.i.posthog.com/static/1.447.7/array.js",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/flags/",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/e/",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/e/",
+        "status": 200
+      },
+      {
+        "url": "https://us-assets.i.posthog.com/array/phc_n2C6Ffp7rrsouhQwW7tpym5dvFMYmrm3XHZiRAQnz3KR/config.js",
+        "status": 200
+      },
+      {
+        "url": "https://us-assets.i.posthog.com/static/1.447.7/posthog-recorder.js",
+        "status": 200
+      },
+      {
+        "url": "https://us.i.posthog.com/e/",
+        "status": 200
+      }
+    ],
+    "replay": true,
+    "independentMetrics": true
+  }
+]

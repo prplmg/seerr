@@ -1,6 +1,6 @@
 # Normal-startup PostHog trial
 
-Implemented locally November 10, 2026. Not deployed or enabled in production.
+Implemented and deployed November 10, 2026. Live build: cldUxQM6eTR5WFth-jdUs. See ../../deployments/posthog-trial-20261110/receipt.md.
 
 All authenticated users are eligible. Each browser tab/user gets a randomly assigned off, events, or events-plus-replay group (roughly one third each). Assignment persists in sessionStorage for 30 minutes, evaluated on initialization; a mounted page keeps its assignment. No account allowlist. Startup occurs on normal React mount after authentication/settings are available, without idle or interaction deferral. The control group never requests the SDK. PostHog 1.447.7 is loaded asynchronously from its regional CDN in enabled groups.
 

@@ -1,0 +1,1 @@
+{"files": ["seerr-api.yml", "server/interfaces/api/settingsInterfaces.ts", "server/lib/analyticsTrialConfig.ts", "server/lib/settings/index.ts", "server/routes/analyticsTrial.ts", "server/routes/index.ts", "src/components/AnalyticsTrial/index.tsx", "src/components/Reviews/DiscoveryReviewFooter.tsx", "src/components/Reviews/index.tsx", "src/pages/_app.tsx"]}
