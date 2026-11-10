@@ -1,0 +1,61 @@
+[
+  {
+    "url": "https://catalogue.prpl.com.mx/login",
+    "status": 200,
+    "headers": {
+      "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "cf-cache-status": "DYNAMIC"
+    }
+  },
+  {
+    "url": "https://catalogue.prpl.com.mx/_next/static/chunks/0cxdgx.us1z87.js",
+    "status": 200,
+    "headers": {
+      "cache-control": "public, max-age=31536000, immutable",
+      "cf-cache-status": "DYNAMIC",
+      "etag": "W/\"98f4-1a1c4262a70\"",
+      "last-modified": "Tue, 10 Nov 2026 06:29:58 GMT"
+    }
+  },
+  {
+    "url": "https://catalogue.prpl.com.mx/_next/static/chunks/0133t2jmhow-q.js",
+    "status": 200,
+    "headers": {
+      "cache-control": "public, max-age=31536000, immutable",
+      "cf-cache-status": "DYNAMIC",
+      "etag": "W/\"a330-1a1c4262a70\"",
+      "last-modified": "Tue, 10 Nov 2026 06:29:58 GMT"
+    }
+  },
+  {
+    "url": "https://us-assets.i.posthog.com/static/1.447.7/array.js",
+    "status": 200,
+    "headers": {
+      "age": "3871",
+      "cache-control": "public, max-age=31536000, immutable",
+      "cf-cache-status": "HIT",
+      "etag": "W/\"a6f2d20fe93f075082e13bd78708166e\"",
+      "last-modified": "Tue, 10 Nov 2026 04:37:37 GMT"
+    }
+  },
+  {
+    "url": "https://us-assets.i.posthog.com/static/1.447.7/posthog-recorder.js",
+    "status": 200,
+    "headers": {
+      "age": "8389",
+      "cache-control": "public, max-age=31536000, immutable",
+      "cf-cache-status": "HIT",
+      "etag": "W/\"a03745c0557579a56a3d6fc5543daefb\"",
+      "last-modified": "Tue, 10 Nov 2026 04:37:39 GMT"
+    }
+  },
+  {
+    "url": "https://us-assets.i.posthog.com/array/phc_n2C6Ffp7rrsouhQwW7tpym5dvFMYmrm3XHZiRAQnz3KR/config.js",
+    "status": 200,
+    "headers": {
+      "cache-control": "public, max-age=300",
+      "cf-cache-status": "MISS",
+      "last-modified": "Tue, 10 Nov 2026 06:59:58 GMT"
+    }
+  }
+]

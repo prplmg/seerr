@@ -1,0 +1,30 @@
+{
+  "off": {
+    "runs": 6,
+    "sdk_responses": 0,
+    "sdk_cache_hits": 0,
+    "script_css_responses": 789,
+    "script_css_cache_hits": 779,
+    "posthog_statuses": {}
+  },
+  "events": {
+    "runs": 6,
+    "sdk_responses": 6,
+    "sdk_cache_hits": 6,
+    "script_css_responses": 798,
+    "script_css_cache_hits": 791,
+    "posthog_statuses": {
+      "200": 18
+    }
+  },
+  "replay": {
+    "runs": 6,
+    "sdk_responses": 12,
+    "sdk_cache_hits": 12,
+    "script_css_responses": 804,
+    "script_css_cache_hits": 797,
+    "posthog_statuses": {
+      "200": 26
+    }
+  }
+}

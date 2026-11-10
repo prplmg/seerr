@@ -1,0 +1,301 @@
+{
+  "captured_at": "2026-11-10T07:06:02.977Z",
+  "successful_runs": 18,
+  "failed_runs": [],
+  "summary": {
+    "off": {
+      "runs": 6,
+      "fcp_ms": {
+        "median": 450.0,
+        "min": 388,
+        "max": 848
+      },
+      "lcp_ms": {
+        "median": 2888.0,
+        "min": 2660,
+        "max": 3508
+      },
+      "ttfb_ms": {
+        "median": 403.15,
+        "min": 344,
+        "max": 796.7
+      },
+      "content_ready_ms": {
+        "median": 2183.2,
+        "min": 1989.8,
+        "max": 2687.9
+      },
+      "ready_after_ttfb_ms": {
+        "median": 1784.75,
+        "min": 1611.8,
+        "max": 1891.2
+      },
+      "cpu_ms": {
+        "median": 1251.95,
+        "min": 1145.71,
+        "max": 1387.88
+      },
+      "interaction_cpu_ms": {
+        "median": 717.82,
+        "min": 554.82,
+        "max": 766.31
+      },
+      "long_task_ms": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "posthog_kib": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    },
+    "events": {
+      "runs": 6,
+      "fcp_ms": {
+        "median": 498.0,
+        "min": 432,
+        "max": 4040
+      },
+      "lcp_ms": {
+        "median": 3214.0,
+        "min": 2532,
+        "max": 6604
+      },
+      "ttfb_ms": {
+        "median": 455.9,
+        "min": 392.2,
+        "max": 3974.9
+      },
+      "content_ready_ms": {
+        "median": 2665.3,
+        "min": 1981,
+        "max": 6228
+      },
+      "ready_after_ttfb_ms": {
+        "median": 1977.5,
+        "min": 1555.6,
+        "max": 3026.4
+      },
+      "cpu_ms": {
+        "median": 1333.6,
+        "min": 983.83,
+        "max": 1453.88
+      },
+      "interaction_cpu_ms": {
+        "median": 676.81,
+        "min": 520.66,
+        "max": 842.3
+      },
+      "long_task_ms": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "posthog_kib": {
+        "median": 0.29,
+        "min": 0.29,
+        "max": 0.29
+      }
+    },
+    "replay": {
+      "runs": 6,
+      "fcp_ms": {
+        "median": 790.0,
+        "min": 408,
+        "max": 3732
+      },
+      "lcp_ms": {
+        "median": 3918.0,
+        "min": 2548,
+        "max": 7544
+      },
+      "ttfb_ms": {
+        "median": 743.9,
+        "min": 361.5,
+        "max": 3667.2
+      },
+      "content_ready_ms": {
+        "median": 3021.35,
+        "min": 2156.2,
+        "max": 5887.8
+      },
+      "ready_after_ttfb_ms": {
+        "median": 2325.35,
+        "min": 1794.7,
+        "max": 3385.3
+      },
+      "cpu_ms": {
+        "median": 1529.11,
+        "min": 1225.19,
+        "max": 1769.64
+      },
+      "interaction_cpu_ms": {
+        "median": 772.44,
+        "min": 623.36,
+        "max": 1028.24
+      },
+      "long_task_ms": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "posthog_kib": {
+        "median": 0.29,
+        "min": 0.29,
+        "max": 0.58
+      }
+    }
+  },
+  "paired": {
+    "events": {
+      "fcp_ms": {
+        "pairs": 6,
+        "median_delta": 48.0,
+        "bootstrap_95_interval": [
+          -324.0,
+          1988.0
+        ]
+      },
+      "lcp_ms": {
+        "pairs": 6,
+        "median_delta": 82.0,
+        "bootstrap_95_interval": [
+          -492.0,
+          2490.0
+        ]
+      },
+      "ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 60.4,
+        "bootstrap_95_interval": [
+          -323.25,
+          1967.25
+        ]
+      },
+      "content_ready_ms": {
+        "pairs": 6,
+        "median_delta": 529.05,
+        "bootstrap_95_interval": [
+          -549.3,
+          2799.9
+        ]
+      },
+      "ready_after_ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 263.2,
+        "bootstrap_95_interval": [
+          -226.05,
+          1038.1
+        ]
+      },
+      "cpu_ms": {
+        "pairs": 6,
+        "median_delta": 98.97,
+        "bootstrap_95_interval": [
+          -216.93,
+          234.87
+        ]
+      },
+      "interaction_cpu_ms": {
+        "pairs": 6,
+        "median_delta": -1.76,
+        "bootstrap_95_interval": [
+          -170.7,
+          115.62
+        ]
+      },
+      "long_task_ms": {
+        "pairs": 6,
+        "median_delta": 0.0,
+        "bootstrap_95_interval": [
+          0.0,
+          0.0
+        ]
+      },
+      "posthog_kib": {
+        "pairs": 6,
+        "median_delta": 0.29,
+        "bootstrap_95_interval": [
+          0.29,
+          0.29
+        ]
+      }
+    },
+    "replay": {
+      "fcp_ms": {
+        "pairs": 6,
+        "median_delta": 134.0,
+        "bootstrap_95_interval": [
+          -110.0,
+          2258.0
+        ]
+      },
+      "lcp_ms": {
+        "pairs": 6,
+        "median_delta": 860.0,
+        "bootstrap_95_interval": [
+          -92.0,
+          4318.0
+        ]
+      },
+      "ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 142.45,
+        "bootstrap_95_interval": [
+          -104.8,
+          2239.2
+        ]
+      },
+      "content_ready_ms": {
+        "pairs": 6,
+        "median_delta": 756.6,
+        "bootstrap_95_interval": [
+          184.55,
+          3231.0
+        ]
+      },
+      "ready_after_ttfb_ms": {
+        "pairs": 6,
+        "median_delta": 480.55,
+        "bootstrap_95_interval": [
+          175.25,
+          1239.5
+        ]
+      },
+      "cpu_ms": {
+        "pairs": 6,
+        "median_delta": 192.18,
+        "bootstrap_95_interval": [
+          22.73,
+          515.34
+        ]
+      },
+      "interaction_cpu_ms": {
+        "pairs": 6,
+        "median_delta": 56.25,
+        "bootstrap_95_interval": [
+          -121.4,
+          307.79
+        ]
+      },
+      "long_task_ms": {
+        "pairs": 6,
+        "median_delta": 0.0,
+        "bootstrap_95_interval": [
+          0.0,
+          0.0
+        ]
+      },
+      "posthog_kib": {
+        "pairs": 6,
+        "median_delta": 0.29,
+        "bootstrap_95_interval": [
+          0.29,
+          0.58
+        ]
+      }
+    }
+  }
+}
