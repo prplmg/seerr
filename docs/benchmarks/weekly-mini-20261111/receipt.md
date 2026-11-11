@@ -1,0 +1,15 @@
+# Weekly list failure and Mini comparison — November 11, 2026
+
+Tuesday scheduled run started07:20 Nov10. It queued discovery job a6089394-cccb-4ade-b29e-be667f32c8b4; no instance claimed it. On Wednesday it expired after24h and replacement302e7f93-debb-4ed6-9f83-96e932640d6a queued. No completed pages, discoveredAt, import queue, completion or retirement: not a partial content import. Existing45 seen timestamps came from the Nov6 bootstrap, not Tuesday progress. The saved generic maintenance deferral was not a complete diagnosis; reaching queued state proves the gate passed on some ticks.
+
+Root cause confirmed in deployed bridge: exchange_lists requires exactly0.2.48 while six active extensions run0.2.50, so idle profiles return without requesting list work. It also omits weeklySupported, required by server dispatch. Live source SHA256 c2649b7a7b8d325671eea8daaf463f078e4c4bf392c36dab64d8506cb10de338 matches tools/letterboxd-worker/catalogue_client.py. Separate tools/letterboxd-weekly copy supports0.2.49/50 and advertises weekly support; migration worker copy regressed those capabilities. The copies also differ in write reconciliation behavior, so wholesale replacement is unsafe. No bridge repair/deployment made during this test.
+
+Authorized isolated test:
+- Current0.2.50 browser, anonymous/InPrivate, eight first/two popularity pages:8/8 succeeded in54.102s,64unique candidates,43eligible≤560,9017memberships.
+- Mini actual extracted current importer/resolver/store functions bundled with isolated LIST_BENCH_DIR. One list at a time, normal250ms unresolved-film pacing, copy of live90-day film-match cache. No live lists, schedule, checkpoint or settings changed.
+-43/43 imports succeeded in76.362s;219HTTP requests;49,113,031 decoded bytes (~46.8MiB);13.907CPU seconds;118696KiB peakRSS (~115.9MiB). Combined stages130.464s excluding staging and transfer. Not an end-to-end scheduler/lease test and no browser fallback needed for content imports.
+- Nov6 PRPL-PC bootstrap comparison:44lists/9220memberships,9m37s content +51s discovery,5726requests,1.188GB decoded,146.8MiB RSS. That used two list workers/no deliberate delay and a different/cold cohort. Cannot infer hardware speedup from this warm-cache Mini run.
+
+Recommendation: keep Mini for now; consolidate bridge release source and test released extension version/capability payloads (weekly, ordinary lists, watched and diary verification). Add alert when a weekly job remains unclaimed and distinguish gate reasons/stale deferrals. Repair targeted capabilities without reverting verified blocked-write reconciliation. Scheduled job remains blocked until that repair; test output is not published.
+
+Artifacts: outputs/weekly-diagnosis-20261111; remote isolated importer C:/ProgramData/Seerr/weekly-comparison-20261111; browser census C:/Users/MSI/MultimeldiaLetterboxdRuntime/weekly-probe-20261111.json. Diagnostic read-only list jobs have local acknowledgement markers to avoid delivery as production jobs. No Letterboxd writes, services/schedules/toggles changed or Git push.
