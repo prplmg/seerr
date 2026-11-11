@@ -9,3 +9,5 @@ Pick for me appears above filters on both pages. AI picks among its current filt
 Validation: TypeScript; focused lint; 9 sort/library tests including mixed-type recent ordering; HTTP contract regression; local Chrome mobile390/desktop1280 checks for deselection/default sort/no Best match. Fresh fixture screenshots in outputs/library-refresh-20261110. No deployment or cache policy changes.
 
 Recently added sort now displays its full text plus direction arrow instead of a calendar, including on initial load. Fresh mobile/desktop previews: outputs/library-recent-label-20261110. TypeScript and browser checks passed.
+
+Label refinement: full Recently added text is restricted to the library finder with a single sort. AI Search and multi-sort combinations retain compact icons; accessible labels still name the complete order. TypeScript and focused lint passed.
