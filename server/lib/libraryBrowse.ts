@@ -16,6 +16,7 @@ import { togetherSeen } from './discoveryRecommendations';
 import { collectListRatings } from './listSort';
 export type LibraryRow = {
   media: MovieResult | TvResult;
+  addedAt?: number | null;
   runtime: number | null;
   letterboxdRating?: number;
 };
@@ -91,7 +92,8 @@ export async function startLibraryBrowse(
   filters: AiFilters,
   sort: AiSort,
   people: unknown,
-  page: number
+  page: number,
+  allTypes = false
 ) {
   const d = await discoveryData(userId);
   const ids = searchPeople(userId, people, '', d.users).ids;
@@ -108,15 +110,26 @@ export async function startLibraryBrowse(
       ...[...d.requestAvailable].sort(),
     ]),
   ];
+  if (sort[0]?.field === 'added')
+    ordered.sort((a, b) => {
+      const av = d.addedDates?.get(a),
+        bv = d.addedDates?.get(b);
+      if (av == null && bv == null) return a.localeCompare(b);
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (
+        (av - bv) * (sort[0].direction === 'asc' ? 1 : -1) || a.localeCompare(b)
+      );
+    });
   const pool = ordered.filter(
     (key) =>
       d.requestAvailable.has(key) &&
-      key.startsWith(filters.type + ':') &&
+      (allTypes || key.startsWith(filters.type + ':')) &&
       (!filters.unwatched || !seen.has(key))
   );
   const f = { ...filters, available: true };
   const full = !!(
-    sort.length ||
+    sort.some((s) => s.field !== 'added') ||
     f.maxRuntime != null ||
     f.yearFrom != null ||
     f.yearTo != null ||
@@ -124,7 +137,14 @@ export async function startLibraryBrowse(
     f.minLetterboxdRating != null ||
     f.maxLetterboxdRating != null
   );
-  const key = JSON.stringify([f, sort, ids, pool, full ? null : page]);
+  const key = JSON.stringify([
+    f,
+    allTypes,
+    sort,
+    ids,
+    pool,
+    full ? null : page,
+  ]);
   for (const [id, job] of jobs) {
     if (job.until < Date.now()) {
       job.cancelled = true;
@@ -182,18 +202,18 @@ export async function startLibraryBrowse(
             if (job.cancelled) return null;
             const id = Number(key.split(':')[1]);
             try {
-              const row: LibraryRow =
-                f.type === 'movie'
-                  ? await tmdb.getLibraryMovie(id).then((m) => ({
-                      media: mapMovieResult(mapMovieDetailsToResult(m)),
-                      runtime: m.runtime || null,
-                    }))
-                  : await tmdb.getLibraryTv(id).then((m) => ({
-                      media: mapTvResult(mapTvDetailsToResult(m)),
-                      runtime: m.episode_run_time?.length
-                        ? Math.max(...m.episode_run_time) || null
-                        : null,
-                    }));
+              const row: LibraryRow = key.startsWith('movie:')
+                ? await tmdb.getLibraryMovie(id).then((m) => ({
+                    media: mapMovieResult(mapMovieDetailsToResult(m)),
+                    runtime: m.runtime || null,
+                  }))
+                : await tmdb.getLibraryTv(id).then((m) => ({
+                    media: mapTvResult(mapTvDetailsToResult(m)),
+                    runtime: m.episode_run_time?.length
+                      ? Math.max(...m.episode_run_time) || null
+                      : null,
+                  }));
+              row.addedAt = d.addedDates?.get(key);
               const year = Number(
                 (row.media.mediaType === 'movie'
                   ? row.media.releaseDate
@@ -233,13 +253,13 @@ export async function startLibraryBrowse(
         if (job.until < Date.now()) throw Error('Expired');
         const batch = job.rows.slice(i, i + 40);
         const scores = await collectListRatings(
-          batch.map((r) => ({ tmdbId: r.media.id, type: f.type })),
+          batch.map((r) => ({ tmdbId: r.media.id, type: r.media.mediaType })),
           (count) => {
             job.message = `Checking Letterboxd ratings… ${i + count}/${job.rows.length}`;
           }
         );
         for (const row of batch) {
-          const score = scores.get(`${f.type}:${row.media.id}`);
+          const score = scores.get(`${row.media.mediaType}:${row.media.id}`);
           if (score == null) {
             job.unknown++;
             if (f.minLetterboxdRating == null && f.maxLetterboxdRating == null)

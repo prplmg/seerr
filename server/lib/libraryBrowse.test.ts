@@ -16,7 +16,7 @@ const filters: AiFilters = {
   yearTo: null,
   genres: [],
 };
-function harness(count = 45) {
+function harness(count = 45, mixed = false) {
   let valid = true,
     history = true,
     active = 0,
@@ -30,7 +30,16 @@ function harness(count = 45) {
       { id: 2, name: 'friend' },
     ],
     requestAvailable: new Set(
-      Array.from({ length: count }, (_, i) => `movie:${i + 1}`)
+      Array.from(
+        { length: count },
+        (_, i) => `${mixed && i % 2 ? 'tv' : 'movie'}:${i + 1}`
+      )
+    ),
+    addedDates: new Map(
+      Array.from({ length: count }, (_, i) => [
+        `${mixed && i % 2 ? 'tv' : 'movie'}:${i + 1}`,
+        i + 1,
+      ])
     ),
     ratings: [],
     watched: [{ userId: 2, type: 'movie', tmdbId: 1 }],
@@ -62,6 +71,14 @@ function harness(count = 45) {
   )((name: string) => {
     if (name === '@server/api/themoviedb')
       return class {
+        async getLibraryTv(id: number) {
+          return {
+            ...model(id),
+            mediaType: 'tv',
+            name: 'Series ' + id,
+            episode_run_time: [40],
+          };
+        }
         async getLibraryMovie(id: number) {
           calls.push(id);
           active++;
@@ -221,4 +238,22 @@ test('new filter request cancels older background work', async () => {
   await done(h, next.id);
   assert.throws(() => h.api.libraryJob(1, old.id, 0));
   assert(h.peak() <= 2);
+});
+
+test('mixed library recent order spans both types without scanning full metadata', async () => {
+  const h = harness(45, true);
+  const first = await h.api.startLibraryBrowse(
+    1,
+    filters,
+    [{ field: 'added', direction: 'desc' }],
+    [],
+    0,
+    true
+  );
+  const ready = await done(h, first.id);
+  assert.equal(ready.total, 45);
+  assert.equal(ready.results?.length, 20);
+  assert.equal(ready.results?.[0].media.id, 45);
+  assert(ready.results?.some((x) => x.media.mediaType === 'tv'));
+  assert(ready.results?.some((x) => x.media.mediaType === 'movie'));
 });

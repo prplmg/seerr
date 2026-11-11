@@ -13,19 +13,27 @@ import {
   type SortField,
 } from '@server/lib/aiSearchSort';
 import { useState } from 'react';
-const icons = { rating: StarIcon, runtime: ClockIcon, year: CalendarIcon };
+const icons = {
+  rating: StarIcon,
+  runtime: ClockIcon,
+  year: CalendarIcon,
+  added: CalendarIcon,
+};
 const names = {
   rating: 'Letterboxd score',
   runtime: 'Runtime',
   year: 'Release year',
+  added: 'Recently added',
 };
 export default function SortControl({
   value,
+  library = false,
   suggested,
   busy,
   onApply,
 }: {
   value: AiSort;
+  library?: boolean;
   suggested: AiSort;
   busy: boolean;
   onApply: (value: AiSort) => void;
@@ -88,10 +96,12 @@ export default function SortControl({
           >
             <h3 className="font-semibold text-gray-100">Sort results</h3>
             <p className="mt-1 text-xs text-gray-400">
-              {JSON.stringify(value) === JSON.stringify(suggested)
-                ? 'Suggested from your search'
-                : 'Your selected order'}{' '}
-              · This shortlist only
+              {library
+                ? 'Library order'
+                : JSON.stringify(value) === JSON.stringify(suggested)
+                  ? 'Suggested from your search'
+                  : 'Your selected order'}{' '}
+              · {library ? 'Available titles' : 'This shortlist only'}
             </p>
             {[0, ...(draft.length ? [1] : [])].map((i) => (
               <div key={i} className="mt-4">
@@ -103,7 +113,9 @@ export default function SortControl({
                     value={draft[i]?.field || ''}
                     onChange={(e) => field(i, e.target.value)}
                   >
-                    <option value="">{i ? 'None' : 'Best match'}</option>
+                    {(i > 0 || !library) && (
+                      <option value="">{i ? 'None' : 'Best match'}</option>
+                    )}
                     {Object.entries(names)
                       .filter(([key]) => !i || key !== draft[0]?.field)
                       .map(([key, name]) => (
@@ -134,14 +146,14 @@ export default function SortControl({
                       }
                     >
                       <option value="desc">
-                        {draft[i].field === 'year'
+                        {draft[i].field === 'year' || draft[i].field === 'added'
                           ? 'Newest first'
                           : draft[i].field === 'runtime'
                             ? 'Longest first'
                             : 'Highest first'}
                       </option>
                       <option value="asc">
-                        {draft[i].field === 'year'
+                        {draft[i].field === 'year' || draft[i].field === 'added'
                           ? 'Oldest first'
                           : draft[i].field === 'runtime'
                             ? 'Shortest first'

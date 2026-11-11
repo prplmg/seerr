@@ -100,3 +100,20 @@ test('missing values last, stable relevance ties, secondary order and no mutatio
   ])
     assert.throws(() => parseAiSort(value));
 });
+
+test('recently added uses library dates, keeps missing dates last and recognises prompts', () => {
+  const rows = [
+    { media: {}, addedAt: 100 },
+    { media: {}, addedAt: null },
+    { media: {}, addedAt: 200 },
+  ];
+  assert.deepEqual(
+    sortSearchResults(rows, [{ field: 'added', direction: 'desc' }]).map(
+      (x) => x.addedAt
+    ),
+    [200, 100, null]
+  );
+  assert.deepEqual(parseAiSort([{ field: 'added', direction: 'desc' }]), [
+    { field: 'added', direction: 'desc' },
+  ]);
+});

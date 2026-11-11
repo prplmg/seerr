@@ -366,7 +366,13 @@ router.post('/', async (req, res, next) => {
     // overwrite a history entry with manually changed filters.
     if (!overrides) await rememberSearch(req.user!.id, query, people.ids, f);
     const response = {
-      results: sortSearchResults(shortlist, sort),
+      results: sortSearchResults(
+        shortlist.map((row) => ({
+          ...row,
+          addedAt: d.addedDates?.get(`${row.media.mediaType}:${row.media.id}`),
+        })),
+        sort
+      ),
       sort,
       suggestedSort,
       ratingCoverage,

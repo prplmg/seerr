@@ -1,9 +1,8 @@
-import RandomPickButton from '@app/components/Discover/Curated/RandomPickButton';
 import Slider from '@app/components/Slider';
 import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
 import { Permission, useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
-import { ArrowRightCircleIcon } from '@heroicons/react/24/outline';
+import { LightBulbIcon } from '@heroicons/react/24/outline';
 import type Media from '@server/entity/Media';
 import Link from 'next/link';
 import { useIntl } from 'react-intl';
@@ -33,11 +32,10 @@ const RecentlyAddedSlider = () => {
   return (
     <>
       <div className="slider-header flex-wrap items-center justify-between gap-3 pr-16">
-        <Link href="/discover/recently-added" className="slider-title">
+        <Link href="/find-to-watch" className="slider-title">
           <span>{intl.formatMessage(messages.recentlyAdded)}</span>
-          <ArrowRightCircleIcon />
+          <LightBulbIcon className="text-purple-300" />
         </Link>
-        <RandomPickButton />
       </div>
       <Slider
         sliderKey="media"

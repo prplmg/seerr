@@ -1,4 +1,5 @@
 import FilterChips from '@app/components/AiSearch/FilterChips';
+import FilteredPick from '@app/components/AiSearch/FilteredPick';
 import PeoplePicker from '@app/components/AiSearch/PeoplePicker';
 import SortControl from '@app/components/AiSearch/SortControl';
 import PageTitle from '@app/components/Common/PageTitle';
@@ -23,7 +24,7 @@ type Page = {
 const initial: AiFilters = {
   type: 'movie',
   available: true,
-  unwatched: true,
+  unwatched: false,
   maxRuntime: null,
   yearFrom: null,
   yearTo: null,
@@ -35,7 +36,8 @@ export default function FindToWatch() {
   const { ref: loadMoreRef, inView } = useInView({ rootMargin: '200px' });
   const [filters, setFilters] = useState(initial),
     [people, setPeople] = useState<number[]>([]),
-    [sort, setSort] = useState<AiSort>([]),
+    [allTypes, setAllTypes] = useState(true),
+    [sort, setSort] = useState<AiSort>([{ field: 'added', direction: 'desc' }]),
     [page, setPage] = useState(0),
     [data, setData] = useState<Page | null>(null),
     [busy, setBusy] = useState(true),
@@ -54,7 +56,7 @@ export default function FindToWatch() {
         let result = (
           await axios.post<Page>(
             '/api/v1/find-to-watch',
-            { filters, people, sort, page },
+            { filters, people, sort, page, allTypes },
             { signal: controller.signal }
           )
         ).data;
@@ -113,7 +115,7 @@ export default function FindToWatch() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [userId, filters, people, sort, page, retry]);
+  }, [userId, filters, people, sort, page, retry, allTypes]);
   useEffect(() => {
     if (inView && !busy && !error && data?.next != null) setPage(data.next);
   }, [inView, busy, error, data?.next]);
@@ -130,7 +132,6 @@ export default function FindToWatch() {
           <LightBulbIcon className="h-7 w-7 shrink-0" />
           Find something to watch
         </h1>
-        <p className="mt-1 text-sm text-gray-400">Available in Multimeldia</p>
       </div>
       <PeoplePicker
         people={people}
@@ -139,20 +140,60 @@ export default function FindToWatch() {
           apply({ ...filters, unwatched: true });
         }}
       >
-        <div className="flex gap-2" aria-label="Title type">
-          {(['movie', 'tv'] as const).map((type) => (
-            <button
-              type="button"
-              key={type}
-              aria-pressed={filters.type === type}
-              onClick={() => apply({ ...filters, type, genres: [] })}
-              className={`rounded-full border px-4 py-2 text-sm ${filters.type === type ? 'border-purple-400 bg-purple-900/30 text-purple-200' : 'border-gray-600 text-gray-300'}`}
-            >
-              {type === 'movie' ? 'Movies' : 'Series'}
-            </button>
-          ))}
-        </div>
+        <p className="min-w-0 flex-1 text-sm text-gray-400">
+          Available in Multimeldia
+        </p>
+        <SortControl
+          library
+          value={sort}
+          suggested={[{ field: 'added', direction: 'desc' }]}
+          busy={false}
+          onApply={(next) => {
+            setData(null);
+            setPage(0);
+            setSort(next);
+          }}
+        />
       </PeoplePicker>
+      <div className="my-3 flex gap-2" aria-label="Title type">
+        {(['movie', 'tv'] as const).map((type) => (
+          <button
+            key={type}
+            aria-pressed={!allTypes && filters.type === type}
+            onClick={() => {
+              setAllTypes(!allTypes && filters.type === type);
+              apply({ ...filters, type, genres: [] });
+            }}
+            className={`rounded-full border px-4 py-2 text-sm ${!allTypes && filters.type === type ? 'border-purple-400 text-purple-200' : 'border-gray-600 text-gray-300'}`}
+          >
+            {type === 'movie' ? 'Movies' : 'Series'}
+          </button>
+        ))}
+      </div>
+      <FilteredPick
+        disabled={busy || !data?.total}
+        pick={async () => {
+          const index = Math.floor(Math.random() * (data?.total || 0));
+          let result = (
+            await axios.post<Page>('/api/v1/find-to-watch', {
+              filters,
+              people,
+              sort,
+              allTypes,
+              page: Math.floor(index / 20),
+            })
+          ).data;
+          while (!result.ready) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            result = (
+              await axios.get<Page>(`/api/v1/find-to-watch/${result.id}`, {
+                params: { page: Math.floor(index / 20) },
+              })
+            ).data;
+          }
+          return result.results?.[index % 20]?.media;
+        }}
+      />
       <FilterChips
         key={JSON.stringify(filters)}
         filters={filters}
@@ -160,18 +201,6 @@ export default function FindToWatch() {
         group={people.length > 0}
         busy={false}
         onApply={apply}
-        sortControl={
-          <SortControl
-            value={sort}
-            suggested={[]}
-            busy={false}
-            onApply={(next) => {
-              setData(null);
-              setPage(0);
-              setSort(next);
-            }}
-          />
-        }
       />
       {busy && page === 0 && (
         <div
@@ -194,7 +223,11 @@ export default function FindToWatch() {
         <>
           <p className="mb-3 text-sm text-gray-400">
             {data.total} matching{' '}
-            {filters.type === 'movie' ? 'movies' : 'series'}
+            {allTypes
+              ? 'titles'
+              : filters.type === 'movie'
+                ? 'movies'
+                : 'series'}
             {(data.unknown ?? 0) > 0
               ? ` · ${data.unknown} metadata checks unavailable; retry to check again.`
               : ''}

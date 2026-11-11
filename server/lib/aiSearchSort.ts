@@ -1,5 +1,5 @@
 import type { AiFilters } from './aiSearchPlan';
-export type SortField = 'rating' | 'runtime' | 'year';
+export type SortField = 'rating' | 'runtime' | 'year' | 'added';
 export type AiSort = { field: SortField; direction: 'asc' | 'desc' }[];
 export function parseAiSort(value: unknown): AiSort {
   if (
@@ -8,7 +8,7 @@ export function parseAiSort(value: unknown): AiSort {
     value.some(
       (x) =>
         !x ||
-        !['rating', 'runtime', 'year'].includes(x.field) ||
+        !['rating', 'runtime', 'year', 'added'].includes(x.field) ||
         !['asc', 'desc'].includes(x.direction)
     ) ||
     new Set(value.map((x) => x.field)).size !== value.length
@@ -18,6 +18,8 @@ export function parseAiSort(value: unknown): AiSort {
 }
 export function suggestAiSort(query: string, filters: AiFilters): AiSort {
   const q = query.toLowerCase();
+  if (/recently added|newly added|latest additions/.test(q))
+    return [{ field: 'added', direction: 'desc' }];
   const explicit = q.match(
     /(?:sort(?:ed)?|order(?:ed)?)\s+(?:by\s+)?(.+)$/
   )?.[1];
@@ -75,6 +77,7 @@ export function suggestAiSort(query: string, filters: AiFilters): AiSort {
   return [];
 }
 export interface SortableSearchResult {
+  addedAt?: number | null;
   media: { releaseDate?: string; firstAirDate?: string };
   runtime?: number | null;
   letterboxdRating?: number;
@@ -85,16 +88,18 @@ export function sortSearchResults<T extends SortableSearchResult>(
 ): T[] {
   const value = (row: T, field: SortField) => {
     const v =
-      field === 'rating'
-        ? row.letterboxdRating
-        : field === 'runtime'
-          ? row.runtime
-          : Number(
-              (row.media.releaseDate || row.media.firstAirDate || '').slice(
-                0,
-                4
-              )
-            ) || null;
+      field === 'added'
+        ? row.addedAt
+        : field === 'rating'
+          ? row.letterboxdRating
+          : field === 'runtime'
+            ? row.runtime
+            : Number(
+                (row.media.releaseDate || row.media.firstAirDate || '').slice(
+                  0,
+                  4
+                )
+              ) || null;
     return v != null && Number.isFinite(v) ? v : null;
   };
   return [...rows].sort((a, b) => {
@@ -114,7 +119,7 @@ export function sortLabel(sort: AiSort) {
     ? sort
         .map(
           (s) =>
-            `${{ rating: 'Rating', runtime: 'Runtime', year: 'Year' }[s.field]} ${s.direction === 'asc' ? '↑' : '↓'}`
+            `${{ rating: 'Rating', runtime: 'Runtime', year: 'Year', added: 'Recently added' }[s.field]} ${s.direction === 'asc' ? '↑' : '↓'}`
         )
         .join(' · ')
     : 'Best match';

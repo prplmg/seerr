@@ -2969,7 +2969,15 @@ paths:
                   uniqueItems: true
                   items:
                     type: string
-                    enum: [rating, review, watched, diary, diary-content, subject-holds]
+                    enum:
+                      [
+                        rating,
+                        review,
+                        watched,
+                        diary,
+                        diary-content,
+                        subject-holds,
+                      ]
                 action:
                   description: Receipt-only acknowledgement exchange, never a new write.
                   type: string
@@ -7201,7 +7209,7 @@ paths:
                     properties:
                       field:
                         type: string
-                        enum: [rating, runtime, year]
+                        enum: [rating, runtime, year, added]
                       direction:
                         type: string
                         enum: [asc, desc]
@@ -7285,6 +7293,8 @@ paths:
               additionalProperties: false
               required: [filters]
               properties:
+                allTypes:
+                  type: boolean
                 page:
                   type: integer
                   minimum: 0
@@ -7299,7 +7309,7 @@ paths:
                     properties:
                       field:
                         type: string
-                        enum: [rating, runtime, year]
+                        enum: [rating, runtime, year, added]
                       direction:
                         type: string
                         enum: [asc, desc]

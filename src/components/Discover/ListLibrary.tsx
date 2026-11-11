@@ -11,7 +11,6 @@ import {
   ArrowRightCircleIcon,
   BookmarkIcon,
   FunnelIcon,
-  LightBulbIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Link from 'next/link';
@@ -1277,36 +1276,6 @@ function ForYou() {
       <div className="my-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 items-center gap-2">
           <h1 className="text-3xl font-bold">{pageTitle}</h1>
-          {!section && (
-            <nav
-              aria-label={t(
-                'Find something to watch',
-                'Encuentra algo para ver'
-              )}
-              className="flex shrink-0 items-center"
-            >
-              {[
-                {
-                  id: 'find-to-watch',
-                  label: t(
-                    'Find something to watch',
-                    'Encuentra algo para ver'
-                  ),
-                  Icon: LightBulbIcon,
-                },
-              ].map(({ id, label, Icon }) => (
-                <Link
-                  key={id}
-                  href="/find-to-watch"
-                  aria-label={label}
-                  title={label}
-                  className="flex h-11 w-11 items-center justify-center rounded-lg text-purple-300 hover:bg-gray-800 hover:text-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
-                >
-                  <Icon className="h-6 w-6" aria-hidden="true" />
-                </Link>
-              ))}
-            </nav>
-          )}
         </div>
         {!section && previewUserId === undefined && (
           <button

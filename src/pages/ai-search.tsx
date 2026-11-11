@@ -1,4 +1,5 @@
 import FilterChips from '@app/components/AiSearch/FilterChips';
+import FilteredPick from '@app/components/AiSearch/FilteredPick';
 import PeoplePicker from '@app/components/AiSearch/PeoplePicker';
 import SortControl from '@app/components/AiSearch/SortControl';
 import {
@@ -411,6 +412,14 @@ export default function AiSearchPage() {
           <p className="mb-3 break-words text-gray-300">
             Results for “{submitted}”
           </p>
+          <FilteredPick
+            disabled={busy || !response.results.length}
+            pick={async () =>
+              response.results[
+                Math.floor(Math.random() * response.results.length)
+              ]?.media
+            }
+          />
           <FilterChips
             key={JSON.stringify([submitted, f])}
             filters={f}

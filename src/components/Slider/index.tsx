@@ -3,6 +3,7 @@ import globalMessages from '@app/i18n/globalMessages';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useSpring } from '@react-spring/web';
 import { debounce } from 'lodash';
+import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { useIntl } from 'react-intl';
 
@@ -33,6 +34,7 @@ const Slider = ({
   placeholder = <TitleCard.Placeholder />,
 }: SliderProps) => {
   const intl = useIntl();
+  const hideArrows = useRouter().pathname === '/for-you';
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPos, setScrollPos] = useState({ isStart: true, isEnd: false });
 
@@ -152,6 +154,7 @@ const Slider = ({
       <div className={header ? 'slider-heading relative mb-3' : undefined}>
         {header}
         <div
+          style={hideArrows ? { display: 'none' } : undefined}
           className={
             header
               ? 'absolute right-0 top-1/2 flex -translate-y-1/2 text-gray-400'

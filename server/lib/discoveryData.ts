@@ -331,6 +331,12 @@ async function buildDiscoveryData(userId: number) {
   ];
   const responseStamp = discoveryFileStamp(responseFiles);
   return {
+    addedDates: new Map(
+      media.map((m) => [
+        `${m.mediaType}:${m.tmdbId}`,
+        m.mediaAddedAt ? new Date(m.mediaAddedAt).getTime() : null,
+      ])
+    ),
     store,
     lists,
     mine,

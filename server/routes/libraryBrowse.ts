@@ -44,7 +44,11 @@ router.post('/', async (req, res, next) => {
     let filters, sort;
     try {
       filters = parseAiFilters(req.body.filters);
-      sort = parseAiSort(req.body.sort ?? []);
+      sort = parseAiSort(
+        req.body.sort?.length
+          ? req.body.sort
+          : [{ field: 'added', direction: 'desc' }]
+      );
     } catch {
       throw Object.assign(Error('Invalid library filters or sorting'), {
         status: 400,
@@ -57,7 +61,8 @@ router.post('/', async (req, res, next) => {
           filters,
           sort,
           req.body.people,
-          pageNumber(req.body.page)
+          pageNumber(req.body.page),
+          req.body.allTypes === true
         ),
         req.user!
       )
