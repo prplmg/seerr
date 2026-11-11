@@ -13,20 +13,7 @@ import {
   type SortField,
 } from '@server/lib/aiSearchSort';
 import { useState } from 'react';
-function RecentlyAddedIcon({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`${className} inline-block shrink-0 rounded-full border border-purple-400/60 bg-gray-900`}
-      style={{
-        backgroundImage: "url('/apple-touch-icon.png')",
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '68%',
-      }}
-    />
-  );
-}
+import RecentlyAddedIcon from './RecentlyAddedIcon';
 const icons = {
   rating: StarIcon,
   runtime: ClockIcon,
