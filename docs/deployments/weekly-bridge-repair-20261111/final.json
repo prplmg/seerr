@@ -1,0 +1,18 @@
+{
+  "startedAt": 1794422446005,
+  "finishedAt": 1794425097078,
+  "seconds": 2651.073,
+  "pages": 8,
+  "queued": 43,
+  "done": 43,
+  "failed": 0,
+  "deferred": null,
+  "completed": true,
+  "liveVerified": 43,
+  "memberships": 9014,
+  "unmatched": 3,
+  "retired": 0,
+  "importRetries": 0,
+  "candidates": 64,
+  "grantRemoved": true
+}
