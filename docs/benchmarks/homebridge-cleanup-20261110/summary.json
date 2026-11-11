@@ -1,0 +1,18 @@
+{
+  "before": {
+    "samples": 7,
+    "medianProcessPssMiB": 566.140625,
+    "medianAvailableMiB": 441.73828125,
+    "maxSwapUsedMiB": 0.0,
+    "ffmpegMax": 0
+  },
+  "after": {
+    "samples": 7,
+    "medianProcessPssMiB": 520.2099609375,
+    "medianAvailableMiB": 488.671875,
+    "maxSwapUsedMiB": 0.0,
+    "ffmpegMax": 0
+  },
+  "savedPssMiB": 45.9306640625,
+  "availableGainMiB": 46.93359375
+}
