@@ -16,6 +16,7 @@ import {
   permitWeeklyLists,
   readWeeklyLists,
   updateWeeklyLists,
+  weeklyManualUntil,
 } from './weeklyListsState';
 
 export async function runWeeklyLists(
@@ -23,7 +24,8 @@ export async function runWeeklyLists(
   now = Date.now()
 ) {
   permitWeeklyLists(0);
-  if (!weeklyWindow(now)) return;
+  const manualUntil = weeklyManualUntil(now);
+  if (!weeklyWindow(now) && !manualUntil) return;
   const clock = weeklyClock(now),
     state = readWeeklyLists();
   const due =
@@ -37,7 +39,10 @@ export async function runWeeklyLists(
     });
     return;
   }
-  const end = now + (520 - clock.minute) * 60000 - (now % 60000);
+  updateWeeklyLists((s) => {
+    delete s.deferred;
+  });
+  const end = manualUntil || now + (520 - clock.minute) * 60000 - (now % 60000);
   permitWeeklyLists(Math.min(now + 90000, end));
   if (due)
     updateWeeklyLists((s) => {

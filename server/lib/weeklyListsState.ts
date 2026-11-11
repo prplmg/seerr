@@ -50,3 +50,25 @@ export function permitWeeklyLists(until: number) {
 export function weeklyListsPermitted(now = Date.now()) {
   return now < permittedUntil;
 }
+
+// Operator-only, expiring continuation grant. Does not change the schedule or
+// bypass health checks. Written on the server by the maintenance operator.
+export function weeklyManualUntil(now = Date.now()) {
+  try {
+    const grant = JSON.parse(
+      fs.readFileSync(
+        path.join(appDataPath(), 'weekly-lists-manual.json'),
+        'utf8'
+      )
+    );
+    return Number.isFinite(grant.startedAt) &&
+      Number.isFinite(grant.until) &&
+      grant.startedAt <= now &&
+      grant.until > now &&
+      grant.until - grant.startedAt <= 2 * 3600000
+      ? grant.until
+      : 0;
+  } catch {
+    return 0;
+  }
+}

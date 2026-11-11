@@ -580,6 +580,31 @@ class CatalogueClientTests(unittest.TestCase):
         sent=client.request.call_args.args[1]
         self.assertEqual(sent['supported'],[]);self.assertEqual(sent['report']['status'],'ambiguous')
         self.assertNotIn('observation',sent['report'])
+    def test_released_adapter_advertises_and_accepts_weekly_contract(self):
+        version=json.loads((Path(__file__).resolve().parents[1]/'letterboxd-weekly'/'manifest.json').read_text())['version']
+        (self.root/'worker-versions.json').write_text(json.dumps({INSTANCE:{'version':version,'seenAt':time.time(),'inPrivateAllowed':True}}))
+        job={'id':str(uuid.uuid4()),'action':'list_scan','instance':INSTANCE,'account':'prplmg','url':'https://letterboxd.com/lists/popular/','mode':'discovery','maxFilms':560,'token':str(uuid.uuid4())}
+        send=Mock(return_value=job);client=CatalogueClient(self.q,self.config,send)
+        self.assertIn('watched',client.supported_writes(INSTANCE))
+        self.assertTrue(client.workflow_capable(INSTANCE))
+        client.exchange_lists(INSTANCE)
+        payload=send.call_args.args[1]
+        self.assertTrue(payload['weeklySupported']);self.assertTrue(payload['inPrivateAllowed'])
+        claimed=self.q.claim(INSTANCE)
+        self.assertEqual(claimed['mode'],'discovery');self.assertEqual(claimed['maxFilms'],560)
+
+    def test_weekly_capability_requires_supported_fresh_private_adapter(self):
+        for version,age,private,expected in [('0.2.48',0,True,False),('0.2.50',601,True,None),('0.2.50',0,False,None),('9.9.9',0,True,None)]:
+            (self.root/'worker-versions.json').write_text(json.dumps({INSTANCE:{'version':version,'seenAt':time.time()-age,'inPrivateAllowed':private}}))
+            send=Mock(return_value={'action':'idle'});client=CatalogueClient(self.q,self.config,send);client.exchange_lists(INSTANCE)
+            if expected is None:send.assert_not_called()
+            else:self.assertIs(send.call_args.args[1]['weeklySupported'],expected)
+
+    def test_weekly_entry_points_share_canonical_worker_source(self):
+        weekly=Path(__file__).resolve().parents[1]/'letterboxd-weekly'
+        for name in ('catalogue_client.py','queue_store.py'):
+            self.assertEqual((weekly/name).resolve(),Path(__file__).resolve().parent/name)
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory(); self.root=Path(self.tmp.name)
         self.q=Queue(self.root/'queue.sqlite')

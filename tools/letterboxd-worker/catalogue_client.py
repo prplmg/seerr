@@ -22,6 +22,9 @@ from urllib.error import HTTPError
 
 ENDPOINT = 'https://catalogue.prpl.com.mx:8443/api/v1/letterboxd-worker/exchange'
 SUPPORTED_WRITE_KINDS = ('rating', 'review', 'diary')
+LIST_ADAPTERS = frozenset(('0.2.48', '0.2.49', '0.2.50'))
+WEEKLY_ADAPTERS = frozenset(('0.2.49', '0.2.50'))
+DIARY_CONTENT_ADAPTERS = frozenset(('0.2.46', '0.2.47', '0.2.48', '0.2.49', '0.2.50'))
 
 class CatalogueOriginConnection(HTTPSConnection):
     """Dial our LAN origin, retaining the public hostname for TLS verification."""
@@ -99,7 +102,7 @@ class CatalogueClient:
         kinds=list(SUPPORTED_WRITE_KINDS)
         try:
             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
-            if version.get('version')=='0.2.48' and 0 <= time.time()-version.get('seenAt',0) < 600:
+            if version.get('version') in LIST_ADAPTERS and 0 <= time.time()-version.get('seenAt',0) < 600:
                 kinds.append('watched')
         except (OSError,ValueError,TypeError): pass
         return kinds
@@ -138,7 +141,7 @@ class CatalogueClient:
         try:
             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
             age=time.time()-version.get('seenAt',0)
-            return version.get('version') in ('0.2.46','0.2.47','0.2.48') and 0 <= age < 600
+            return version.get('version') in DIARY_CONTENT_ADAPTERS and 0 <= age < 600
         except (OSError,ValueError,TypeError):
             return False
 
@@ -371,11 +374,11 @@ class CatalogueClient:
         row=self.queue.db.execute("SELECT j.*,p.payload FROM jobs j JOIN list_payloads p ON p.id=j.id LEFT JOIN list_acks a ON a.id=j.id LEFT JOIN delivery_retries r ON r.id=j.id WHERE j.instance=? AND a.id IS NULL AND (r.id IS NULL OR r.revision!=? OR r.next_at<=?) AND j.state IN ('succeeded','blocked','unknown') ORDER BY created LIMIT 1",(instance,DELIVERY_PROTOCOL,now)).fetchone()
         try:
             version=json.loads((self.config_path.parent/'worker-versions.json').read_text()).get(instance,{})
-            capable=version.get('version')=='0.2.48' and version.get('inPrivateAllowed') is True and 0<=now-version.get('seenAt',0)<600
+            capable=version.get('version') in LIST_ADAPTERS and version.get('inPrivateAllowed') is True and 0<=now-version.get('seenAt',0)<600
         except (OSError,ValueError,TypeError):capable=False
         if not capable and not row:return
         if self.queue.db.execute("SELECT 1 FROM jobs WHERE instance=? AND state IN ('queued','running','offered')",(instance,)).fetchone():return
-        payload={'version':1,'instance':instance,'supported':True,'inPrivateAllowed':capable}
+        payload={'version':1,'instance':instance,'supported':True,'inPrivateAllowed':capable,'weeklySupported':capable and version.get('version') in WEEKLY_ADAPTERS}
         if row:
             result=json.loads(row['result'] or '{}');intent=json.loads(row['payload'])
             payload['report']={'id':row['id'],'token':intent['token'],'outcome':row['state']}

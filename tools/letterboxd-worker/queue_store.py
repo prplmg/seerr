@@ -17,10 +17,14 @@ ACTIONS.add('export_scan')
 ACTIONS.add('list_scan')
 
 def list_payload(payload):
-    if not isinstance(payload,dict) or not isinstance(payload.get('url'),str) or not re.fullmatch(r'https://(?:letterboxd\.com/[a-zA-Z0-9_]+/list/[a-zA-Z0-9-]+/|boxd\.it/[a-zA-Z0-9]+/?)',payload['url']):
-        raise ValueError('Invalid list URL')
+    if not isinstance(payload,dict): raise ValueError('Invalid list intent')
+    url=payload.get('url','');mode=payload.get('mode')
+    discovery=mode=='discovery' and re.fullmatch(r'https://letterboxd\.com/lists/popular/(?:this/(?:week|month|year)/)?(?:page/2/)?',url)
+    normal=re.fullmatch(r'https://(?:letterboxd\.com/[a-zA-Z0-9_]+/list/(?:[a-zA-Z0-9-]+|filmlist:[1-9][0-9]*)/|boxd\.it/[a-zA-Z0-9]+/?)',url)
+    if not (discovery or (mode in (None,'contents') and normal)):raise ValueError('Invalid list URL')
     if str(uuid.UUID(payload.get('token',''))) != payload['token']:raise ValueError('Invalid list claim')
-    return {key:payload[key] for key in ('url','token')}
+    if mode and (type(payload.get('maxFilms')) is not int or payload['maxFilms']!=560):raise ValueError('Invalid automatic cap')
+    return {key:payload[key] for key in ('url','token','mode','maxFilms') if key in payload}
 
 def valid_account_payload(payload):
     return (isinstance(payload, dict) and type(payload.get('userId')) is int

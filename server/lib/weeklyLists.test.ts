@@ -8,7 +8,8 @@ import type { WeeklyState } from './weeklyListsState';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function harness() {
   let now = Date.parse('2026-11-10T13:20:00Z'),
-    grants = 0;
+    grants = 0,
+    manualUntil = 0;
   const state: WeeklyState = { pages: {}, queue: [], seen: {}, retired: [] };
   const lists: any = { lists: [], saved: {}, liked: {} };
   const jobs: any[] = [];
@@ -28,6 +29,7 @@ function harness() {
     if (name === './weeklyListsPolicy') return policy;
     if (name === './weeklyListsState')
       return {
+        weeklyManualUntil: () => (manualUntil > now ? manualUntil : 0),
         readWeeklyLists: () => structuredClone(state),
         updateWeeklyLists: (f: any) => f(state),
         permitWeeklyLists: (t: number) => {
@@ -56,6 +58,9 @@ function harness() {
     lists,
     jobs,
     grant: () => grants,
+    manual: () => {
+      manualUntil = now + 3600000;
+    },
     advance: (ms: number) => {
       now += ms;
     },
@@ -117,4 +122,21 @@ it('an idle non-Tuesday does not initiate a weekly census', async () => {
   h.advance(86400000);
   await h.tick();
   assert.equal(h.jobs.length, 0);
+});
+
+it('expiring manual continuation keeps maintenance checks and scheduled defaults', async () => {
+  const h = harness();
+  await h.tick();
+  h.advance(5 * 3600000);
+  await h.tick();
+  assert.equal(h.grant(), 0);
+  h.manual();
+  await h.tick(true);
+  assert.equal(h.grant(), 0);
+  await h.tick();
+  assert(h.grant() > 0);
+  assert.equal(h.state.deferred, undefined);
+  h.advance(3600001);
+  await h.tick();
+  assert.equal(h.grant(), 0);
 });

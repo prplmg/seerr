@@ -18,7 +18,8 @@ def start():ps('Start-ScheduledTask -TaskName Multimeldia-LetterboxdPilot')
 for name,target in files.items():
     if digest(target/name)!=manifest[name]:raise RuntimeError('Live source drift: '+name)
     if name.endswith('.py'):ast.parse((stage/name).read_text())
-if json.loads((stage/'manifest.json').read_text())['version']!='0.2.49':raise RuntimeError('Wrong extension version')
+version=json.loads((stage/'manifest.json').read_text())['version']
+if version not in ('0.2.49','0.2.50'):raise RuntimeError('Untested extension version')
 protected={str(p):digest(p) for p in [root/'catalogue.json',extension/'config.js']}
 idle()
 backup=root/('weekly-lists-backup-'+time.strftime('%Y%m%d-%H%M%S'));backup.mkdir()
@@ -33,4 +34,4 @@ except Exception:
     stop()
     for name,target in files.items():shutil.copy2(backup/name,target/name)
     start();raise
-print(json.dumps({'installed':'0.2.49','backup':str(backup),'settingsUnchanged':True,'files':list(files)}))
+print(json.dumps({'installed':version,'backup':str(backup),'settingsUnchanged':True,'files':list(files)}))
