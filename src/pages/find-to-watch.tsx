@@ -2,6 +2,11 @@ import FilterChips from '@app/components/AiSearch/FilterChips';
 import FilteredPick from '@app/components/AiSearch/FilteredPick';
 import PeoplePicker from '@app/components/AiSearch/PeoplePicker';
 import SortControl from '@app/components/AiSearch/SortControl';
+import {
+  readSearchScreen,
+  saveSearchScreen,
+  searchEntry,
+} from '@app/components/AiSearch/navigationState';
 import PageTitle from '@app/components/Common/PageTitle';
 import TitleCard from '@app/components/TitleCard';
 import { useUser } from '@app/hooks/useUser';
@@ -10,7 +15,8 @@ import type { AiFilters } from '@server/lib/aiSearchPlan';
 import type { AiSort } from '@server/lib/aiSearchSort';
 import type { LibraryRow } from '@server/lib/libraryBrowse';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 type Page = {
   id: string;
@@ -31,6 +37,9 @@ const initial: AiFilters = {
   genres: [],
 };
 export default function FindToWatch() {
+  const router = useRouter();
+  const entry = useRef<string | undefined>(undefined);
+  const [restoredUser, setRestoredUser] = useState<number>();
   const { user } = useUser();
   const userId = user?.id;
   const { ref: loadMoreRef, inView } = useInView({ rootMargin: '200px' });
@@ -45,7 +54,35 @@ export default function FindToWatch() {
     [error, setError] = useState(''),
     [retry, setRetry] = useState(0);
   useEffect(() => {
-    if (!userId) return;
+    if (!router.isReady || !userId || restoredUser === userId) return;
+    entry.current = `library:${searchEntry(window.history)}`;
+    const saved = readSearchScreen<{
+      filters: AiFilters;
+      people: number[];
+      allTypes: boolean;
+      sort: AiSort;
+    }>(userId, entry.current);
+    setFilters(saved?.filters ?? initial);
+    setPeople(saved?.people ?? []);
+    setAllTypes(saved?.allTypes ?? true);
+    setSort(saved?.sort ?? [{ field: 'added', direction: 'desc' }]);
+    setPage(0);
+    setData(null);
+    setRestoredUser(userId);
+  }, [router.isReady, userId, restoredUser]);
+  useEffect(() => {
+    if (!userId || restoredUser !== userId || !entry.current) return;
+    const currentEntry = entry.current;
+    return () =>
+      saveSearchScreen(userId, currentEntry, {
+        filters,
+        people,
+        allTypes,
+        sort,
+      });
+  }, [userId, restoredUser, filters, people, allTypes, sort]);
+  useEffect(() => {
+    if (!userId || restoredUser !== userId) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     setBusy(true);
@@ -115,7 +152,7 @@ export default function FindToWatch() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [userId, filters, people, sort, page, retry, allTypes]);
+  }, [userId, restoredUser, filters, people, sort, page, retry, allTypes]);
   useEffect(() => {
     if (inView && !busy && !error && data?.next != null) setPage(data.next);
   }, [inView, busy, error, data?.next]);
