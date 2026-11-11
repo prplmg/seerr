@@ -73,7 +73,11 @@ export default function SortControl({
                 aria-hidden="true"
               >
                 {index > 0 && <span className="mr-1 text-gray-500">·</span>}
-                <Icon className="h-4 w-4" />
+                {sort.field === 'added' ? (
+                  <span>Recently added</span>
+                ) : (
+                  <Icon className="h-4 w-4" />
+                )}
                 <Direction className="h-3 w-3" />
               </span>
             );
