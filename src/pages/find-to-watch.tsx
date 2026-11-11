@@ -134,28 +134,31 @@ export default function FindToWatch() {
         </h1>
       </div>
       <PeoplePicker
+        compact
+        trailing={
+          <SortControl
+            library
+            value={sort}
+            suggested={[{ field: 'added', direction: 'desc' }]}
+            busy={false}
+            onApply={(next) => {
+              setData(null);
+              setPage(0);
+              setSort(next);
+            }}
+          />
+        }
         people={people}
         onChange={(next) => {
           setPeople(next);
           apply({ ...filters, unwatched: true });
         }}
       >
-        <p className="min-w-0 flex-1 text-sm text-gray-400">
+        <p className="min-w-0 flex-1 whitespace-nowrap text-sm text-gray-400">
           Available in Multimeldia
         </p>
-        <SortControl
-          library
-          value={sort}
-          suggested={[{ field: 'added', direction: 'desc' }]}
-          busy={false}
-          onApply={(next) => {
-            setData(null);
-            setPage(0);
-            setSort(next);
-          }}
-        />
       </PeoplePicker>
-      <div className="my-3 flex gap-2" aria-label="Title type">
+      <div className="my-3 flex items-center gap-2" aria-label="Title type">
         {(['movie', 'tv'] as const).map((type) => (
           <button
             key={type}
@@ -169,31 +172,32 @@ export default function FindToWatch() {
             {type === 'movie' ? 'Movies' : 'Series'}
           </button>
         ))}
-      </div>
-      <FilteredPick
-        disabled={busy || !data?.total}
-        pick={async () => {
-          const index = Math.floor(Math.random() * (data?.total || 0));
-          let result = (
-            await axios.post<Page>('/api/v1/find-to-watch', {
-              filters,
-              people,
-              sort,
-              allTypes,
-              page: Math.floor(index / 20),
-            })
-          ).data;
-          while (!result.ready) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            result = (
-              await axios.get<Page>(`/api/v1/find-to-watch/${result.id}`, {
-                params: { page: Math.floor(index / 20) },
+        <FilteredPick
+          className="ml-auto"
+          disabled={busy || !data?.total}
+          pick={async () => {
+            const index = Math.floor(Math.random() * (data?.total || 0));
+            let result = (
+              await axios.post<Page>('/api/v1/find-to-watch', {
+                filters,
+                people,
+                sort,
+                allTypes,
+                page: Math.floor(index / 20),
               })
             ).data;
-          }
-          return result.results?.[index % 20]?.media;
-        }}
-      />
+            while (!result.ready) {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              result = (
+                await axios.get<Page>(`/api/v1/find-to-watch/${result.id}`, {
+                  params: { page: Math.floor(index / 20) },
+                })
+              ).data;
+            }
+            return result.results?.[index % 20]?.media;
+          }}
+        />
+      </div>
       <FilterChips
         key={JSON.stringify(filters)}
         filters={filters}
