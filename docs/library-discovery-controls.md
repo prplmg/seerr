@@ -21,3 +21,5 @@ Label refinement: full Recently added text is restricted to the library finder w
 2026-11-10 local refinement: filled lower play/pause shapes explicitly stroke=none to avoid overlapping upper outline. Fresh previews outputs/library-fill-only-20261110; not deployed.
 
 2026-11-10 inset-outline revision: upper M stroke doubled and clipped to original silhouette, keeping full40-unit visible thickness entirely inside the M; lower fill-only geometry unchanged. React useId prevents clip collisions across controls. New previews outputs/library-inset-outline-20261110. Types and browser checks pass; not deployed.
+
+Deployed November10 local time: build8MOacVq5YcZCW7oglQbl7 via canonical PRPL-PC/maintenance rollout. Source/chunk checks and live mixed library response passed; toggles unchanged. Single rollback retained. Receipt docs/deployments/discovery-controls-20261110/receipt.md.

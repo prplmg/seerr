@@ -1,0 +1,18 @@
+{
+  "files": [
+    "seerr-api.yml",
+    "server/lib/aiSearchSort.ts",
+    "server/lib/discoveryData.ts",
+    "server/lib/libraryBrowse.ts",
+    "server/routes/aiSearch.ts",
+    "server/routes/libraryBrowse.ts",
+    "src/components/AiSearch/FilteredPick.tsx",
+    "src/components/AiSearch/SortControl.tsx",
+    "src/components/Discover/ListLibrary.tsx",
+    "src/components/Discover/RecentlyAddedSlider/index.tsx",
+    "src/components/Slider/index.tsx",
+    "src/pages/ai-search.tsx",
+    "src/pages/find-to-watch.tsx",
+    "src/components/AiSearch/RecentlyAddedIcon.tsx"
+  ]
+}
