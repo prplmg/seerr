@@ -35,6 +35,8 @@ async function releaseAll() {
   fs.writeFileSync(lock+'/owner.json', JSON.stringify({pid:process.pid,release,started:new Date().toISOString()}));
   process.argv[2]='build'; await main();
   process.argv[2]='deploy'; await main();
+  try { console.log(JSON.stringify(require(root+'/build-host/retention.cjs').run(root,true))); }
+  catch(e) { throw Error('Deployment succeeded, but retention failed: '+e.message); }
  } finally { fs.unlinkSync(lock+'/owner.json'); fs.rmdirSync(lock); }
 }
 releaseAll().catch(e=>{console.error(e.stack);process.exitCode=1});
@@ -52,6 +54,7 @@ child.on('error',e=>console.error(e.message));
 child.on('close',(code,signal)=>{fs.closeSync(fd);process.stdout.write(fs.readFileSync(${JSON.stringify(remote+'/'+id+'.log')},'utf8'));process.exitCode=code??1;});`;
 fs.writeFileSync(path.join(temp,id+'-runner.cjs'),runner);
 run('scp', ['-o', 'BatchMode=yes', path.join(temp, id + '-source.json'), path.join(temp, id + '.cjs'), path.join(temp,id+'-health.cjs'), path.join(temp,id+'-control.cjs'), path.join(temp,id+'-ledger.cjs'), path.join(temp,id+'-runner.cjs'), host + ':' + remote + '/']);
+run('scp', ['-o', 'BatchMode=yes', path.join(__dirname,'retention.cjs'), host + ':' + remote + '/build-host/retention.cjs']);
 console.log('Building on PRPL-PC; Mini verifies the output before taking the maintenance lease.');
 ssh('C:\\ProgramData\\Seerr\\node\\node.exe C:\\ProgramData\\Seerr\\' + id + '-runner.cjs');
 console.log('Deployment complete. Backup and verification: ' + remote + '/' + id + '-release');
