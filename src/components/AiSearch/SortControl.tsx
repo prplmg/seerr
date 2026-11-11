@@ -168,7 +168,8 @@ export default function SortControl({
               </div>
             ))}
             <p className="mt-3 text-xs text-gray-400">
-              Missing values go last. Sorting doesn’t ask AI again.
+              Missing values go last.
+              {!library && ' Sorting doesn’t ask AI again.'}
             </p>
             <div className="mt-4 flex justify-end gap-3">
               <button
