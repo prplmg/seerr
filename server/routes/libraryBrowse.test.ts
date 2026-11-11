@@ -43,8 +43,8 @@ test('library API validates the actual contract and requires authentication with
   };
   t.mock.method(
     library,
-    'libraryJob',
-    () => readyResult as ReturnType<typeof library.libraryJob>
+    'refreshLibraryJob',
+    async () => readyResult as ReturnType<typeof library.libraryJob>
   );
 
   const app = express();

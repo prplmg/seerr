@@ -35,6 +35,12 @@ type Job = {
   full: boolean;
   page: number;
   valid: () => boolean;
+  request: {
+    filters: AiFilters;
+    sort: AiSort;
+    people: number[];
+    allTypes: boolean;
+  };
 };
 const jobs = new Map<string, Job>();
 // Bound base-metadata reads globally, including overlapping requests/users.
@@ -86,6 +92,26 @@ export function libraryJob(userId: number, id: string, page: number) {
         }
       : {}),
   };
+}
+// Revalidate stale discovery snapshots instead of exposing routine background
+// writes as errors. The fresh pool key lets unchanged work continue in place.
+export async function refreshLibraryJob(
+  userId: number,
+  id: string,
+  page: number
+) {
+  const job = jobs.get(id);
+  if (
+    job &&
+    job.userId === userId &&
+    !job.cancelled &&
+    job.until >= Date.now() &&
+    !job.valid()
+  ) {
+    const { filters, sort, people, allTypes } = job.request;
+    return startLibraryBrowse(userId, filters, sort, people, page, allTypes);
+  }
+  return libraryJob(userId, id, page);
 }
 export async function startLibraryBrowse(
   userId: number,
@@ -143,6 +169,9 @@ export async function startLibraryBrowse(
     sort,
     ids,
     pool,
+    sort.some((s) => s.field === 'added')
+      ? pool.map((k) => d.addedDates?.get(k) ?? null)
+      : null,
     full ? null : page,
   ]);
   for (const [id, job] of jobs) {
@@ -157,10 +186,12 @@ export async function startLibraryBrowse(
       j.key === key &&
       !j.cancelled &&
       !j.error &&
-      !j.unknown &&
-      j.valid()
+      (!j.ready || !j.unknown)
   );
-  if (existing) return libraryJob(userId, existing.id, page);
+  if (existing) {
+    existing.valid = d.visibilityStillValid;
+    return libraryJob(userId, existing.id, page);
+  }
   // Latest view wins; old jobs stop after their current bounded batch.
   for (const job of jobs.values())
     if (job.userId === userId && !job.ready) job.cancelled = true;
@@ -186,6 +217,12 @@ export async function startLibraryBrowse(
     full,
     page,
     valid: d.visibilityStillValid,
+    request: {
+      filters,
+      sort,
+      people: ids.filter((id) => id !== userId),
+      allTypes,
+    },
   };
   jobs.set(job.id, job);
   const selected = full ? pool : pool.slice(page * 20, page * 20 + 20);

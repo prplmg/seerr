@@ -2,7 +2,11 @@ import Media from '@server/entity/Media';
 import type { User } from '@server/entity/User';
 import { parseAiFilters } from '@server/lib/aiSearchPlan';
 import { parseAiSort } from '@server/lib/aiSearchSort';
-import { libraryJob, startLibraryBrowse } from '@server/lib/libraryBrowse';
+import {
+  libraryJob,
+  refreshLibraryJob,
+  startLibraryBrowse,
+} from '@server/lib/libraryBrowse';
 import { Router } from 'express';
 const router = Router();
 // Hydrate only the returned page; progress checks never query media metadata.
@@ -78,7 +82,7 @@ router.get('/:id', async (req, res, next) => {
   try {
     return res.json(
       await withMediaStatus(
-        libraryJob(
+        await refreshLibraryJob(
           req.user!.id,
           String(req.params.id),
           pageNumber(req.query.page)

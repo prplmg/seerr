@@ -17,7 +17,7 @@ const filters: AiFilters = {
   genres: [],
 };
 function harness(count = 45, mixed = false) {
-  let valid = true,
+  let revision = 0,
     history = true,
     active = 0,
     peak = 0;
@@ -44,7 +44,7 @@ function harness(count = 45, mixed = false) {
     ratings: [],
     watched: [{ userId: 2, type: 'movie', tmdbId: 1 }],
     historyAvailable: true,
-    visibilityStillValid: () => valid,
+    visibilityStillValid: () => true,
   };
   const model = (id: number) => ({
     id,
@@ -90,7 +90,14 @@ function harness(count = 45, mixed = false) {
       };
     if (name === './discoveryData')
       return {
-        discoveryData: async () => ({ ...data, historyAvailable: history }),
+        discoveryData: async () => {
+          const captured = revision;
+          return {
+            ...data,
+            historyAvailable: history,
+            visibilityStillValid: () => captured === revision,
+          };
+        },
       };
     if (name === './listSort')
       return {
@@ -117,10 +124,18 @@ function harness(count = 45, mixed = false) {
   return {
     api,
     calls,
+    watch: (id: number) => {
+      data.watched.push({ userId: 2, type: 'movie', tmdbId: id });
+      revision++;
+    },
+    remove: (key: string) => {
+      data.requestAvailable.delete(key);
+      revision++;
+    },
     ratings: () => ratings,
     peak: () => peak,
     invalidate: () => {
-      valid = false;
+      revision++;
     },
     history: (v: boolean) => {
       history = v;
@@ -256,4 +271,42 @@ test('mixed library recent order spans both types without scanning full metadata
   assert.equal(ready.results?.[0].media.id, 45);
   assert(ready.results?.some((x) => x.media.mediaType === 'tv'));
   assert(ready.results?.some((x) => x.media.mediaType === 'movie'));
+});
+
+test('unrelated updates preserve finished and in-flight work; real availability changes refresh', async () => {
+  const h = harness();
+  const sort = [{ field: 'runtime' as const, direction: 'desc' as const }];
+  const first = await h.api.startLibraryBrowse(1, filters, sort, [], 0);
+  h.invalidate();
+  const running = await h.api.refreshLibraryJob(1, first.id, 0);
+  assert.equal(running.id, first.id);
+  await done(h, first.id);
+  const calls = h.calls.length;
+  h.invalidate();
+  const unchanged = await h.api.refreshLibraryJob(1, first.id, 0);
+  assert.equal(unchanged.id, first.id);
+  assert.equal(h.calls.length, calls);
+  await assert.rejects(h.api.refreshLibraryJob(2, first.id, 0));
+  h.remove('movie:45');
+  const changed = await h.api.refreshLibraryJob(1, first.id, 0);
+  assert.notEqual(changed.id, first.id);
+  const result = await done(h, changed.id);
+  assert(!result.results?.some((r) => r.media.id === 45));
+});
+
+test('refresh applies new group watches instead of retaining stale exclusions', async () => {
+  const h = harness(4);
+  const first = await h.api.startLibraryBrowse(
+    1,
+    { ...filters, unwatched: true },
+    [],
+    [2],
+    0
+  );
+  await done(h, first.id);
+  h.watch(2);
+  const refreshed = await h.api.refreshLibraryJob(1, first.id, 0);
+  const result = await done(h, refreshed.id);
+  assert(!result.results?.some((r) => r.media.id === 1 || r.media.id === 2));
+  assert.equal(result.total, 2);
 });
