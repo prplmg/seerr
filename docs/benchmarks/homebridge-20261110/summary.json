@@ -1,0 +1,12 @@
+{
+  "samples": 61,
+  "cpuMean": 54.50988876942532,
+  "cpuPeak": 100.0,
+  "cpuP95": 89.21282798833819,
+  "minAvailableMiB": 344.1171875,
+  "maxSwapMiB": 0.0,
+  "ffmpegRange": [
+    2,
+    6
+  ]
+}
