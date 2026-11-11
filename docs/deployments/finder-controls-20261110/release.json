@@ -1,0 +1,9 @@
+{
+  "files": [
+    "src/components/AiSearch/FilteredPick.tsx",
+    "src/components/AiSearch/PeoplePicker.tsx",
+    "src/components/AiSearch/SortControl.tsx",
+    "src/components/AiSearch/navigationState.ts",
+    "src/pages/find-to-watch.tsx"
+  ]
+}
