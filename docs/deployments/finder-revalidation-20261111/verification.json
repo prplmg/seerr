@@ -1,0 +1,16 @@
+{
+  "build": "5ybZrs58YOAKFa6o_R6sa",
+  "sourceHashes": true,
+  "publicIconChunk": true,
+  "libraryReady": true,
+  "returned": 20,
+  "total": 407,
+  "mediaTypes": [
+    "tv",
+    "movie"
+  ],
+  "health": 200,
+  "maintenanceCleared": true,
+  "rollback": "catalogue-20261111063737832-72807-release",
+  "at": "2026-11-11T06:43:15.285Z"
+}

@@ -1,0 +1,7 @@
+{
+  "files": [
+    "src/components/AiSearch/SortControl.tsx",
+    "server/lib/libraryBrowse.ts",
+    "server/routes/libraryBrowse.ts"
+  ]
+}
