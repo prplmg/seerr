@@ -13,11 +13,25 @@ import {
   type SortField,
 } from '@server/lib/aiSearchSort';
 import { useState } from 'react';
+function RecentlyAddedIcon({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`${className} inline-block shrink-0 rounded-full border border-purple-400/60 bg-gray-900`}
+      style={{
+        backgroundImage: "url('/apple-touch-icon.png')",
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '68%',
+      }}
+    />
+  );
+}
 const icons = {
   rating: StarIcon,
   runtime: ClockIcon,
   year: CalendarIcon,
-  added: CalendarIcon,
+  added: RecentlyAddedIcon,
 };
 const names = {
   rating: 'Letterboxd score',
@@ -74,9 +88,14 @@ export default function SortControl({
               >
                 {index > 0 && <span className="mr-1 text-gray-500">·</span>}
                 {library && value.length === 1 && sort.field === 'added' ? (
-                  <span>Recently added</span>
+                  <>
+                    <RecentlyAddedIcon className="h-5 w-5" />
+                    <span>Recently added</span>
+                  </>
                 ) : (
-                  <Icon className="h-4 w-4" />
+                  <Icon
+                    className={sort.field === 'added' ? 'h-5 w-5' : 'h-4 w-4'}
+                  />
                 )}
                 <Direction className="h-3 w-3" />
               </span>

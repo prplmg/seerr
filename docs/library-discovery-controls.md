@@ -11,3 +11,5 @@ Validation: TypeScript; focused lint; 9 sort/library tests including mixed-type 
 Recently added sort now displays its full text plus direction arrow instead of a calendar, including on initial load. Fresh mobile/desktop previews: outputs/library-recent-label-20261110. TypeScript and browser checks passed.
 
 Label refinement: full Recently added text is restricted to the library finder with a single sort. AI Search and multi-sort combinations retain compact icons; accessible labels still name the complete order. TypeScript and focused lint passed.
+
+2026-11-10 local icon refinement: Recently added uses the existing Multimeldia app mark inside a20px circular lilac-outline badge. Finder's single added sort keeps text; AI/multiple-sort compact controls use badge plus direction. No new asset/download endpoint; reuses apple-touch-icon.png. TypeScript and real-component Chrome fixture checks passed; fresh previews outputs/library-logo-badge-20261110. Not deployed.
