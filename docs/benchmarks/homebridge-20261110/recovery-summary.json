@@ -1,0 +1,9 @@
+{
+  "samples": 25,
+  "meanCpu": 3.8296698692559246,
+  "lastMinuteMeanCpu": 1.569879650654656,
+  "peakCpu": 28.0561122244489,
+  "lastAvailableMiB": 358.53515625,
+  "swapMiB": 0.0,
+  "maxFFmpeg": 0
+}
