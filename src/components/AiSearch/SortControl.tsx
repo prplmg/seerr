@@ -74,16 +74,9 @@ export default function SortControl({
                 aria-hidden="true"
               >
                 {index > 0 && <span className="mr-1 text-gray-500">·</span>}
-                {library && value.length === 1 && sort.field === 'added' ? (
-                  <>
-                    <RecentlyAddedIcon className="h-5 w-5" />
-                    <span>Recently added</span>
-                  </>
-                ) : (
-                  <Icon
-                    className={sort.field === 'added' ? 'h-5 w-5' : 'h-4 w-4'}
-                  />
-                )}
+                <Icon
+                  className={sort.field === 'added' ? 'h-5 w-5' : 'h-4 w-4'}
+                />
                 <Direction className="h-3 w-3" />
               </span>
             );
