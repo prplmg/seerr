@@ -17,3 +17,5 @@ Label refinement: full Recently added text is restricted to the library finder w
 2026-11-10 replacement preview: outlined Multimeldia mark with top-right plus, currentColor lilac, transparent SVG and no circular badge. Original mark geometry reused with fine outline for small gaps. New files outputs/library-outline-plus-20261110 include icon-drawing.png and mobile/default/compact screenshots; previous preview directory untouched. TypeScript/browser fixture checks passed. Local only.
 
 2026-11-10 local icon revision: lower play/pause shapes filled currentColor to match lilac outline; upper M stays outlined. Fresh previews outputs/library-filled-bottom-20261110, prior files unchanged. Not deployed.
+
+2026-11-10 local refinement: filled lower play/pause shapes explicitly stroke=none to avoid overlapping upper outline. Fresh previews outputs/library-fill-only-20261110; not deployed.
