@@ -7,3 +7,5 @@ CPU mean54.51%, peak100%, p9589.21% (five-second guest CPU intervals). Minimum M
 Recommendation: retain1536 MiB. A256 MiB reduction would consume most observed available headroom, leaving approximately88 MiB before missing doorbell/other activity;1024 MiB is not supported by this evidence. CPU saturation warrants investigating stream quality before considering a second vCPU. No allocation changed.
 
 Limitations: one run, doorbell absent, user-perceived smoothness and recovery confirmation pending. No reduced-allocation test. Initial baseline short. Host sampler executes CIM reads between intervals and thus takes longer than nominal300s; align timestamps rather than assuming equal durations. Guest CPU can include other Homebridge plugin work.
+
+Completed host sampler60 samples: minimum host available931 MiB; peak host CPU100%, reported VM CPU43%, Pages/sec1370. Host collection includes CIM overhead and extends beyond guest window; host CPU attribution is not isolated, and Pages/sec includes file-backed paging. Guest swap remained0 in matched guest run. Raw host timestamps retained for alignment.

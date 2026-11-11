@@ -1,0 +1,602 @@
+[
+    {
+        "time":  "2026-11-11T03:40:23.4457513Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1001,
+        "hostCpu":  99,
+        "pagesPerSec":  3,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  19
+    },
+    {
+        "time":  "2026-11-11T03:40:30.9899092Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  996,
+        "hostCpu":  65,
+        "pagesPerSec":  3,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  27
+    },
+    {
+        "time":  "2026-11-11T03:40:37.6468277Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  972,
+        "hostCpu":  54,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  15
+    },
+    {
+        "time":  "2026-11-11T03:40:44.3105686Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  961,
+        "hostCpu":  58,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  16
+    },
+    {
+        "time":  "2026-11-11T03:40:50.9503800Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  953,
+        "hostCpu":  100,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:40:57.6274134Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  931,
+        "hostCpu":  56,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  32
+    },
+    {
+        "time":  "2026-11-11T03:41:04.2966417Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  968,
+        "hostCpu":  65,
+        "pagesPerSec":  35,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  43
+    },
+    {
+        "time":  "2026-11-11T03:41:10.8995601Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  964,
+        "hostCpu":  61,
+        "pagesPerSec":  3,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  19
+    },
+    {
+        "time":  "2026-11-11T03:41:17.5327073Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  965,
+        "hostCpu":  74,
+        "pagesPerSec":  15,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:41:24.1446467Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  955,
+        "hostCpu":  82,
+        "pagesPerSec":  39,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  14
+    },
+    {
+        "time":  "2026-11-11T03:41:30.7435992Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  952,
+        "hostCpu":  79,
+        "pagesPerSec":  53,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  16
+    },
+    {
+        "time":  "2026-11-11T03:41:37.3618013Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1013,
+        "hostCpu":  43,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:41:43.9828328Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1004,
+        "hostCpu":  55,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  14
+    },
+    {
+        "time":  "2026-11-11T03:41:50.5829439Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  993,
+        "hostCpu":  67,
+        "pagesPerSec":  15,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  12
+    },
+    {
+        "time":  "2026-11-11T03:41:57.1791666Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  983,
+        "hostCpu":  55,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  15
+    },
+    {
+        "time":  "2026-11-11T03:42:03.7811349Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  957,
+        "hostCpu":  93,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:42:10.4286062Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  987,
+        "hostCpu":  74,
+        "pagesPerSec":  77,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:42:16.9979536Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  976,
+        "hostCpu":  78,
+        "pagesPerSec":  23,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:42:23.6577610Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  968,
+        "hostCpu":  88,
+        "pagesPerSec":  3,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  29
+    },
+    {
+        "time":  "2026-11-11T03:42:30.3044084Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  965,
+        "hostCpu":  71,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  21
+    },
+    {
+        "time":  "2026-11-11T03:42:36.9113606Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  954,
+        "hostCpu":  62,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:42:43.5332588Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  946,
+        "hostCpu":  64,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  18
+    },
+    {
+        "time":  "2026-11-11T03:42:50.1623409Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  993,
+        "hostCpu":  82,
+        "pagesPerSec":  1370,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  16
+    },
+    {
+        "time":  "2026-11-11T03:42:56.7847612Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  991,
+        "hostCpu":  54,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:43:03.4113475Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  986,
+        "hostCpu":  47,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  19
+    },
+    {
+        "time":  "2026-11-11T03:43:10.0266146Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  990,
+        "hostCpu":  60,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:43:16.6646997Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  976,
+        "hostCpu":  100,
+        "pagesPerSec":  41,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:43:23.2792489Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1015,
+        "hostCpu":  80,
+        "pagesPerSec":  252,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  15
+    },
+    {
+        "time":  "2026-11-11T03:43:29.8782915Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1004,
+        "hostCpu":  76,
+        "pagesPerSec":  254,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  22
+    },
+    {
+        "time":  "2026-11-11T03:43:36.5067223Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  998,
+        "hostCpu":  62,
+        "pagesPerSec":  248,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:43:43.1621192Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  985,
+        "hostCpu":  57,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  22
+    },
+    {
+        "time":  "2026-11-11T03:43:49.7996952Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  977,
+        "hostCpu":  84,
+        "pagesPerSec":  18,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  25
+    },
+    {
+        "time":  "2026-11-11T03:43:56.4044020Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  971,
+        "hostCpu":  65,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  26
+    },
+    {
+        "time":  "2026-11-11T03:44:03.0023082Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1027,
+        "hostCpu":  100,
+        "pagesPerSec":  7,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  36
+    },
+    {
+        "time":  "2026-11-11T03:44:09.6088510Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1011,
+        "hostCpu":  65,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  34
+    },
+    {
+        "time":  "2026-11-11T03:44:16.2274147Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  998,
+        "hostCpu":  87,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  16
+    },
+    {
+        "time":  "2026-11-11T03:44:22.8610181Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  986,
+        "hostCpu":  71,
+        "pagesPerSec":  7,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  20
+    },
+    {
+        "time":  "2026-11-11T03:44:29.4490489Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  980,
+        "hostCpu":  63,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  19
+    },
+    {
+        "time":  "2026-11-11T03:44:36.0453237Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  976,
+        "hostCpu":  64,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:44:42.7948055Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1008,
+        "hostCpu":  72,
+        "pagesPerSec":  90,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  17
+    },
+    {
+        "time":  "2026-11-11T03:44:49.4236370Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  999,
+        "hostCpu":  99,
+        "pagesPerSec":  3,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:44:56.0585378Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1001,
+        "hostCpu":  58,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  34
+    },
+    {
+        "time":  "2026-11-11T03:45:02.7082564Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  974,
+        "hostCpu":  97,
+        "pagesPerSec":  97,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  19
+    },
+    {
+        "time":  "2026-11-11T03:45:09.3401271Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  966,
+        "hostCpu":  78,
+        "pagesPerSec":  7,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  30
+    },
+    {
+        "time":  "2026-11-11T03:45:15.9526258Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  961,
+        "hostCpu":  93,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  32
+    },
+    {
+        "time":  "2026-11-11T03:45:22.5804640Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  955,
+        "hostCpu":  82,
+        "pagesPerSec":  11,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  22
+    },
+    {
+        "time":  "2026-11-11T03:45:29.1775139Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  950,
+        "hostCpu":  76,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  14
+    },
+    {
+        "time":  "2026-11-11T03:45:35.7838646Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  991,
+        "hostCpu":  61,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  23
+    },
+    {
+        "time":  "2026-11-11T03:45:42.4091883Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  982,
+        "hostCpu":  53,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  26
+    },
+    {
+        "time":  "2026-11-11T03:45:49.0521184Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  970,
+        "hostCpu":  85,
+        "pagesPerSec":  11,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  26
+    },
+    {
+        "time":  "2026-11-11T03:45:55.6556261Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  966,
+        "hostCpu":  63,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  15
+    },
+    {
+        "time":  "2026-11-11T03:46:02.2512750Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  956,
+        "hostCpu":  93,
+        "pagesPerSec":  7,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  25
+    },
+    {
+        "time":  "2026-11-11T03:46:08.8592718Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  979,
+        "hostCpu":  45,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  28
+    },
+    {
+        "time":  "2026-11-11T03:46:15.4763541Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  969,
+        "hostCpu":  39,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  18
+    },
+    {
+        "time":  "2026-11-11T03:46:22.0775289Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  964,
+        "hostCpu":  91,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  26
+    },
+    {
+        "time":  "2026-11-11T03:46:28.6978517Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  957,
+        "hostCpu":  53,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  24
+    },
+    {
+        "time":  "2026-11-11T03:46:35.3033210Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  951,
+        "hostCpu":  62,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  16
+    },
+    {
+        "time":  "2026-11-11T03:46:41.8947704Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  942,
+        "hostCpu":  52,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  25
+    },
+    {
+        "time":  "2026-11-11T03:46:48.4949974Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1011,
+        "hostCpu":  81,
+        "pagesPerSec":  7,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  12
+    },
+    {
+        "time":  "2026-11-11T03:46:55.1004320Z",
+        "phase":  "all-cameras",
+        "hostFreeMB":  1022,
+        "hostCpu":  62,
+        "pagesPerSec":  0,
+        "vmAssignedMB":  1536,
+        "vmDemandMB":  0,
+        "vmCpu":  19
+    }
+]
