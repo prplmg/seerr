@@ -15,3 +15,5 @@ Label refinement: full Recently added text is restricted to the library finder w
 2026-11-10 local icon refinement: Recently added uses the existing Multimeldia app mark inside a20px circular lilac-outline badge. Finder's single added sort keeps text; AI/multiple-sort compact controls use badge plus direction. No new asset/download endpoint; reuses apple-touch-icon.png. TypeScript and real-component Chrome fixture checks passed; fresh previews outputs/library-logo-badge-20261110. Not deployed.
 
 2026-11-10 replacement preview: outlined Multimeldia mark with top-right plus, currentColor lilac, transparent SVG and no circular badge. Original mark geometry reused with fine outline for small gaps. New files outputs/library-outline-plus-20261110 include icon-drawing.png and mobile/default/compact screenshots; previous preview directory untouched. TypeScript/browser fixture checks passed. Local only.
+
+2026-11-10 local icon revision: lower play/pause shapes filled currentColor to match lilac outline; upper M stays outlined. Fresh previews outputs/library-filled-bottom-20261110, prior files unchanged. Not deployed.
