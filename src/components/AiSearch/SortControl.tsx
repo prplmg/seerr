@@ -60,7 +60,7 @@ export default function SortControl({
         onClick={() => setDraft(value)}
         aria-label={`Sort: ${sortLabel(value)}`}
         title={`Sort: ${sortLabel(value)}`}
-        className={`inline-flex min-h-[36px] items-center rounded-full py-1.5 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50 ${library ? 'gap-1 px-0.5' : 'gap-2 px-3'}`}
+        className={`inline-flex min-h-[36px] items-center gap-2 rounded-full px-3 py-1.5 text-sm text-purple-200 hover:bg-gray-700 disabled:opacity-50`}
       >
         {value.length ? (
           value.map((sort, index) => {

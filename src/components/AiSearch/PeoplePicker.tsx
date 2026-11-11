@@ -8,13 +8,11 @@ export default function PeoplePicker({
   onChange,
   children,
   trailing,
-  compact = false,
 }: {
   people: number[];
   onChange: (ids: number[]) => void;
   children: ReactNode;
   trailing?: ReactNode;
-  compact?: boolean;
 }) {
   const {
     data: peopleData,
@@ -25,15 +23,13 @@ export default function PeoplePicker({
     users: { id: number; name: string; avatar?: string }[];
   }>('/api/v1/ai-search/people');
   return (
-    <Popover
-      className={`relative mb-2 flex items-center justify-between ${compact ? 'gap-1' : 'gap-2'}`}
-    >
+    <Popover className="relative mb-2 flex items-center justify-between gap-2">
       {children}
       <Popover.Button
         type="button"
         aria-label={`Watching with: you${people.length ? ` and ${people.length} others` : ''}`}
         title="Choose who’s watching"
-        className={`relative flex h-11 ${compact ? 'w-8' : 'w-11'} shrink-0 items-center justify-center rounded-full text-purple-300 focus-visible:ring-2 focus-visible:ring-purple-400 disabled:opacity-50 ${people.length ? 'bg-purple-900/40' : 'hover:bg-gray-700'}`}
+        className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-purple-300 focus-visible:ring-2 focus-visible:ring-purple-400 disabled:opacity-50 ${people.length ? 'bg-purple-900/40' : 'hover:bg-gray-700'}`}
       >
         <UsersIcon className="h-6 w-6" aria-hidden="true" />
         {people.length > 0 && (
@@ -48,7 +44,7 @@ export default function PeoplePicker({
       {trailing}
       <Popover.Panel
         focus
-        className="absolute right-0 top-full z-40 mt-2 w-80 max-w-full rounded-2xl border border-gray-600 bg-gray-800 p-3 shadow-xl"
+        className="absolute left-1/2 top-full z-40 mt-2 w-80 max-w-full -translate-x-1/2 rounded-2xl border border-gray-600 bg-gray-800 p-3 shadow-xl"
       >
         {({ close }) => (
           <>

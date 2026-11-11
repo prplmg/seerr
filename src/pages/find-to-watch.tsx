@@ -171,7 +171,6 @@ export default function FindToWatch() {
         </h1>
       </div>
       <PeoplePicker
-        compact
         trailing={
           <SortControl
             library
@@ -192,7 +191,7 @@ export default function FindToWatch() {
         }}
       >
         <p className="min-w-0 flex-1 whitespace-nowrap text-sm text-gray-400">
-          Available in Multimeldia
+          Available to watch
         </p>
       </PeoplePicker>
       <div className="my-3 flex items-center gap-2" aria-label="Title type">
