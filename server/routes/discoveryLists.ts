@@ -213,6 +213,19 @@ router.get('/releases', async (req, res, next) => {
       movies: data.movies.slice(0, 20),
     });
   } catch (e) {
+    const message = e instanceof Error ? e.message : '';
+    logger.warn('Releases request failed', {
+      label: 'Discovery releases',
+      userId: res.locals.discoveryUserId,
+      reason:
+        /^(Discovery data (busy|changing|changed)|Release interests changed); retry discovery$/.test(
+          message
+        )
+          ? 'concurrent-update'
+          : message === 'Invalid release store'
+            ? 'invalid-store'
+            : 'unexpected-error',
+    });
     next(e);
   }
 });

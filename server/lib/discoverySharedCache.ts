@@ -4,7 +4,7 @@ let revision = 0;
 let writes = 0;
 const transactions = new Set<object>();
 const clearers = new Set<() => void>();
-class DiscoveryChanged extends Error {}
+export class DiscoveryChanged extends Error {}
 let idle: Promise<void> | undefined;
 let resolveIdle: (() => void) | undefined;
 function notifyIdle() {

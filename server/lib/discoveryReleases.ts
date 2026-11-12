@@ -9,6 +9,7 @@ import { discoveryMedia, discoveryRequests } from './discoveryDatabaseCache';
 import { updateListStore } from './discoveryLists';
 import { cachedReleaseEpisodes } from './discoveryReleaseCache';
 import {
+  DiscoveryChanged,
   assertDiscoveryRevision,
   discoveryFileStamp,
   discoveryRevision,
@@ -252,7 +253,7 @@ async function buildReleasesForUser(userId: number) {
   );
   assertDiscoveryRevision(revision);
   if (discoveryFileStamp([filename()]) !== stamp)
-    throw Error('Release interests changed; retry discovery');
+    throw new DiscoveryChanged('Release interests changed; retry discovery');
   return releaseRows(visible, titles);
 }
 let running = false;
