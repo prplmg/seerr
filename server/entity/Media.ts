@@ -1,3 +1,4 @@
+import { preservePlexHistoryKeys } from '@server/lib/plexHistoryKeys';
 import RadarrAPI from '@server/api/servarr/radarr';
 import SonarrAPI from '@server/api/servarr/sonarr';
 import { MediaStatus, MediaType } from '@server/constants/media';
@@ -204,6 +205,7 @@ class Media {
   }
 
   public resetServiceData(is4k?: boolean): void {
+    preservePlexHistoryKeys(this);
     if (is4k === undefined || !is4k) {
       this.serviceId = null;
       this.externalServiceId = null;

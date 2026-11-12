@@ -1,3 +1,4 @@
+import { preservePlexHistoryKeys } from '@server/lib/plexHistoryKeys';
 import TheMovieDb from '@server/api/themoviedb';
 import {
   MediaRequestStatus,
@@ -155,6 +156,7 @@ class BaseScanner<T> {
           ratingKey &&
           existing[is4k ? 'ratingKey4k' : 'ratingKey'] !== ratingKey
         ) {
+          preservePlexHistoryKeys(existing);
           existing[is4k ? 'ratingKey4k' : 'ratingKey'] = ratingKey;
           changedExisting = true;
         }
@@ -313,6 +315,7 @@ class BaseScanner<T> {
 
         // We update the rating keys and jellyfinMediaId in the seasons loop because we need episode counts
         if (media && season.episodes > 0 && media.ratingKey !== ratingKey) {
+          preservePlexHistoryKeys(media);
           media.ratingKey = ratingKey;
         }
 
@@ -322,6 +325,7 @@ class BaseScanner<T> {
           this.enable4kShow &&
           media.ratingKey4k !== ratingKey
         ) {
+          preservePlexHistoryKeys(media);
           media.ratingKey4k = ratingKey;
         }
 

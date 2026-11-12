@@ -1,3 +1,4 @@
+import { preservePlexHistoryKeys } from './plexHistoryKeys';
 import type { JellyfinLibraryItem } from '@server/api/jellyfin';
 import JellyfinAPI from '@server/api/jellyfin';
 import type { PlexMetadata } from '@server/api/plexapi';
@@ -548,6 +549,7 @@ class AvailabilitySync {
           ? media[is4k ? 'externalServiceSlug4k' : 'externalServiceSlug']
           : null;
       if (mediaServerType === MediaServerType.PLEX) {
+        preservePlexHistoryKeys(media);
         media[is4k ? 'ratingKey4k' : 'ratingKey'] = isMediaProcessing
           ? media[is4k ? 'ratingKey4k' : 'ratingKey']
           : null;

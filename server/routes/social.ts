@@ -1,3 +1,4 @@
+import { retainedPlexHistoryKeys } from '@server/lib/plexHistoryKeys';
 import { earlyViewing, saveEarlyViewings, type EarlyViewing } from '@server/lib/earlyReviewViewing';
 import logger from '@server/logger';
 import { readHistoryHealth, saveHistoryHealth, historyResult } from '@server/lib/letterboxdHistoryHealth';
@@ -61,7 +62,7 @@ function historyKeys(item: Media, p: Policy): string[] {
     throw Error('Invalid history aliases');
   return [
     ...new Set(
-      [item.ratingKey, item.ratingKey4k, ...aliases].filter(Boolean) as string[]
+      [item.ratingKey, item.ratingKey4k, ...retainedPlexHistoryKeys(item), ...aliases].filter(Boolean) as string[]
     ),
   ];
 }
