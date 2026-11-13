@@ -22,6 +22,8 @@ export function eventLabel(event: string, p: Record<string, unknown>): string {
             : 'Updated';
   const labels: Record<string, string> = {
     $pageview: `Visited ${p.page_name || p.page || 'page'}`,
+    request_watchlist_preference_changed: `${p.enabled ? 'Enabled' : 'Disabled'} Add to watchlist when requesting`,
+    watchlist_removed: `Removed ${media} from watchlist`,
     watchlist_added: `Added ${media} to watchlist`,
     media_requested: `Requested ${media}`,
     ai_search_used: 'Used AI Search',

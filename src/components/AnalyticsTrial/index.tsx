@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useContext, useEffect } from 'react';
 import { safeSettings } from './events';
 import { eventLabel } from './labels';
+import { watchlistEvent } from './watchlistEvents';
 
 import {
   capturePath,
@@ -167,6 +168,7 @@ export default function AnalyticsTrial() {
         variant !== 'off' &&
         /^(post|put|patch)$/.test(method || '') &&
         /\/settings\//.test(url) &&
+        !/\/settings\/request-watchlist(?:\?|$)/.test(url) &&
         !/\/(test|sync|run|cancel|flush|regenerate)(\?|$)/.test(url)
       ) {
         let values = data;
@@ -187,12 +189,8 @@ export default function AnalyticsTrial() {
         } catch {
           /* No payload to report. */
         }
-        if (method === 'post' && url.split('?')[0] === '/api/v1/watchlist')
-          sdk?.capture('watchlist_added', {
-            media_id: body.tmdbId,
-            media_title: body.title,
-            media_type: body.mediaType,
-          });
+        const watchlist = watchlistEvent(url, method, body);
+        if (watchlist) sdk?.capture(watchlist.name, watchlist.properties);
         const interaction = url.match(
           /^\/api\/v1\/review-interactions\/([^/]+)\/(comments|reactions)(?:\/([^/?]+))?$/
         );
