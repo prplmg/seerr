@@ -6,6 +6,7 @@ import type { RequestOverrides } from '@app/components/RequestModal/AdvancedRequ
 import AdvancedRequester from '@app/components/RequestModal/AdvancedRequester';
 import QuotaDisplay from '@app/components/RequestModal/QuotaDisplay';
 import SearchByNameModal from '@app/components/RequestModal/SearchByNameModal';
+import useRequestWatchlist from '@app/components/RequestModal/useRequestWatchlist';
 import { usePartyText } from '@app/components/WatchParty/messages';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
@@ -73,6 +74,7 @@ const TvRequestModal = ({
 }: RequestModalProps) => {
   const settings = useSettings();
   const { addToast } = useToasts();
+  const { checkbox: watchlistCheckbox, addRequested } = useRequestWatchlist();
   const editingSeasons: number[] = (editRequest?.seasons ?? []).map(
     (season) => season.seasonNumber
   );
@@ -226,6 +228,7 @@ const TvRequestModal = ({
             ),
         ...overrideParams,
       });
+      await addRequested('tv', tmdbId);
       trackEvent('media_requested', {
         media_id: data?.id,
         media_type: 'tv',
@@ -492,6 +495,7 @@ const TvRequestModal = ({
       }
       backdrop={`https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/${data?.backdropPath}`}
     >
+      {!editRequest && watchlistCheckbox}
       {editRequest
         ? isOwner
           ? intl.formatMessage(messages.pendingapproval)

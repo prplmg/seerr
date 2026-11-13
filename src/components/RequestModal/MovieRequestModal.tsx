@@ -4,6 +4,7 @@ import Modal from '@app/components/Common/Modal';
 import type { RequestOverrides } from '@app/components/RequestModal/AdvancedRequester';
 import AdvancedRequester from '@app/components/RequestModal/AdvancedRequester';
 import QuotaDisplay from '@app/components/RequestModal/QuotaDisplay';
+import useRequestWatchlist from '@app/components/RequestModal/useRequestWatchlist';
 import useToasts from '@app/hooks/useToasts';
 import { useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
@@ -59,6 +60,7 @@ const MovieRequestModal = ({
   const [requestOverrides, setRequestOverrides] =
     useState<RequestOverrides | null>(null);
   const { addToast } = useToasts();
+  const { checkbox: watchlistCheckbox, addRequested } = useRequestWatchlist();
   const { data, error } = useSWR<MovieDetails>(`/api/v1/movie/${tmdbId}`, {
     revalidateOnMount: true,
   });
@@ -98,6 +100,7 @@ const MovieRequestModal = ({
         ignoreQuota: requestOverrides?.ignoreQuota,
         ...overrideParams,
       });
+      await addRequested('movie', tmdbId);
       trackEvent('media_requested', {
         media_id: data?.id,
         media_type: 'movie',
@@ -142,6 +145,8 @@ const MovieRequestModal = ({
       setIsUpdating(false);
     }
   }, [
+    addRequested,
+    tmdbId,
     requestOverrides,
     data?.id,
     data?.title,
@@ -348,6 +353,7 @@ const MovieRequestModal = ({
       okButtonType={'primary'}
       backdrop={`https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/${data?.backdropPath}`}
     >
+      {watchlistCheckbox}
       {hasAutoApprove && !quota?.movie.restricted && (
         <div className="mt-6">
           <Alert
