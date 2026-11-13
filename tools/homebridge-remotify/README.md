@@ -2,7 +2,7 @@
 
 Private Homebridge accessory. Separate from Portón (Tuya gate power).
 
-Status 2026-11-13: staged at `/homebridge/remotify-remote` on Homebridge; NOT registered, no configuration changed or service restarted. Awaiting tenant and dedicated login credentials. Five mocked tests passed locally and on target. No live activation issued.
+Status 2026-11-13: installed from `/homebridge/remotify-remote` via local package dependency and node_modules symlink. Independent login and read-only device discovery succeeded (Garage, device 1, online). Configured as Garage remote on the existing main bridge. Existing platforms and bridge configuration preserved. Backup: `/homebridge/backups/remotify-20261113`. Five mocked tests passed locally and on target. No live activation issued.
 
 Configuration after read-only authenticated device discovery:
 
@@ -15,3 +15,5 @@ Credential file (mode 0600) contains `tenant`, `email`, `password`. Never commit
 Startup and characteristic reads do not call the network. Off/reset performs no remote action. On authenticates if necessary, checks device availability, then sends one POST access. The activation request is never retried, including authentication failure or timeout. Tile resets after one second; short cooldown blocks duplicate taps. Reset indicates readiness, not gate position or confirmed physical success. Failed/uncertain requests report an error.
 
 Before enabling: validate login and GET devices without POST access; back up Homebridge config; add plugin and accessory without modifying Tuya; restart Homebridge using established procedure; verify tile/service registration read-only. Physical activation testing requires a separate user-authorized test. HomeKit switch has switch semantics, not garage-door security semantics.
+
+Verified main HAP service on port 51476: Garage remote aid 63, On=0. All child bridges restarted successfully. Tuya configuration unchanged; Ring refreshed its own token normally. Main bridge has zero paired clients: user pairing of Homebridge BA1C is still required. Do not claim visibility in Apple Home until paired. Rollback must remove only the Remotify addition, not overwrite fresh Ring credentials with the backup.
