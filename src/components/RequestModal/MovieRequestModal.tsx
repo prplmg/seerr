@@ -353,7 +353,6 @@ const MovieRequestModal = ({
       okButtonType={'primary'}
       backdrop={`https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/${data?.backdropPath}`}
     >
-      {watchlistCheckbox}
       {hasAutoApprove && !quota?.movie.restricted && (
         <div className="mt-6">
           <Alert
@@ -384,6 +383,7 @@ const MovieRequestModal = ({
           }}
         />
       )}
+      {watchlistCheckbox}
     </Modal>
   );
 };

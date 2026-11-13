@@ -495,7 +495,6 @@ const TvRequestModal = ({
       }
       backdrop={`https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/${data?.backdropPath}`}
     >
-      {!editRequest && watchlistCheckbox}
       {editRequest
         ? isOwner
           ? intl.formatMessage(messages.pendingapproval)
@@ -811,6 +810,7 @@ const TvRequestModal = ({
             )}
           </div>
         )}
+      {!editRequest && watchlistCheckbox}
     </Modal>
   );
 };
