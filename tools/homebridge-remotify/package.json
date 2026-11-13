@@ -1,0 +1,1 @@
+{"name":"homebridge-remotify-remote","version":"1.0.0","main":"index.js","keywords":["homebridge-plugin"],"engines":{"node":">=20","homebridge":">=1.8.0"},"scripts":{"test":"node --test test.js"},"private":true}
