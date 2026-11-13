@@ -29,6 +29,7 @@ export interface User {
 type NotificationAgentTypes = Record<NotificationAgentKey, number>;
 
 export interface UserSettings {
+  requestAddToWatchlist?: boolean;
   discoverRegion?: string;
   streamingRegion?: string;
   originalLanguage?: string;

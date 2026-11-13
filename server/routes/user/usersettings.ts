@@ -28,6 +28,29 @@ import { canMakePermissionsChange } from '.';
 
 const userSettingsRoutes = Router({ mergeParams: true });
 
+userSettingsRoutes.put(
+  '/request-watchlist',
+  isOwnProfile(),
+  async (req, res, next) => {
+    if (typeof req.body.enabled !== 'boolean')
+      return next({ status: 400, message: 'enabled must be boolean' });
+    try {
+      const user = await getRepository(User).findOneOrFail({
+        where: { id: req.user!.id },
+      });
+      const settings = user.settings ?? new UserSettings({ user });
+      settings.requestAddToWatchlist = req.body.enabled;
+      await getRepository(UserSettings).save(settings);
+      return res.json({ enabled: settings.requestAddToWatchlist });
+    } catch (e) {
+      return next({
+        status: 500,
+        message: 'Could not save watchlist preference',
+      });
+    }
+  }
+);
+
 userSettingsRoutes.get<{ id: string }, UserSettingsGeneralResponse>(
   '/main',
   isOwnProfileOrAdmin(),

@@ -6814,6 +6814,33 @@ paths:
                           type: string
                         title:
                           type: string
+  /user/{userId}/settings/request-watchlist:
+    put:
+      summary: Remember whether requests add to your watchlist
+      tags: [users]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Preference saved
+        '400':
+          description: Invalid preference
+        '403':
+          description: Can only change your own preference
   /user/{userId}/settings/main:
     get:
       summary: Get general settings for a user
