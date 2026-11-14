@@ -17,17 +17,7 @@ class GarageDoor {
       .onGet(() => this.controller.target).onSet(value => this.controller.setTarget(value));
     // No obstruction sensor is connected; never claim a measured sensor reading.
     this.door.getCharacteristic(C.ObstructionDetected).onGet(() => false);
-    const correction = (name, open) => {
-      const service = new Service.Switch(name, open ? 'correct-open' : 'correct-closed');
-      service.getCharacteristic(C.On).onGet(() => false).onSet(value => {
-        if (!value) return;
-        this.controller.correct(open);
-        setTimeout(() => service.updateCharacteristic(C.On, false), 100).unref();
-      });
-      return service;
-    };
-    this.services = [this.info, this.door,
-      correction('Garage Mark open', true), correction('Garage Mark closed', false)];
+    this.services = [this.info, this.door];
     this.door.setPrimaryService(true);
     this.unsubscribe = this.controller.subscribe(state => {
       this.door.updateCharacteristic(C.CurrentDoorState, state.uncertain
@@ -39,4 +29,23 @@ class GarageDoor {
   }
   getServices() { return this.services; }
 }
-module.exports = { GarageDoor };
+class GarageCorrection {
+  constructor(log, config, api) {
+    const { Service, Characteristic: C } = api.hap;
+    const open = config.markState === 'open';
+    if (!['open', 'closed'].includes(config.markState)) throw Error('Invalid correction state');
+    this.controller = controllerFor(config);
+    this.info = new Service.AccessoryInformation()
+      .setCharacteristic(C.Manufacturer, 'Remotify')
+      .setCharacteristic(C.Model, 'Position correction only')
+      .setCharacteristic(C.SerialNumber, `remotify-correct-${config.deviceId}-${config.markState}`);
+    this.switch = new Service.Switch(config.name);
+    this.switch.getCharacteristic(C.On).onGet(() => false).onSet(value => {
+      if (!value) return;
+      this.controller.correct(open);
+      setTimeout(() => this.switch.updateCharacteristic(C.On, false), 100).unref();
+    });
+  }
+  getServices() { return [this.info, this.switch]; }
+}
+module.exports = { GarageDoor, GarageCorrection };

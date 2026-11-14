@@ -40,5 +40,6 @@ class GarageRemote {
 module.exports = api => {
   api.registerAccessory('homebridge-remotify-remote', 'RemotifyRemote', GarageRemote);
   api.registerAccessory('homebridge-remotify-remote', 'RemotifyGarageDoor', require('./garage-door').GarageDoor);
+  api.registerAccessory('homebridge-remotify-remote', 'RemotifyGarageCorrection', require('./garage-door').GarageCorrection);
 };
 module.exports.GarageRemote = GarageRemote;
