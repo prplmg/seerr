@@ -17,3 +17,9 @@ Startup and characteristic reads do not call the network. Off/reset performs no 
 Before enabling: validate login and GET devices without POST access; back up Homebridge config; add plugin and accessory without modifying Tuya; restart Homebridge using established procedure; verify tile/service registration read-only. Physical activation testing requires a separate user-authorized test. HomeKit switch has switch semantics, not garage-door security semantics.
 
 Verified main HAP service on port 51476: Garage remote aid 63, On=0. All child bridges restarted successfully. Tuya configuration unchanged; Ring refreshed its own token normally. Main bridge has zero paired clients: user pairing of Homebridge BA1C is still required. Do not claim visibility in Apple Home until paired. Rollback must remove only the Remotify addition, not overwrite fresh Ring credentials with the backup.
+
+## Supervised calibration — 2026-11-14
+
+User selected1500ms minimum command spacing for future estimated-state work after five consecutive observed open-then-stop successes from closed (request-start gaps1521,1516,1504,1509,1506ms).250–1000ms tests produced only one observed action;1250ms was inconsistent. The earlier1500ms closing test may have reversed instead of remaining stopped; closing behavior remains unresolved. HTTP success does not verify physical activation, and network timing varies. Full travel time remains unmeasured.
+
+Tests used one-off pairs with no retries and user observation/reset between trials. No plugin settings changed: the existing duplicate guard remains, Portón unchanged. Estimated garage-door state tracking is not implemented. Do not treat this calibration record as authorization for unattended activation.
