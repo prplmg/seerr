@@ -37,7 +37,11 @@ export default function DiscoveryReviewFooter({
     initiallyOpen ? 'comments' : null
   );
   const closeButton = useRef<HTMLButtonElement>(null);
-  const viewport = useReviewDialogViewport(sheet === 'comments');
+  const commentContent = useRef<HTMLDivElement>(null);
+  const viewport = useReviewDialogViewport(
+    sheet === 'comments',
+    commentContent
+  );
   useEffect(() => {
     if (initiallyOpen) setSheet('comments');
   }, [initiallyOpen]);
@@ -150,6 +154,7 @@ export default function DiscoveryReviewFooter({
               </button>
             </header>
             <div
+              ref={commentContent}
               className="min-h-0 overflow-y-auto overscroll-contain"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >

@@ -40,3 +40,9 @@ Targeted margoTica push for prplmg’s Abbott Elementary S03E11 reply sent once;
 ## Follow-up: iPhone safe-area headroom (local, not deployed)
 
 User screenshot showed keyboard-sized sheet header beneath status bar. Added top padding equal to safe-area-inset-top plus16px to the viewport wrapper, preserving contained scroll below the fixed header. Close control is now44×44 CSS pixels, top-aligned. Scoped lint/format passed; physical iPhone validation pending.
+
+### Focused composer visibility (local, pending deployment)
+
+Kept the approved safe-area headroom and close-button size unchanged. On input focus or keyboard viewport resize, reveal the focused textarea by scrolling only the dialog content after layout updates. Viewport panning does not trigger this correction, allowing readers to scroll older comments while the keyboard stays open. Pending animation frames and listeners are removed on close. Six focused regressions pass, including keyboard resize, manual-scroll preservation and cleanup; physical iPhone keyboard validation remains pending.
+
+Notification wording verified: the one-time margoTica push said “prplmg commented on their Abbott Elementary S03E11 review.” Standard participant notifications currently say “[actor] commented on [author]’s review you commented on.” No notification was resent or wording changed.

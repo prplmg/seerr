@@ -288,3 +288,83 @@ test('author replies notify prior commenters once, exclude actor; reactions rema
     [1, 1]
   );
 });
+
+test('keyboard resize reveals composer inside sheet; manual scrolling is not overridden', () => {
+  let effect;
+  const events = new Map(),
+    frames = new Map();
+  let next = 0;
+  class Field {
+    matches() {
+      return true;
+    }
+    getBoundingClientRect() {
+      return { top: 500, bottom: 650, height: 150 };
+    }
+  }
+  const container = {
+    scrollTop: 0,
+    contains: () => true,
+    getBoundingClientRect: () => ({ top: 100, bottom: 400 }),
+    addEventListener: (k, f) => events.set(k, f),
+    removeEventListener: (k) => events.delete(k),
+  };
+  global.HTMLElement = Field;
+  global.document = { body: { style: {} }, activeElement: new Field() };
+  global.requestAnimationFrame = (f) => {
+    frames.set(++next, f);
+    return next;
+  };
+  global.cancelAnimationFrame = (id) => frames.delete(id);
+  global.window = {
+    scrollY: 40,
+    innerHeight: 800,
+    scrollTo: () => {},
+    addEventListener: (k, f) => events.set(k, f),
+    removeEventListener: (k) => events.delete(k),
+    visualViewport: {
+      height: 400,
+      offsetTop: 0,
+      addEventListener: (k, f) => events.set('v' + k, f),
+      removeEventListener: (k) => events.delete('v' + k),
+    },
+  };
+  const flush = () => {
+    while (frames.size) {
+      const batch = [...frames.values()];
+      frames.clear();
+      batch.forEach((f) => f());
+    }
+  };
+  try {
+    const { useReviewDialogViewport } = load(
+      'src/components/Reviews/useReviewDialogViewport.ts',
+      () => ({
+        useEffect: (f) => (effect = f),
+        useState: () => [undefined, () => {}],
+      })
+    );
+    useReviewDialogViewport(true, { current: container });
+    const cleanup = effect();
+    events.get('vresize')();
+    flush();
+    assert.equal(container.scrollTop, 262);
+    container.scrollTop = 0;
+    events.get('vscroll')();
+    flush();
+    assert.equal(container.scrollTop, 0);
+    events.get('focusin')();
+    cleanup();
+    assert.equal(frames.size, 0);
+    assert.equal(events.size, 0);
+  } finally {
+    for (const k of [
+      'window',
+      'document',
+      'HTMLElement',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+    ])
+      delete global[k];
+  }
+});
