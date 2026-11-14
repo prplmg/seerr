@@ -98,10 +98,10 @@ Local validation: 16 fixture tests cover all six artifact rename failure boundar
 source deletion/copy failure, scheduler-startup (including WAL/SHM), post-launch and post-public-open failures preserving new writes, exact launcher replacement,
 input validation and live/rollback dependency retention. Tests run with
 `node --test tools/build-host/{release-input,retention,runtime-policy,recovery-upgrade,deploy-package}.test.cjs`.
-Syntax and whitespace checks are also required. No app builds, installs or production
-mutations were run by the tool implementation task. Parent supplies the manifest,
-verified Node staging and application test results. The current 947-file application manifest
-plus explicit next.config.ts deletion passes the input allowlist. Remaining live
-gates are the independent tool review, authorized PRPL-PC build, frozen Mini install,
-native preflight/migration rehearsal, then the existing maintenance switch and
-native/public verification. Do not call those gates passed from local fixtures.
+Syntax and whitespace checks passed. The complete authorized rollout was accepted on
+2026-11-14: 947-file manifest plus next.config.ts deletion, PRPL-PC build, isolated
+frozen Mini dependency install, native preflight, migration and old-runtime
+compatibility rehearsals, maintenance switch, and native/public health all passed.
+Build: 9VGv9iSIjm-FenLPLsfht; release: catalogue-20261114203211262-95172.
+Existing toggles were unchanged and one rollback retained. See
+`docs/upgrades/seerr-3.5.2-20261114.md` for the final receipt.

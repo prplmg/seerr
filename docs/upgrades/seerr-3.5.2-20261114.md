@@ -25,8 +25,20 @@ The maintenance-aware rollout now supports explicit source deletion, release-spe
 
 Independent review identified that restoring the pre-switch database after startup could erase accepted writes. Rollback must retain the current database; the two approved upstream migrations are backward compatible with the previous app (DELETED=7 already exists, and the subscription change removes a uniqueness restriction). Any additional pending migration requires review before switching.
 
-## Validation and release status
+## Validation and completed release
 
-Backend and frontend typechecks pass. Focused lint passes. Custom API/database checks and review UI checks pass. The initial full run found stale test fixtures and persistent test-cache interference; these were corrected without weakening behavior assertions. Deployment tooling: 23 tests pass, including explicit protection for user/scheduler writes during rollback. Final full-suite result and production receipt will be appended after completion. Production has not switched yet.
+Deployed successfully on 2026-11-14 from pushed application merge `4beb7755` and rollout helper correction `332195cf`, branch `upgrade/seerr-3.5.2-20261114`.
 
-Final isolated full regression suite: 742 tests passed, zero failures/skips. Backend/frontend typechecks pass, focused lint passes, six review UI checks and23 deployment-tool tests pass. Build and native release gates are next.
+- Version **3.5.2**, build **9VGv9iSIjm-FenLPLsfht**.
+- Release **catalogue-20261114203211262-95172**. Single rollback: `C:/ProgramData/Seerr/catalogue-20261114203211262-95172-release/previous`.
+- 742/742 application tests pass; backend/frontend typechecks, focused lint, six review UI checks and 23 rollout/recovery tests pass.
+- PRPL-PC frozen install 57.082s; build 71.934s. Mini isolated dependency installation 5m 4.9s. Matching Node22.23.5 used. These are phase timings, not total downtime.
+- Native Mini preflight, protected-row migration rehearsal and old-runtime compatibility rehearsal pass. 31 exact dependency junctions recreated and verified.
+- Branded maintenance page verified before stopping; old process stopped on first attempt. Native/public health passed and maintenance lease cleared. Retention removed the prior rollback payloads, leaving exactly one rollback.
+- Existing global, user and Letterboxd sync toggles unchanged. New upstream defaults hideRequested=false and empty ntfy tags are the only settings additions; Plex scan timestamps advanced normally.
+- Live authenticated watchlist preference, credential exclusion, lists, releases and review endpoints pass. All six Letterboxd workers ready with no queued, dispatched, held, conflict or unknown writes. Historical 503/connection-reset entries correspond to maintenance; fresh heartbeats confirmed recovery. No publication was triggered by these smoke checks.
+- Timestamp popover customization from 9a15c56f is included. Physical iPhone appearance remains a user-device check, not claimed by server smoke tests.
+
+The initial attempt failed creating a Windows helper directory before any build or maintenance lease. The corrected helper was committed/pushed and the subsequent complete rollout succeeded.
+
+Evidence is retained locally under `outputs/seerr352-rollout-20261114`: deploy.log, receipt.json, verified.json, verified-features.json, migration-preflight.json, rollback-preflight.json and after.json. Source, lockfile and rollout changes are pushed; this final receipt is committed separately. Runtime binaries, test caches and generated next-env.d.ts changes are excluded from Git.
