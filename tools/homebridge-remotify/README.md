@@ -38,3 +38,6 @@ Backup `/homebridge/backups/remotify-door-20261114`: old plugin and private conf
 
 ### Separate correction accessories — 2026-11-14
 Apple Home grouped the original door and two correction services into a confusing three-control accessory. Corrections now use separate RemotifyGarageCorrection accessories named Garage Mark open and Garage Mark closed; Garage door retains its accessory identity and contains only the GarageDoorOpener service plus information. They share the same controller, timings and non-actuating corrections. Eleven tests and actual HAP registration with networking blocked passed. Scoped backup `/homebridge/backups/remotify-separate-20261114`; no activation commands during installation. No pairing reset.
+
+### Requested names and remote removal — 2026-11-14
+Live configuration now names the standalone corrections “Mark door open” and “Mark door closed”. Removed RemotifyRemote/Garage remote from configured accessories at user request; source support remains for rollback. Garage door and Portón remain. Backup `/homebridge/backups/remotify-names-20261114/config.json`. No movement commands. With the raw remote removed, unsupported mid-motion target changes remain rejected; physical remote/Remotify app can still operate the door, followed by position correction as needed.
