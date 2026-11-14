@@ -213,7 +213,15 @@ test('author replies notify prior commenters once, exclude actor; reactions rema
   class ReviewComment {}
   class User {}
   const author = { id: 1, displayName: 'Author' };
+  let failMetadata = false;
   const mod = load('server/lib/reviewSocialNotification.ts', (name) => {
+    if (name === '@server/api/themoviedb')
+      return class {
+        async getTvShow() {
+          if (failMetadata) throw Error('offline');
+          return { name: 'Abbott Elementary' };
+        }
+      };
     if (name === '@server/entity/MovieReview') return { MovieReview };
     if (name === '@server/entity/ReviewInteraction') return { ReviewComment };
     if (name === '@server/entity/User') return { User };
@@ -281,6 +289,27 @@ test('author replies notify prior commenters once, exclude actor; reactions rema
     [2, 2, 3, 3]
   );
   assert.ok(sent.every((p) => p.reviewUrl.includes('reviewEpisode=3')));
+  assert.ok(
+    sent.every(
+      (p) =>
+        p.message ===
+        'Author commented on their Abbott Elementary S02E03 review.'
+    )
+  );
+  sent.length = 0;
+  await mod.notifyReviewAuthor('r', { id: 2, displayName: 'Other' });
+  assert.equal(
+    sent[0].message,
+    'Other commented on your Abbott Elementary S02E03 review.'
+  );
+  assert.equal(
+    sent[2].message,
+    'Other commented on Author’s Abbott Elementary S02E03 review.'
+  );
+  failMetadata = true;
+  sent.length = 0;
+  await mod.notifyReviewAuthor('r', author);
+  assert.equal(sent[0].message, 'Author commented on their review.');
   sent.length = 0;
   await mod.notifyReviewAuthor('r', { id: 2, displayName: 'Other' }, '❤');
   assert.deepEqual(

@@ -46,3 +46,7 @@ User screenshot showed keyboard-sized sheet header beneath status bar. Added top
 Kept the approved safe-area headroom and close-button size unchanged. On input focus or keyboard viewport resize, reveal the focused textarea by scrolling only the dialog content after layout updates. Viewport panning does not trigger this correction, allowing readers to scroll older comments while the keyboard stays open. Pending animation frames and listeners are removed on close. Six focused regressions pass, including keyboard resize, manual-scroll preservation and cleanup; physical iPhone keyboard validation remains pending.
 
 Notification wording verified: the one-time margoTica push said “prplmg commented on their Abbott Elementary S03E11 review.” Standard participant notifications currently say “[actor] commented on [author]’s review you commented on.” No notification was resent or wording changed.
+
+### Specific social notification copy (local, pending deployment)
+
+Name the reviewed title, including SxxExx for episodes, in comments and reactions. Select “your” for the review author, “their” when the actor authored the review, and the author's display name for other participants. Resolve metadata once per fan-out; fallback to generic wording if metadata fails. Recipient and channel preference rules unchanged. Tests cover all three comment variants and delivery on metadata failure; six regressions, ESLint and TypeScript pass. Spanish notification coverage is deferred to the Plex/media Network TODOs; no translations added.

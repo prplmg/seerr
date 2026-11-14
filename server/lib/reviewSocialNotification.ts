@@ -1,3 +1,4 @@
+import TheMovieDb from '@server/api/themoviedb';
 import { getRepository } from '@server/datasource';
 import { MovieReview } from '@server/entity/MovieReview';
 import { ReviewComment } from '@server/entity/ReviewInteraction';
@@ -48,12 +49,28 @@ export async function notifyReviewAuthor(
         /%3A/g,
         ':'
       );
+    let title = '';
+    try {
+      const tmdb = new TheMovieDb();
+      title =
+        review.mediaType === 'tv'
+          ? (await tmdb.getTvShow({ tvId: review.tmdbId })).name
+          : (await tmdb.getMovie({ movieId: review.tmdbId })).title;
+    } catch {
+      // Metadata failure must not prevent delivery of the comment notification.
+    }
+    if (title && review.seasonNumber != null && review.episodeNumber != null) {
+      title += ` S${String(review.seasonNumber).padStart(2, '0')}E${String(review.episodeNumber).padStart(2, '0')}`;
+    }
+    const reviewLabel = title ? `${title} review` : 'review';
     for (const recipient of recipients) {
       const message = emoji
-        ? `${actor.displayName} reacted ${emoji} to your review.`
+        ? `${actor.displayName} reacted ${emoji} to your ${reviewLabel}.`
         : recipient.id === review.userId
-          ? `${actor.displayName} commented on your review.`
-          : `${actor.displayName} commented on ${review.user.displayName}’s review you commented on.`;
+          ? `${actor.displayName} commented on your ${reviewLabel}.`
+          : actor.id === review.userId
+            ? `${actor.displayName} commented on their ${reviewLabel}.`
+            : `${actor.displayName} commented on ${review.user.displayName}’s ${reviewLabel}.`;
       const payload = {
         subject: 'Multimeldia · ' + (emoji ? 'New reaction' : 'New comment'),
         message,
