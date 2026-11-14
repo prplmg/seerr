@@ -65,7 +65,7 @@ child.on('error',e=>console.error(e.message));
 child.on('close',(code,signal)=>{fs.closeSync(fd);process.stdout.write(fs.readFileSync(${JSON.stringify(remote+'/'+id+'.log')},'utf8'));process.exitCode=code??1;});`;
 fs.writeFileSync(path.join(temp,id+'-runner.cjs'),runner);
 run('scp', ['-o', 'BatchMode=yes', path.join(temp, id + '-source.json'), path.join(temp, id + '.cjs'), path.join(temp,id+'-health.cjs'), path.join(temp,id+'-control.cjs'), path.join(temp,id+'-ledger.cjs'), path.join(temp,id+'-runner.cjs'), host + ':' + remote + '/']);
-ssh('cmd /d /c mkdir '+remote+'/'+id+'-tools');
+ssh('powershell.exe -NoProfile -Command \"New-Item -ItemType Directory -Force '+remote+'/'+id+'-tools | Out-Null\"');
 run('scp', ['-o', 'BatchMode=yes', ...['storage.cjs','runtime-policy.cjs','migration-preflight.cjs','pc-build.cjs','export-links.cjs','retention.cjs','release-input.cjs','mini-build.cjs','restore-links.cjs','smoke-trial.cjs'].map(f=>path.join(__dirname,f)), host + ':' + remote + '/' + id + '-tools/']);
 console.log('Building on PRPL-PC; Mini verifies the output before taking the maintenance lease.');
 ssh(miniNode + ' ' + remote + '/' + id + '-runner.cjs');
