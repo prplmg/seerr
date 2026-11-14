@@ -1,3 +1,4 @@
+import Tooltip from '@app/components/Common/Tooltip';
 import { reviewTime } from '@app/utils/reviewTime';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -18,21 +19,43 @@ export default function ReviewTime({
   }, []);
   const { label, exact } = reviewTime(value, kind, locale, now);
   return (
-    <button
-      type="button"
-      title={exact}
-      aria-label={`${label} · ${exact}`}
-      aria-expanded={expanded}
-      className="text-left"
-      onClick={() => setExpanded((v) => !v)}
+    <Tooltip
+      content={exact}
+      className="max-w-[calc(100vw-2rem)] text-center"
+      tooltipConfig={{
+        trigger: ['hover', 'click'],
+        followCursor: false,
+        placement: 'top',
+        offset: [0, 8],
+        closeOnTriggerHidden: true,
+        closeOnOutsideClick: true,
+        visible: expanded,
+        onVisibleChange: setExpanded,
+      }}
     >
-      <time
-        dateTime={kind === 'review' ? value.slice(0, 10) : value}
-        suppressHydrationWarning
+      <button
+        type="button"
+        aria-label={`${label} · ${exact}`}
+        aria-expanded={expanded}
+        className="text-left"
+        onFocus={(event) => {
+          if (event.currentTarget.matches(':focus-visible')) setExpanded(true);
+        }}
+        onBlur={() => setExpanded(false)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && expanded) {
+            event.stopPropagation();
+            setExpanded(false);
+          }
+        }}
       >
-        {label}
-      </time>
-      {expanded && <span className="block text-xs text-gray-300">{exact}</span>}
-    </button>
+        <time
+          dateTime={kind === 'review' ? value.slice(0, 10) : value}
+          suppressHydrationWarning
+        >
+          {label}
+        </time>
+      </button>
+    </Tooltip>
   );
 }
