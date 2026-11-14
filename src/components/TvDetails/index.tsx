@@ -46,8 +46,13 @@ import ErrorPage from '@app/pages/_error';
 import { SHOW_WATCHLIST } from '@app/utils/catalogueFeatures';
 import { sortCrewPriority } from '@app/utils/creditHelpers';
 import defineMessages from '@app/utils/defineMessages';
-import { refreshIntervalHelper } from '@app/utils/refreshIntervalHelper';
-import { Disclosure, Transition } from '@headlessui/react';
+import { mediaRefreshInterval } from '@app/utils/refreshIntervalHelper';
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Transition,
+} from '@headlessui/react';
 import {
   ArrowUturnLeftIcon,
   ChevronDownIcon,
@@ -78,7 +83,14 @@ import { countries } from 'country-flag-icons';
 import 'country-flag-icons/3x2/flags.css';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
 import EpisodeWatchers from './Season/EpisodeWatchers';
@@ -144,6 +156,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
     useState<boolean>(false);
   const [showBlocklistModal, setShowBlocklistModal] = useState(false);
   const { addToast } = useToasts();
+  const sawDownload = useRef(false);
 
   const {
     data,
@@ -151,13 +164,8 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
     mutate: revalidate,
   } = useSWR<TvDetailsType>(`/api/v1/tv/${router.query.tvId}`, {
     fallbackData: tv,
-    refreshInterval: refreshIntervalHelper(
-      {
-        downloadStatus: tv?.mediaInfo?.downloadStatus,
-        downloadStatus4k: tv?.mediaInfo?.downloadStatus4k,
-      },
-      15000
-    ),
+    refreshInterval: (latest) =>
+      mediaRefreshInterval(latest?.mediaInfo, sawDownload, 15000),
   });
 
   const { data: ratingData } = useSWR<RTRating>(
@@ -222,10 +230,14 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
   useEffect(() => {
     if (router.query.manage === '1') {
       setShowManager(true);
-      router.replace({
-        pathname: router.pathname,
-        query: { tvId: router.query.tvId },
-      });
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { tvId: router.query.tvId },
+        },
+        undefined,
+        { shallow: true }
+      );
     }
   }, [router, router.query.manage]);
 
@@ -357,19 +369,26 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
     return [...requestedSeasons, ...availableSeasons];
   };
 
-  const showHasSpecials = data.seasons.some(
-    (season) =>
-      season.seasonNumber === 0 &&
-      settings.currentSettings.enableSpecialEpisodes
-  );
+  // Mirrors the season list the request modal offers, so the two agree.
+  const requestableSeasons = data.seasons
+    .filter(
+      (season) =>
+        season.episodeCount !== 0 &&
+        (settings.currentSettings.enableSpecialEpisodes ||
+          season.seasonNumber !== 0)
+    )
+    .map((season) => season.seasonNumber);
 
-  const isComplete =
-    (showHasSpecials ? seasonCount + 1 : seasonCount) <=
-    getAllRequestedSeasons(false).length;
+  const isSeasonSetComplete = (is4k: boolean) => {
+    const requested = getAllRequestedSeasons(is4k);
+    return requestableSeasons.every((seasonNumber) =>
+      requested.includes(seasonNumber)
+    );
+  };
 
-  const is4kComplete =
-    (showHasSpecials ? seasonCount + 1 : seasonCount) <=
-    getAllRequestedSeasons(true).length;
+  const isComplete = isSeasonSetComplete(false);
+
+  const is4kComplete = isSeasonSetComplete(true);
 
   const streamingRegion = user?.settings?.streamingRegion
     ? user.settings.streamingRegion
@@ -575,10 +594,14 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
         mediaType="tv"
         onClose={() => {
           setShowManager(false);
-          router.replace({
-            pathname: router.pathname,
-            query: { tvId: router.query.tvId },
-          });
+          router.replace(
+            {
+              pathname: router.pathname,
+              query: { tvId: router.query.tvId },
+            },
+            undefined,
+            { shallow: true }
+          );
         }}
         revalidate={() => revalidate()}
         show={showManager}
@@ -981,7 +1004,7 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                   >
                     {({ open }) => (
                       <>
-                        <Disclosure.Button
+                        <DisclosureButton
                           className={`mt-2 flex w-full items-center justify-between space-x-2 border-gray-700 bg-gray-800 px-4 py-2 text-gray-200 ${
                             open
                               ? 'rounded-t-md border-l border-r border-t'
@@ -1199,8 +1222,9 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                               open ? 'rotate-180' : ''
                             } h-6 w-6 text-gray-500`}
                           />
-                        </Disclosure.Button>
+                        </DisclosureButton>
                         <Transition
+                          as="div"
                           show={open}
                           enter="transition-opacity duration-100 ease-out"
                           enterFrom="opacity-0"
@@ -1211,12 +1235,12 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                           // Not sure why this transition is adding a margin without this here
                           style={{ margin: '0px' }}
                         >
-                          <Disclosure.Panel className="w-full rounded-b-md border-b border-l border-r border-gray-700 px-4 pb-2">
+                          <DisclosurePanel className="w-full rounded-b-md border-b border-l border-r border-gray-700 px-4 pb-2">
                             <Season
                               tvId={data.id}
                               seasonNumber={season.seasonNumber}
                             />
-                          </Disclosure.Panel>
+                          </DisclosurePanel>
                         </Transition>
                       </>
                     )}

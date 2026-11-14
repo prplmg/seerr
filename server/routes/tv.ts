@@ -50,7 +50,7 @@ tvRoutes.get('/:id', async (req, res, next) => {
       },
     });
 
-    const data = mapTvDetails(tv, media, onUserWatchlist);
+    const data = mapTvDetails(tv, media?.filter(req.user), onUserWatchlist);
 
     // TMDB issue where it doesnt fallback to English when no overview is available in requested locale.
     if (!data.overview) {
@@ -126,7 +126,8 @@ tvRoutes.get('/:id/recommendations', async (req, res, next) => {
       results.results.map((result) => ({
         tmdbId: result.id,
         mediaType: MediaType.TV,
-      }))
+      })),
+      { includeActiveRequest: true }
     );
 
     return res.status(200).json({
@@ -170,7 +171,8 @@ tvRoutes.get('/:id/similar', async (req, res, next) => {
       results.results.map((result) => ({
         tmdbId: result.id,
         mediaType: MediaType.TV,
-      }))
+      })),
+      { includeActiveRequest: true }
     );
 
     return res.status(200).json({

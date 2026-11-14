@@ -1,10 +1,24 @@
 import express from 'express';
 import * as OpenApiValidator from 'express-openapi-validator';
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
+import { after, before, test } from 'node:test';
 import path from 'path';
 import request from 'supertest';
-import router from './aiSearch';
+let router: express.Router;
+const previousConfig = process.env.CONFIG_DIRECTORY;
+const testConfig = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-search-route-'));
+before(async () => {
+  // Set this before application imports capture the persistent data directory.
+  process.env.CONFIG_DIRECTORY = testConfig;
+  router = (await import('./aiSearch')).default;
+});
+after(() => {
+  if (previousConfig === undefined) delete process.env.CONFIG_DIRECTORY;
+  else process.env.CONFIG_DIRECTORY = previousConfig;
+  fs.rmSync(testConfig, { recursive: true, force: true });
+});
 
 test('AI search contract accepts valid requests and rejects malformed bodies before provider work', async (t) => {
   const old = process.env.OPENAI_API_KEY;

@@ -31,11 +31,14 @@ try {
       });
   run('tar.exe', ['-xf', input]);
   const pkg = JSON.parse(fs.readFileSync(work + '/package.json'));
+  const next=String(pkg.dependencies?.next).match(/^(\d+)\.(\d+)\.(\d+)$/);
+  assert.ok(next && (+next[1]>16 || (+next[1]===16 && (+next[2]>4 || (+next[2]===4 && +next[3]>=2)))), 'Pin Next >=16.4.2');
   assert.equal(pkg.packageManager, 'pnpm@10.24.0');
-  assert.equal(process.version, 'v22.23.2');
+  require('./runtime-policy.cjs').checkNode(process.execPath);
+  assert.equal(process.version, 'v22.23.5');
   assert.equal(process.arch, 'x64');
   assert.equal(process.platform, 'win32');
-  process.env.PATH = home + '/pinned;' + home + '/node;' + process.env.PATH;
+  process.env.PATH = home + '/pinned;' + path.dirname(process.execPath) + ';' + process.env.PATH;
   Object.assign(process.env, {
     HUSKY: '0',
     CI: 'true',
@@ -65,7 +68,7 @@ try {
   const installed = Date.now();
   run(process.execPath, [pnpm, 'build']);
   const built = Date.now();
-  run(process.execPath, [home + '/tools/export-links.cjs']);
+  run(process.execPath, [path.join(__dirname,'export-links.cjs')]);
   fs.copyFileSync(home + '/runtime-links.json', job + '/runtime-links.json');
   run('tar.exe', [
     '-czf',
@@ -79,7 +82,11 @@ try {
     '.next',
     'dist',
   ]);
+  run('tar.exe',['-czf',job+'/pnpm.tgz','-C',fs.realpathSync(home+'/pinned/node_modules/pnpm'),'.']);
   const receipt = {
+    pnpmHash: hash(job+'/pnpm.tgz'),
+    dependencyBytes: require('./storage.cjs').bytes(work+'/node_modules'),
+    artifactExpandedBytes: require('./storage.cjs').bytes(work+'/.next')+require('./storage.cjs').bytes(work+'/dist'),
     builder: require('node:os').hostname(),
     release: id,
     inputHash,

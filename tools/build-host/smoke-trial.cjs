@@ -11,6 +11,9 @@ process.env.HOST = '127.0.0.1';
 process.env.NEXT_TELEMETRY_DISABLED = '1';
 (async () => {
   const id = fs.readFileSync('.next/BUILD_ID', 'utf8').trim();
+  const {DatabaseSync}=require('node:sqlite');
+  const nativeDb=new DatabaseSync(':memory:');
+  try { assert.equal(nativeDb.prepare('SELECT 1 AS ok').get().ok,1); } finally { nativeDb.close(); }
   appRequire('reflect-metadata');
   const sqlite = appRequire('sqlite3');
   const db = await new Promise((res, rej) => {

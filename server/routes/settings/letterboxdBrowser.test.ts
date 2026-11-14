@@ -10,8 +10,21 @@ function harness(configured: boolean, userId = 1, username = 'prplmg') {
   const settings = { [userId]: { enabled: false, account: username } };
   class Account {}
   class Export {}
-  const baseline = {account:username,value:JSON.stringify({capturedAt:Date.now(),snapshot:{account:username,complete:true},holds:[]})};
-  const binding = {userId,username,enabled:true,lastSuccess:Date.now(),lastSeen:Date.now()};
+  const baseline = {
+    account: username,
+    value: JSON.stringify({
+      capturedAt: Date.now(),
+      snapshot: { account: username, complete: true },
+      holds: [],
+    }),
+  };
+  const binding = {
+    userId,
+    username,
+    enabled: true,
+    lastSuccess: Date.now(),
+    lastSeen: Date.now(),
+  };
   const router = {
     use: () => {},
     get: () => {},
@@ -24,25 +37,39 @@ function harness(configured: boolean, userId = 1, username = 'prplmg') {
     { compilerOptions: { module: ts.ModuleKind.CommonJS } }
   ).outputText;
   new Function('require', 'exports', code)((name: string) => {
-    if (name.endsWith('/letterboxdHistoryHealth')) return {readHistoryHealth:()=>({attempts:0,nextAttemptAt:0})};
-    if (name.endsWith('/letterboxdSyncHealth')) return {summarizeWorkerHealth:()=>({runtime:'unknown'})};
+    if (name.endsWith('/letterboxdTaskStore'))
+      return {
+        taskStoreHealth: () => {
+          throw Error('Enable must not read ledger health');
+        },
+      };
+    if (name.endsWith('/appDataVolume'))
+      return {
+        appDataPath: () => {
+          throw Error('Enable must not read application storage');
+        },
+      };
+    if (name.endsWith('/letterboxdHistoryHealth'))
+      return { readHistoryHealth: () => ({ attempts: 0, nextAttemptAt: 0 }) };
+    if (name.endsWith('/letterboxdSyncHealth'))
+      return { summarizeWorkerHealth: () => ({ runtime: 'unknown' }) };
     if (name === 'express') return { Router: () => router };
     if (name.endsWith('/permissions')) return { Permission: { ADMIN: 1 } };
     if (name.endsWith('/auth')) return { isAuthenticated: () => () => {} };
     if (name.endsWith('/datasource'))
       return {
         getRepository: (entity: unknown) => ({
-          findOneBy: async () => entity === Export ? baseline : ({ enabled: true, username }),
+          findOneBy: async () =>
+            entity === Export ? baseline : { enabled: true, username },
         }),
       };
     if (name.endsWith('/MovieReview')) return { LetterboxdAccount: Account };
-    if (name.endsWith('/LetterboxdExport'))return {LetterboxdExportBaseline:Export};
+    if (name.endsWith('/LetterboxdExport'))
+      return { LetterboxdExportBaseline: Export };
     if (name.endsWith('/letterboxdBrowser'))
       return {
         readBrowserState: () => ({
-          bindings: [
-            binding,
-          ],
+          bindings: [binding],
         }),
       };
     if (name.endsWith('/letterboxdPlaybackConfig'))
@@ -60,8 +87,8 @@ function harness(configured: boolean, userId = 1, username = 'prplmg') {
           _account: string,
           enabled: boolean
         ) => {
-          assert.equal(_id,userId);
-          assert.equal(_account,username);
+          assert.equal(_id, userId);
+          assert.equal(_account, username);
           settings[userId].enabled = enabled;
         },
       };
@@ -99,20 +126,25 @@ test('missing playback configuration rejects enable visibly and leaves writes di
   assert.equal(h.settings[1].enabled, false);
 });
 test('other mapped accounts can enable only with current complete identity-matched baseline', async () => {
-  const h=harness(true,7,'evegrissel');
-  assert.equal((await h.call(true)).status,200);
-  assert.equal(h.settings[7].enabled,true);
+  const h = harness(true, 7, 'evegrissel');
+  assert.equal((await h.call(true)).status, 200);
+  assert.equal(h.settings[7].enabled, true);
   for (const patch of [
-    {account:'other',complete:true},
-    {account:'evegrissel',complete:false},
+    { account: 'other', complete: true },
+    { account: 'evegrissel', complete: false },
   ]) {
-    const bad=harness(true,7,'evegrissel');
-    bad.baseline.value=JSON.stringify({capturedAt:Date.now(),snapshot:patch,holds:[]});
-    assert.equal((await bad.call(true)).status,409);
-    assert.equal(bad.settings[7].enabled,false);
+    const bad = harness(true, 7, 'evegrissel');
+    bad.baseline.value = JSON.stringify({
+      capturedAt: Date.now(),
+      snapshot: patch,
+      holds: [],
+    });
+    assert.equal((await bad.call(true)).status, 409);
+    assert.equal(bad.settings[7].enabled, false);
   }
-  const stale=harness(true,7,'evegrissel');stale.binding.lastSeen=1;
-  assert.equal((await stale.call(true)).status,409);
+  const stale = harness(true, 7, 'evegrissel');
+  stale.binding.lastSeen = 1;
+  assert.equal((await stale.call(true)).status, 409);
 });
 test('explicit configuration permits enable and missing configuration never prevents disable', async () => {
   const h = harness(true);

@@ -24,7 +24,7 @@ import {
 import { Router } from 'express';
 import net from 'net';
 import { Not } from 'typeorm';
-import { canMakePermissionsChange } from '.';
+import { canMakePermissionsChange, canModifyUser } from '.';
 
 const userSettingsRoutes = Router({ mergeParams: true });
 
@@ -111,6 +111,13 @@ userSettingsRoutes.post<
 
     // "Owner" user settings cannot be modified by other users
     if (user.id === 1 && req.user?.id !== 1) {
+      return next({
+        status: 403,
+        message: "You do not have permission to modify this user's settings.",
+      });
+    }
+
+    if (!canModifyUser(user, req.user)) {
       return next({
         status: 403,
         message: "You do not have permission to modify this user's settings.",
@@ -265,7 +272,7 @@ userSettingsRoutes.post<
 
     // If the user has a password, we need to check the currentPassword is correct
     if (
-      user.password &&
+      userWithPassword.password &&
       (!req.body.currentPassword ||
         !(await userWithPassword.passwordMatch(req.body.currentPassword)))
     ) {
@@ -361,6 +368,12 @@ userSettingsRoutes.delete<{ id: string }>(
         return res.status(400).json({
           message:
             'Cannot unlink media server accounts for the primary administrator.',
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
+        return res.status(403).json({
+          message: "You do not have permission to modify this user's settings.",
         });
       }
 
@@ -518,6 +531,12 @@ userSettingsRoutes.delete<{ id: string }>(
         });
       }
 
+      if (!canModifyUser(user, req.user)) {
+        return res.status(403).json({
+          message: "You do not have permission to modify this user's settings.",
+        });
+      }
+
       if (!user.email || !user.password) {
         return res.status(400).json({
           message: 'User does not have a local email or password set.',
@@ -565,6 +584,12 @@ userSettingsRoutes.post<{ secret: string }>(
         .json({ message: 'Jellyfin/Emby login is disabled' });
     }
 
+    if (settings.main.mediaServerType !== MediaServerType.JELLYFIN) {
+      return res
+        .status(403)
+        .json({ message: 'Quick Connect is only supported by Jellyfin.' });
+    }
+
     const hostname = getHostname();
     const jellyfinServer = new JellyfinAPI(hostname);
 
@@ -586,10 +611,7 @@ userSettingsRoutes.post<{ secret: string }>(
         user.id === 1 ? 'BOT_seerr' : `BOT_seerr_${user.username ?? ''}`
       ).toString('base64');
 
-      user.userType =
-        settings.main.mediaServerType === MediaServerType.EMBY
-          ? UserType.EMBY
-          : UserType.JELLYFIN;
+      user.userType = UserType.JELLYFIN;
       user.jellyfinUserId = account.User.Id;
       user.jellyfinUsername = account.User.Name;
       user.jellyfinAuthToken = account.AccessToken;
@@ -671,6 +693,13 @@ userSettingsRoutes.post<{ id: string }, UserSettingsNotificationsResponse>(
 
       // "Owner" user settings cannot be modified by other users
       if (user.id === 1 && req.user?.id !== 1) {
+        return next({
+          status: 403,
+          message: "You do not have permission to modify this user's settings.",
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
         return next({
           status: 403,
           message: "You do not have permission to modify this user's settings.",
@@ -775,6 +804,13 @@ userSettingsRoutes.post<
 
       // "Owner" user permissions cannot be modified, and users cannot set their own permissions
       if (user.id === 1 || req.user?.id === user.id) {
+        return next({
+          status: 403,
+          message: 'You do not have permission to modify this user',
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
         return next({
           status: 403,
           message: 'You do not have permission to modify this user',

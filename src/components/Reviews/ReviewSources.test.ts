@@ -88,13 +88,15 @@ it('detail footer keeps nonwrapping edit action and compact labelled sync icons'
   );
   assert.match(footer, /href=\{r.externalUrl\}/);
   assert.match(footer, /r\.syncedToLetterboxd\s*&&\s*!r\.externalUrl\s*&&/);
-  assert.match(footer, /<CheckCircleIcon aria-hidden="true" className="h-4 w-4"/);
+  assert.match(
+    footer,
+    /<CheckCircleIcon\s+aria-hidden="true"\s+className="h-4 w-4"\s*\/>/
+  );
   assert.match(footer, /shrink-0 whitespace-nowrap/);
   assert.ok(
     footer.indexOf("t('Edit',") < footer.indexOf('Synced with Letterboxd')
   );
   assert.ok(
-    footer.indexOf('Letterboxd ↗') <
-      footer.indexOf('Synced with Letterboxd')
+    footer.indexOf('Letterboxd ↗') < footer.indexOf('Synced with Letterboxd')
   );
 });

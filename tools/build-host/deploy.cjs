@@ -5,13 +5,21 @@ const os = require('os');
 const cp = require('child_process');
 const host = 'minilie@100.118.63.67';
 const remote = 'C:/ProgramData/Seerr';
+const {miniNode}=require('./runtime-policy.cjs');
 const run = (bin, args, options = {}) => cp.execFileSync(bin, args, { stdio: 'inherit', ...options });
 const ssh = (command, options) => run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3', host, command], options);
 const manifestPath = path.resolve(process.argv[2] || path.resolve(__dirname, '../../../seerr-social/catalogue-release.json'));
-const files = JSON.parse(fs.readFileSync(manifestPath, 'utf8')).files;
-if (!Array.isArray(files) || !files.length || files.some(f => typeof f !== 'string' || (!['seerr-api.yml','package.json','pnpm-lock.yaml','server/lib/data/UNICODE-LICENSE.txt'].includes(f) && !/^(src|server)\/[\w/.\[\]-]+\.(tsx?|json|css)$/.test(f)) || f.includes('..') || f.includes('.test.'))) throw Error('Invalid release file list');
+const spec = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+const files = spec.files, deletions = spec.delete || [];
+const {allowed} = require('./release-input.cjs');
+if (!Array.isArray(files) || !Array.isArray(deletions) || !files.length || [...files,...deletions].some(f=>!allowed(f)) || deletions.some(f=>files.includes(f))) throw Error('Invalid release file list');
 const repo = path.resolve(__dirname, '../..');
-const payload = [...new Set(files)].map(file => ({ file, after: fs.readFileSync(path.join(repo, file), 'utf8') }));
+if (cp.execFileSync('git',['ls-files','-u'],{cwd:repo,encoding:'utf8'}).trim()) throw Error('Resolve merge conflicts before releasing');
+const payload = [...new Set(files)].map(file => ({file, after:fs.readFileSync(path.join(repo,file),'utf8')}));
+for (const file of new Set(deletions)) {
+ if (fs.existsSync(path.join(repo,file))) throw Error('Deleted file still exists: '+file);
+ payload.push({file,after:null});
+}
 console.log('Deploying only:\n' + payload.map(e => '  ' + e.file).join('\n'));
 const id = 'catalogue-' + new Date().toISOString().replace(/[^0-9]/g, '') + '-' + process.pid;
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'catalogue-deploy-'));
@@ -24,6 +32,9 @@ let script = fs.readFileSync(path.resolve(__dirname, '../maintenance/release-eng
   .replace('./deployment-health.cjs', './' + id + '-health.cjs')
   .replace('./rollout-control.cjs', './' + id + '-control.cjs')
   .replace('./ledger-rollout.cjs', './' + id + '-ledger.cjs')
+  .replaceAll('./build-host/runtime-policy.cjs', './' + id + '-tools/runtime-policy.cjs')
+  .replaceAll('./build-host/release-input.cjs', './' + id + '-tools/release-input.cjs')
+  .replaceAll("root+'/build-host/mini-build.cjs'", "root+'/"+id+"-tools/mini-build.cjs'")
   .replaceAll('g7IGMd-mQTo3taLfl1Jf9', buildId);
 const ending = 'main().catch(e=>{console.error(e.message);process.exitCode=1});';
 if (!script.includes(ending)) throw Error('Release engine changed; update wrapper before deploying');
@@ -35,7 +46,7 @@ async function releaseAll() {
   fs.writeFileSync(lock+'/owner.json', JSON.stringify({pid:process.pid,release,started:new Date().toISOString()}));
   process.argv[2]='build'; await main();
   process.argv[2]='deploy'; await main();
-  try { console.log(JSON.stringify(require(root+'/build-host/retention.cjs').run(root,true))); }
+  try { console.log(JSON.stringify(require(root+'/${id}-tools/retention.cjs').run(root,true))); }
   catch(e) { throw Error('Deployment succeeded, but retention failed: '+e.message); }
  } finally { fs.unlinkSync(lock+'/owner.json'); fs.rmdirSync(lock); }
 }
@@ -54,7 +65,8 @@ child.on('error',e=>console.error(e.message));
 child.on('close',(code,signal)=>{fs.closeSync(fd);process.stdout.write(fs.readFileSync(${JSON.stringify(remote+'/'+id+'.log')},'utf8'));process.exitCode=code??1;});`;
 fs.writeFileSync(path.join(temp,id+'-runner.cjs'),runner);
 run('scp', ['-o', 'BatchMode=yes', path.join(temp, id + '-source.json'), path.join(temp, id + '.cjs'), path.join(temp,id+'-health.cjs'), path.join(temp,id+'-control.cjs'), path.join(temp,id+'-ledger.cjs'), path.join(temp,id+'-runner.cjs'), host + ':' + remote + '/']);
-run('scp', ['-o', 'BatchMode=yes', path.join(__dirname,'retention.cjs'), host + ':' + remote + '/build-host/retention.cjs']);
+ssh('cmd /d /c mkdir '+remote+'/'+id+'-tools');
+run('scp', ['-o', 'BatchMode=yes', ...['storage.cjs','runtime-policy.cjs','migration-preflight.cjs','pc-build.cjs','export-links.cjs','retention.cjs','release-input.cjs','mini-build.cjs','restore-links.cjs','smoke-trial.cjs'].map(f=>path.join(__dirname,f)), host + ':' + remote + '/' + id + '-tools/']);
 console.log('Building on PRPL-PC; Mini verifies the output before taking the maintenance lease.');
-ssh('C:\\ProgramData\\Seerr\\node\\node.exe C:\\ProgramData\\Seerr\\' + id + '-runner.cjs');
+ssh(miniNode + ' ' + remote + '/' + id + '-runner.cjs');
 console.log('Deployment complete. Backup and verification: ' + remote + '/' + id + '-release');

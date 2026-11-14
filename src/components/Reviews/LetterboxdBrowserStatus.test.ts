@@ -196,8 +196,21 @@ it('GET summarizes only the bound user and account without leaking write payload
     desired: { rating: 0, text: 'PRIVATE REVIEW' },
     token: 'SECRET',
   }));
+  const taskLedger = [
+    { namespace: 'history', state: 'queued', count: 2, nextAttemptAt: 1000 },
+  ];
+  const taskStoreDirectories: string[] = [];
   const exports = {};
   new Function('require', 'exports', routeCode)((name: string) => {
+    if (name === '@server/utils/appDataVolume')
+      return { appDataPath: () => '/test/letterboxd-app-data' };
+    if (name === '@server/lib/letterboxdTaskStore')
+      return {
+        taskStoreHealth: (directory: string) => {
+          taskStoreDirectories.push(directory);
+          return taskLedger;
+        },
+      };
     if (name === '@server/lib/letterboxdHistoryHealth')
       return { readHistoryHealth: () => ({ attempts: 0, nextAttemptAt: 0 }) };
     if (name === '@server/lib/letterboxdSyncHealth')
@@ -248,11 +261,14 @@ it('GET summarizes only the bound user and account without leaking write payload
       json(value: unknown) {
         result = value;
       },
-      sendStatus() {
-        assert.fail('GET failed');
+      sendStatus(status: number) {
+        assert.fail(`GET failed with status ${status}`);
       },
     }
   );
+  assert.deepEqual(taskStoreDirectories, ['/test/letterboxd-app-data']);
+  assert.deepEqual(result.taskLedger, taskLedger);
+  assert.equal(result.bindings.length, 1);
   assert.equal(result.bindings[0].syncHealth.runtime, 'blocked');
   assert.equal(result.bindings[0].syncHealth.unsupportedQueued, 1);
   assert.deepEqual(result.bindings[0].writeQueue, {

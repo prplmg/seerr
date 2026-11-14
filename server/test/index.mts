@@ -59,6 +59,9 @@ if (positionals.length > 0) {
   for await (const entry of glob(join(BASE_DIR, 'server/**/*.test.ts'))) {
     files.push(resolve(entry));
   }
+  for await (const entry of glob(join(BASE_DIR, 'src/**/*.test.ts'))) {
+    files.push(resolve(entry));
+  }
   files.sort();
 }
 
@@ -71,6 +74,8 @@ process.env.TS_NODE_FILES = 'true';
 const stream = run({
   files,
   execArgv: [
+    '-r',
+    resolveImport('./isolate.cjs'),
     '--experimental-test-module-mocks',
     '-r',
     'ts-node/register',
@@ -85,6 +90,11 @@ const stream = run({
     join(BASE_DIR, 'server/migration/**'),
   ],
   testNamePatterns: opts.testNamePattern,
+});
+
+// A failing suite must also fail the command used by local and release checks.
+stream.on('test:fail', () => {
+  process.exitCode = 1;
 });
 
 // In CI, write a JUnit report to a file for use by GitHub

@@ -25,6 +25,8 @@ async function harness(failImport = false, requester = 1, requestStatus = 2) {
   const l = {
     id: 'curated-test',
     title: 'Test',
+    source: 'curated',
+    visibility: 'public',
     items: films,
     saved: true,
     owned: false,
@@ -157,6 +159,7 @@ async function harness(failImport = false, requester = 1, requestStatus = 2) {
           return {
             store: { saved: { 1: ['missing', l.id] }, liked: {} },
             lists: [l],
+            exploreUserIds: [1, 2, 3],
             mine: [l],
             summary: (x: any) => ({ ...x, items: undefined, shared: id === 2 }),
             available: new Set(['movie:1', 'movie:2']),
@@ -516,12 +519,21 @@ it('watchlist matching runs only for a valid group and discover exposes a select
     assert.deepEqual(h.watchlistReads, [[1, 2]]);
     assert.equal(group.watchlistsUpdating, false);
     const discover = await (await h.request('?filter=discover')).json();
-    assert.equal(discover.explore.length, 0); // Already saved by the requester.
+    // The shared daily rotation includes public lists even when already saved.
+    assert.deepEqual(
+      discover.explore.map((list: any) => list.id),
+      ['curated-test']
+    );
     const preview = await (
       await h.request('?filter=discover', 'GET', undefined, true, '2', true)
     ).json();
     assert.equal(preview.explore.length, 1);
     assert.equal(preview.explore[0].id, 'curated-test');
+    assert.deepEqual(
+      preview.explore.map((list: any) => list.id),
+      discover.explore.map((list: any) => list.id)
+    );
+    assert.equal(discover.explore[0].associatedUsers, undefined);
     assert.equal(preview.explore[0].associatedUsers, undefined);
   } finally {
     await h.close();

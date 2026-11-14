@@ -1,6 +1,6 @@
 # PRPL catalogue customizations
 
-The `prpl/custom` branch preserves the deployed catalogue customizations on upstream Seerr v3.4.1. Upgrading to v3.5.0 is a separate change. The fork remote is `git@github.com:prplmg/seerr.git`; upstream is `https://github.com/seerr-team/seerr.git`.
+The custom catalogue history is preserved on `feat/weekly-list-reconciliation-20261106`. The isolated `upgrade/seerr-3.5.2-20261114` branch integrates upstream Seerr v3.5.2; see `docs/upgrades/seerr-3.5.2-20261114.md` for validation and deployment status. The fork remote is `git@github.com:prplmg/seerr.git`; upstream is `https://github.com/seerr-team/seerr.git`.
 
 ## Version control and updates
 
@@ -26,7 +26,7 @@ Bookmarks on movie/series details write directly to Plex, not the local Watchlis
 
 While a multi-season request is pending approval, non-admins cannot add more seasons to that series (including through edits or API calls). The modal explains the block in English/Spanish; approval or decline releases it. Administrators retain management access.
 
-Non-admin requests for more than two distinct, newly requested seasons require approval even with auto-approve permissions. Existing available/requested seasons are filtered before this rule is applied; it is per request, not a cumulative limit across separate requests. Expanding an existing request beyond the threshold also places it in pending approval. The requester sees an English/Spanish notice at the bottom of the TV request modal. Held requests cannot be approved or retried by non-admin request managers.
+Non-admin requests for more than two distinct, newly requested seasons require approval even with auto-approve permissions. Existing available/requested seasons are filtered before this rule is applied; it is per request, not a cumulative limit across separate requests. Expanding an existing pending request beyond the threshold also requires approval. Completed or approved requests cannot be edited; requesting additional seasons creates a separate request. The requester sees an English/Spanish notice at the bottom of the TV request modal. Held requests cannot be approved or retried by non-admin request managers.
 
 Administrators can choose “Add without searching” when creating a TV request or approving it from the request list, carousel, detail request block, or edit modal. The persisted `skipInitialSearch` flag disables only the initial Sonarr search, including on retries; seasons remain monitored and future RSS grabs are possible. Global Sonarr prevent-search settings still take precedence. Other requests retain their normal behavior.
 

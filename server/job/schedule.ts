@@ -80,6 +80,10 @@ export async function runReviewRssJob(force = false): Promise<void> {
 }
 
 export const startJobs = (): void => {
+  // Reruns once a media server is set after boot
+  scheduledJobs.forEach((scheduledJob) => scheduledJob.job.cancel());
+  scheduledJobs.length = 0;
+
   const jobs = getSettings().jobs;
   for (const definition of [
     {
@@ -344,7 +348,7 @@ export const startJobs = (): void => {
       id: 'plex-watchlist-sync',
       name: 'Plex Watchlist Sync',
       type: 'process',
-      interval: 'seconds',
+      interval: 'minutes',
       cronSchedule: jobs['plex-watchlist-sync'].schedule,
       job: schedule.scheduleJob(jobs['plex-watchlist-sync'].schedule, () => {
         logger.info('Starting scheduled job: Plex Watchlist Sync', {
@@ -495,6 +499,7 @@ export const startJobs = (): void => {
       });
       // Clean TMDB image cache
       ImageProxy.clearCache('tmdb');
+      ImageProxy.clearCache('tvdb');
 
       // Clean users avatar image cache
       ImageProxy.clearCache('avatar');
