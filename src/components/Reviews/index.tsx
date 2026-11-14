@@ -14,6 +14,7 @@ import { useInView } from 'react-intersection-observer';
 import useSWR, { useSWRConfig } from 'swr';
 import DiscoveryReviewFooter from './DiscoveryReviewFooter';
 import { type InteractionSummary } from './ReviewInteractions';
+import ReviewTime from './ReviewTime';
 
 type Review = {
   id: string;
@@ -159,9 +160,10 @@ function ReviewMetadata({
             {review.user.name}
           </Link>
         )}
-        <time dateTime={review.watchedDate || review.publishedAt}>
-          {review.watchedDate || review.publishedAt.slice(0, 10)}
-        </time>
+        <ReviewTime
+          kind="review"
+          value={review.watchedDate || review.publishedAt}
+        />
       </div>
       <Rating review={review} />
     </>

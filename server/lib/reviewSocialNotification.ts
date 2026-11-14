@@ -1,10 +1,12 @@
 import { getRepository } from '@server/datasource';
 import { MovieReview } from '@server/entity/MovieReview';
-import type { User } from '@server/entity/User';
+import { ReviewComment } from '@server/entity/ReviewInteraction';
+import { User } from '@server/entity/User';
 import { Notification } from '@server/lib/notifications';
 import EmailAgent from '@server/lib/notifications/agents/email';
 import WebPushAgent from '@server/lib/notifications/agents/webpush';
 import logger from '@server/logger';
+import { In } from 'typeorm';
 
 export async function notifyReviewAuthor(
   id: string,
@@ -16,7 +18,26 @@ export async function notifyReviewAuthor(
       where: { id },
       relations: { user: { settings: true } },
     });
-    if (!review?.user || review.userId === actor.id) return;
+    if (!review?.user) return;
+    const commenters = emoji
+      ? []
+      : await getRepository(ReviewComment)
+          .createQueryBuilder('comment')
+          .select('comment.userId', 'userId')
+          .where('comment.reviewId = :id', { id })
+          .distinct(true)
+          .getRawMany();
+    const ids = [
+      ...new Set<number>([
+        review.userId,
+        ...commenters.map((c) => Number(c.userId)),
+      ]),
+    ].filter((userId) => userId !== actor.id);
+    if (!ids.length) return;
+    const recipients = await getRepository(User).find({
+      where: { id: In(ids) },
+      relations: { settings: true },
+    });
     const query = new URLSearchParams({ comments: '1' });
     if (review.episodeNumber != null && review.seasonNumber != null) {
       query.set('reviewSeason', String(review.seasonNumber));
@@ -27,22 +48,37 @@ export async function notifyReviewAuthor(
         /%3A/g,
         ':'
       );
-    const message = emoji
-      ? `${actor.displayName} reacted ${emoji} to your review.`
-      : `${actor.displayName} commented on your review.`;
-    const payload = {
-      subject: 'Multimeldia · ' + (emoji ? 'New reaction' : 'New comment'),
-      message,
-      reviewUrl,
-      notifySystem: false,
-      notifyAdmin: false,
-      notifyUser: review.user,
-    };
-    await Promise.all(
-      [new EmailAgent(), new WebPushAgent()]
-        .filter((a) => a.shouldSend())
-        .map((a) => a.send(Notification.SOCIAL_INTERACTIONS, payload))
-    );
+    for (const recipient of recipients) {
+      const message = emoji
+        ? `${actor.displayName} reacted ${emoji} to your review.`
+        : recipient.id === review.userId
+          ? `${actor.displayName} commented on your review.`
+          : `${actor.displayName} commented on ${review.user.displayName}’s review you commented on.`;
+      const payload = {
+        subject: 'Multimeldia · ' + (emoji ? 'New reaction' : 'New comment'),
+        message,
+        reviewUrl,
+        notifySystem: false,
+        notifyAdmin: false,
+        notifyUser: recipient,
+      };
+      await Promise.all(
+        [new EmailAgent(), new WebPushAgent()]
+          .filter((a) => a.shouldSend())
+          .map(async (a) => {
+            try {
+              await a.send(Notification.SOCIAL_INTERACTIONS, payload);
+            } catch (error) {
+              logger.error('Review notification delivery failed', {
+                label: 'Notifications',
+                reviewId: id,
+                recipientId: recipient.id,
+                error: String(error),
+              });
+            }
+          })
+      );
+    }
   } catch (error) {
     logger.error('Review notification delivery failed', {
       label: 'Notifications',

@@ -178,3 +178,113 @@ test('episode modal does not dismiss underneath a portaled comments dialog', () 
     delete global.document;
   }
 });
+
+test('review dates stay calendar-only; comments show elapsed time; two-week cutoff', () => {
+  const { reviewTime } = load('src/utils/reviewTime.ts', require);
+  const now = new Date(2026, 10, 13, 19, 30);
+  assert.equal(reviewTime('2026-11-13', 'review', 'en', now).label, 'today');
+  assert.equal(
+    reviewTime('2026-11-12', 'review', 'en', now).label,
+    'yesterday'
+  );
+  assert.equal(
+    reviewTime('2026-11-05', 'review', 'en', now).label,
+    'last week'
+  );
+  assert.ok(
+    !reviewTime('2026-10-30', 'review', 'en', now).label.includes('ago')
+  );
+  assert.equal(
+    reviewTime(new Date(now - 180000).toISOString(), 'comment', 'en', now)
+      .label,
+    '3 minutes ago'
+  );
+  assert.equal(reviewTime('2026-11-13', 'review', 'es', now).label, 'hoy');
+  assert.ok(!reviewTime('2026-11-13', 'review', 'en', now).exact.includes(':'));
+  assert.ok(
+    reviewTime(now.toISOString(), 'comment', 'en', now).exact.includes(':')
+  );
+});
+
+test('author replies notify prior commenters once, exclude actor; reactions remain author-only', async () => {
+  const sent = [];
+  let ids = [];
+  class MovieReview {}
+  class ReviewComment {}
+  class User {}
+  const author = { id: 1, displayName: 'Author' };
+  const mod = load('server/lib/reviewSocialNotification.ts', (name) => {
+    if (name === '@server/entity/MovieReview') return { MovieReview };
+    if (name === '@server/entity/ReviewInteraction') return { ReviewComment };
+    if (name === '@server/entity/User') return { User };
+    if (name === 'typeorm')
+      return {
+        In: (x) => {
+          ids = x;
+          return x;
+        },
+      };
+    if (name === '@server/datasource')
+      return {
+        getRepository: (entity) =>
+          entity === MovieReview
+            ? {
+                findOne: async () => ({
+                  id: 'r',
+                  userId: 1,
+                  user: author,
+                  mediaType: 'tv',
+                  tmdbId: 9,
+                  seasonNumber: 2,
+                  episodeNumber: 3,
+                }),
+              }
+            : entity === User
+              ? {
+                  find: async () =>
+                    ids.map((id) => ({ id, displayName: 'User' + id })),
+                }
+              : {
+                  createQueryBuilder: () => {
+                    const q = {
+                      select: () => q,
+                      where: () => q,
+                      distinct: () => q,
+                      getRawMany: async () => [
+                        { userId: 2 },
+                        { userId: 2 },
+                        { userId: 1 },
+                        { userId: 3 },
+                      ],
+                    };
+                    return q;
+                  },
+                },
+      };
+    if (name.includes('/agents/'))
+      return class {
+        shouldSend() {
+          return true;
+        }
+        async send(type, p) {
+          sent.push(p);
+        }
+      };
+    if (name === '@server/lib/notifications')
+      return { Notification: { SOCIAL_INTERACTIONS: 8192 } };
+    if (name === '@server/logger') return { error: () => {} };
+    throw Error(name);
+  });
+  await mod.notifyReviewAuthor('r', author);
+  assert.deepEqual(
+    sent.map((p) => p.notifyUser.id),
+    [2, 2, 3, 3]
+  );
+  assert.ok(sent.every((p) => p.reviewUrl.includes('reviewEpisode=3')));
+  sent.length = 0;
+  await mod.notifyReviewAuthor('r', { id: 2, displayName: 'Other' }, '❤');
+  assert.deepEqual(
+    sent.map((p) => p.notifyUser.id),
+    [1, 1]
+  );
+});

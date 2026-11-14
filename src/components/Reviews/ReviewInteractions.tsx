@@ -6,6 +6,7 @@ import { Suspense, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import QuickEmojiPicker from './QuickEmojiPicker';
 import { ReactionPeople, ReactionPill } from './ReactionPeople';
+import ReviewTime from './ReviewTime';
 export type InteractionSummary = {
   comments: number;
   reactions: { emoji: string; count: number; mine: boolean }[];
@@ -210,12 +211,9 @@ export default function ReviewInteractions({
                   <span className="break-all font-semibold text-gray-100">
                     {c.user?.name || t('Former member', 'Exmiembro')}
                   </span>
-                  <time
-                    className="text-xs text-gray-400"
-                    dateTime={c.createdAt}
-                  >
-                    {new Date(c.createdAt).toLocaleDateString()}
-                  </time>
+                  <span className="text-xs text-gray-400">
+                    <ReviewTime kind="comment" value={c.createdAt} />
+                  </span>
                   {c.updatedAt !== c.createdAt && (
                     <span className="text-xs text-gray-400">
                       {t('edited', 'editado')}
