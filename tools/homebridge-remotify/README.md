@@ -41,3 +41,8 @@ Apple Home grouped the original door and two correction services into a confusin
 
 ### Requested names and remote removal — 2026-11-14
 Live configuration now names the standalone corrections “Mark door open” and “Mark door closed”. Removed RemotifyRemote/Garage remote from configured accessories at user request; source support remains for rollback. Garage door and Portón remain. Backup `/homebridge/backups/remotify-names-20261114/config.json`. No movement commands. With the raw remote removed, unsupported mid-motion target changes remain rejected; physical remote/Remotify app can still operate the door, followed by position correction as needed.
+
+## Canonical operations documentation
+The existing journal `Network/08 - Homebridge home automation.md` now contains a consolidated “Garage door — current operating guide (2026-11-14)” covering final accessories, command/estimate flow, correction/restart behavior, calibration evidence, limitations and scoped rollback. Dated entries above are history, not current accessory inventory.
+
+Deferred, not urgent: remeasure full opening/closing and consider shortening openSeconds16/closeSeconds20 (user says current estimates feel long). Keep current values until requested. This is separate from the accepted1500ms command spacing. No unattended testing implied.
