@@ -11,7 +11,7 @@ function startReady(){
  // Windows append handles do not reliably emit directory-change notifications.
  // Allow cold startup once, then verify the actual API below; no status polling.
  ps('Start-ScheduledTask -TaskName Seerr');
- return new Promise(resolve=>setTimeout(resolve,120000));
+ return new Promise(resolve=>setTimeout(resolve,180000));
 }
 async function main(){
  const action=process.argv[2];

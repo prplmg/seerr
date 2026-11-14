@@ -50,3 +50,9 @@ Notification wording verified: the one-time margoTica push said “prplmg commen
 ### Specific social notification copy (local, pending deployment)
 
 Name the reviewed title, including SxxExx for episodes, in comments and reactions. Select “your” for the review author, “their” when the actor authored the review, and the author's display name for other participants. Resolve metadata once per fan-out; fallback to generic wording if metadata fails. Recipient and channel preference rules unchanged. Tests cover all three comment variants and delivery on metadata failure; six regressions, ESLint and TypeScript pass. Spanish notification coverage is deferred to the Plex/media Network TODOs; no translations added.
+
+### Follow-up rollout scope
+
+Approved follow-up includes only reviewSocialNotification.ts, DiscoveryReviewFooter.tsx and useReviewDialogViewport.ts. Canonical rollout startup allowance is now 180 seconds, matching the successful prior retry; staging still occurs online and readiness is checked before removing maintenance. No scheduling, notification preference, translation or unrelated next-env changes are included. Deployment evidence: outputs/review-focus-rollout-20261113 (workspace parent).
+
+Follow-up deployed successfully: build `KD9rR8FvRW7ZsH6yNL0v6`, release `catalogue-20261114021100209-45567`. Single PRPL-PC build46.459s,31 native dependency links, staged preflight, branded maintenance, native review APIs and post-clear public health passed. Global/user/sync toggles unchanged (only routine Plex lastScan advanced). One rollback retained at that release's `previous` directory. No push or production notification test. Physical iPhone keyboard validation remains outstanding. Network journal updated.
