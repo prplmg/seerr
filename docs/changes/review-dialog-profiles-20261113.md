@@ -59,3 +59,5 @@ Follow-up deployed successfully: build `KD9rR8FvRW7ZsH6yNL0v6`, release `catalog
 
 ### Headroom adjustment after iPhone feedback (local, not deployed)
 Removed the extra16px above the comments sheet, retaining only the device's top safe-area inset. The44px close button and keyboard focus correction remain unchanged. Scoped ESLint passed; on-device appearance needs confirmation after deployment.
+
+Headroom-only follow-up deployed: build `5hrTdzhCWr_5KnhpIifA3`, release `catalogue-20261114022331495-46578`, source dcfb8f50. Only DiscoveryReviewFooter.tsx shipped. PRPL-PC build43.521s,31 links and Mini preflight passed; branded maintenance, native and post-clear public health passed. Global/user/sync toggles unchanged except routine Plex lastScan metadata. Exactly one rollback at `C:/ProgramData/Seerr/catalogue-20261114022331495-46578-release/previous`. Evidence: workspace outputs/review-headroom-rollout-20261113/rollout.log. Scoped lint passed; real iPhone appearance awaits user confirmation. Network docs updated; no push.
