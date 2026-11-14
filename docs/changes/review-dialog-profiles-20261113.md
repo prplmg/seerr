@@ -36,3 +36,7 @@ Build `B35_yD3v3-SrSFYYlWacl`; release `catalogue-20261114013626505-42977` (UTC 
 Live user5 profile feed200:20 rows of101 total, every row user5. On-device keyboard verification remains outstanding. Fixed startup timing remains an operational follow-up; only this release's retry allowance was changed.
 
 Targeted margoTica push for prplmg’s Abbott Elementary S03E11 reply sent once; push service accepted HTTP201 at2026-11-13 19:53 America/Merida. No device-display/read confirmation claimed. Guard receipt `C:/ProgramData/Seerr/reviews-rollout-20261113/margotica-notification.json`. Initial helper setup failures occurred before transport; no duplicate sends.
+
+## Follow-up: iPhone safe-area headroom (local, not deployed)
+
+User screenshot showed keyboard-sized sheet header beneath status bar. Added top padding equal to safe-area-inset-top plus16px to the viewport wrapper, preserving contained scroll below the fixed header. Close control is now44×44 CSS pixels, top-aligned. Scoped lint/format passed; physical iPhone validation pending.

@@ -120,7 +120,10 @@ export default function DiscoveryReviewFooter({
       >
         <div aria-hidden className="fixed inset-0 bg-black/60" />
         <div
-          style={viewport}
+          style={{
+            ...viewport,
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          }}
           className="fixed inset-x-0 top-0 flex h-[100dvh] items-end justify-center overflow-hidden sm:items-center sm:p-4"
         >
           <Dialog.Panel className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-gray-600 bg-gray-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-gray-100 sm:rounded-2xl">
@@ -140,7 +143,7 @@ export default function DiscoveryReviewFooter({
               <button
                 ref={closeButton}
                 aria-label={t('Close', 'Cerrar')}
-                className={pill}
+                className={`${pill} flex h-11 w-11 items-center justify-center self-start`}
                 onClick={() => setSheet(null)}
               >
                 <XMarkIcon className="h-5 w-5" />
