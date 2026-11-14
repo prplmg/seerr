@@ -126,7 +126,7 @@ export default function DiscoveryReviewFooter({
         <div
           style={{
             ...viewport,
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
           }}
           className="fixed inset-x-0 top-0 flex h-[100dvh] items-end justify-center overflow-hidden sm:items-center sm:p-4"
         >
