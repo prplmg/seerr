@@ -10,8 +10,9 @@ class DoorController {
     this.schedule = deps.schedule || setTimeout;
     this.cancel = deps.cancel || clearTimeout;
     this.deviceId = config.deviceId;
-    this.travelMs = Number(config.travelSeconds) * 1000;
-    if (!(this.travelMs >= 3000 && this.travelMs <= 180000)) throw Error('Set measured travelSeconds (3–180 seconds)');
+    this.openMs = Number(config.openSeconds ?? config.travelSeconds) * 1000;
+    this.closeMs = Number(config.closeSeconds ?? config.travelSeconds) * 1000;
+    if (![this.openMs, this.closeMs].every(ms => ms >= 3000 && ms <= 180000)) throw Error('Set openSeconds and closeSeconds (3–180 seconds)');
     this.file = config.stateFile;
     this.listeners = new Set();
     this.busy = false; this.lastPress = -Infinity; this.timer = null;
@@ -42,7 +43,7 @@ class DoorController {
   }
   sample() {
     if (this.current !== 2 && this.current !== 3) return;
-    this.position = Math.max(0, Math.min(1, this.startPosition + this.lastDirection * (this.now() - this.startedAt) / this.travelMs));
+    this.position = Math.max(0, Math.min(1, this.startPosition + this.lastDirection * (this.now() - this.startedAt) / (this.lastDirection === 1 ? this.openMs : this.closeMs)));
   }
   clearTimer() { if (this.timer !== null) this.cancel(this.timer); this.timer = null; }
   correct(open) {
@@ -89,7 +90,7 @@ class DoorController {
         this.timer = this.schedule(() => {
           this.timer = null; this.position = this.lastDirection === 1 ? 1 : 0;
           this.current = this.target; this.publish();
-        }, Math.max(1, remaining * this.travelMs));
+        }, Math.max(1, remaining * (this.lastDirection === 1 ? this.openMs : this.closeMs)));
         this.timer?.unref?.();
       }
       this.publish();

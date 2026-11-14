@@ -37,3 +37,10 @@ test('restart with saved state requires correction and does not send commands',a
   c.correct(false);assert.equal(c.current,1);assert.equal(c.uncertain,false);assert.equal(calls,0);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+test('separate opening and closing travel estimates use 16 and 20 seconds',async()=>{
+ let now=0,delay,finish;
+ const c=new DoorController({deviceId:1,openSeconds:16,closeSeconds:20,initialState:'closed'},{now:()=>now,schedule:(fn,ms)=>{finish=fn;delay=ms;return 1;},cancel:()=>{},client:{devices:async()=>({client_enabled:true,devices:[{id:1,enabled:true}]}),request:async()=>{}}});
+ await c.setTarget(0);assert.equal(delay,16000);now=16000;finish();assert.equal(c.current,0);
+ await c.setTarget(1);assert.equal(delay,20000);now=26000;c.sample();assert.equal(c.position,0.5);
+ now=36000;finish();assert.equal(c.current,1);
+});

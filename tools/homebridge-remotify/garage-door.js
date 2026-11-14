@@ -27,7 +27,7 @@ class GarageDoor {
       return service;
     };
     this.services = [this.info, this.door,
-      correction('Garage · Mark open', true), correction('Garage · Mark closed', false)];
+      correction('Garage Mark open', true), correction('Garage Mark closed', false)];
     this.door.setPrimaryService(true);
     this.unsubscribe = this.controller.subscribe(state => {
       this.door.updateCharacteristic(C.CurrentDoorState, state.uncertain
