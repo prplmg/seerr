@@ -3,6 +3,7 @@ import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import ProgressCircle from '@app/components/Common/ProgressCircle';
 import RequestCard from '@app/components/RequestCard';
+import { RecentReviews } from '@app/components/Reviews';
 import LetterboxdWatchlist from '@app/components/Reviews/LetterboxdWatchlist';
 import Slider from '@app/components/Slider';
 import TmdbTitleCard from '@app/components/TitleCard/TmdbTitleCard';
@@ -362,6 +363,7 @@ const UserProfile = () => {
           />
         </>
       )}
+      <RecentReviews key={`reviews-${user.id}`} userId={user.id} />
       {user && <LetterboxdWatchlist key={user.id} userId={user.id} />}
       {watchlistError && (
         <p role="status" className="my-4 text-yellow-300">

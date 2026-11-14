@@ -290,6 +290,7 @@ export function MovieReviews({
     setEditing(false);
   }, [movieId, mediaType, seasonNumber, episodeNumber]);
   useEffect(() => {
+    if (router.query.comments === '1') return;
     if (!hash) {
       scrolledReview.current = undefined;
       return;
@@ -302,7 +303,7 @@ export function MovieReviews({
           scrolledReview.current = hash;
         }
       });
-  }, [hash, data, focused]);
+  }, [hash, data, focused, router.query.comments]);
   const rows = [
     ...(focused?.review?.tmdbId === movieId &&
     focused.review.mediaType === mediaType &&
@@ -567,7 +568,7 @@ export function MovieReviews({
           )}
         </p>
       )}
-      {loadError ? (
+      {loadError && !data ? (
         <p role="alert" className="text-red-300">
           {t(
             'Reviews could not be loaded. Please try again.',
@@ -593,9 +594,6 @@ export function MovieReviews({
             >
               <ReviewBody review={r} />
               <DiscoveryReviewFooter
-                key={
-                  r.id + String(router.query.comments === '1' && hash === r.id)
-                }
                 initiallyOpen={router.query.comments === '1' && hash === r.id}
                 reviewId={r.id}
                 viewerId={user?.id}
@@ -790,10 +788,18 @@ function ReviewCard({
     </article>
   );
 }
-export function RecentReviews({ days = 28 }: { days?: number }) {
+export function RecentReviews({
+  days = 28,
+  userId,
+}: {
+  days?: number;
+  userId?: number;
+}) {
   const t = usePartyText(),
     { data, error } = useSWR<{ results: Review[] }>(
-      `/api/v1/reviews?days=${days}`,
+      userId
+        ? `/api/v1/reviews?userId=${userId}`
+        : `/api/v1/reviews?days=${days}`,
       { refreshInterval: 60000 }
     );
   const { user } = useUser();
@@ -816,10 +822,12 @@ export function RecentReviews({ days = 28 }: { days?: number }) {
     <section className="mb-6">
       <div className="slider-header">
         <h2 className="slider-title">
-          {t('Recent reviews', 'Reseñas recientes')}
+          {userId
+            ? t('Reviews', 'Reseñas')
+            : t('Recent reviews', 'Reseñas recientes')}
         </h2>
       </div>
-      {error ? (
+      {error && !data ? (
         <p className="text-gray-300">
           {t(
             'Reviews are temporarily unavailable.',
@@ -828,12 +836,14 @@ export function RecentReviews({ days = 28 }: { days?: number }) {
         </p>
       ) : (
         <Slider
-          sliderKey="recent-reviews"
+          sliderKey={`recent-reviews-${userId ?? 'all'}`}
           isLoading={!data}
           isEmpty={!data?.results.length}
           emptyMessage={t(
-            'No reviews in this period.',
-            'No hay reseñas en este período.'
+            userId ? 'No reviews yet.' : 'No reviews in this period.',
+            userId
+              ? 'Todavía no hay reseñas.'
+              : 'No hay reseñas en este período.'
           )}
           items={data?.results.map((r) => (
             <ReviewCard

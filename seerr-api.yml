@@ -3320,6 +3320,10 @@ paths:
           name: movieId
           schema: { type: integer, minimum: 1 }
         - in: query
+          name: userId
+          description: Limit to this member’s written reviews, without the discovery date window.
+          schema: { type: integer, minimum: 1 }
+        - in: query
           name: days
           schema: { type: integer, minimum: 1, maximum: 365 }
         - in: query

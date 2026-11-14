@@ -1,4 +1,3 @@
-import { reviewActivityDate } from '@server/lib/reviewChronology';
 import TheMovieDb from '@server/api/themoviedb';
 import { getRepository } from '@server/datasource';
 import { LetterboxdExportBaseline } from '@server/entity/LetterboxdExport';
@@ -31,6 +30,7 @@ import {
 } from '@server/lib/letterboxdWriteQueue';
 import { manualWatchedId, watchedOnlyRecord } from '@server/lib/manualWatched';
 import { Permission, hasPermission } from '@server/lib/permissions';
+import { reviewActivityDate } from '@server/lib/reviewChronology';
 import { manualDiaryViewing } from '@server/lib/reviewDiaryPublication';
 import {
   latestReviewViewing,
@@ -113,10 +113,12 @@ router.get('/entry/:id', async (req, res) => {
 });
 router.get('/', async (req, res) => {
   try {
+    const profileUserId = req.query.userId;
     const movie = req.query.movieId,
       days = Number(req.query.days || 28),
       page = Number(req.query.page || 1);
     if (
+      (profileUserId !== undefined && !positive(profileUserId)) ||
       (movie !== undefined && !positive(movie)) ||
       !Number.isInteger(days) ||
       days < 1 ||
@@ -131,9 +133,15 @@ router.get('/', async (req, res) => {
         movie: Number(movie),
         mediaType: reviewType(req),
       });
+    else if (profileUserId)
+      q.where('review.userId = :profileUserId', {
+        profileUserId: Number(profileUserId),
+      }).andWhere("review.text <> ''");
     else
       q.where(`${reviewActivityDate} >= :since`, {
-        since: new Date(Date.now() - days * 86400000).toISOString().slice(0, 10),
+        since: new Date(Date.now() - days * 86400000)
+          .toISOString()
+          .slice(0, 10),
       }).andWhere("review.text <> ''");
     const receipts = await currentSyncReceipts();
     const filmEvidence = readFilmEvidence();
@@ -407,7 +415,12 @@ router.put(
               tmdbId,
               reviewType(req)
             );
-            if (!latest || (latest.id !== req.body.viewingId && latest.sessionId !== req.body.viewingId) || scope)
+            if (
+              !latest ||
+              (latest.id !== req.body.viewingId &&
+                latest.sessionId !== req.body.viewingId) ||
+              scope
+            )
               throw Error('Viewing changed');
             if (latest.source === 'catalogue')
               updateWriteState((state) => {

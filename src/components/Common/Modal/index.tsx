@@ -81,6 +81,14 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
       backgroundClickableRef.current = backgroundClickable;
     }, [backgroundClickable]);
     useClickOutside(modalRef, () => {
+      // Headless UI child dialogs render outside this portal. While one is
+      // open, it owns dismissal; closing its parent would destroy both dialogs.
+      if (
+        document.querySelector(
+          '[data-headlessui-portal] [role="dialog"][aria-modal="true"]'
+        )
+      )
+        return;
       if (onCancel && backgroundClickableRef.current) {
         onCancel();
       }
